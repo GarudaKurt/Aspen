@@ -26,7 +26,7 @@ export function BusinessCard() {
         <button type="button" onClick={() => setSaved((current) => !current)} aria-label={saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"} aria-pressed={saved} className={`absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border bg-white/95 shadow-sm transition-colors ${saved ? "border-[#c5714e] text-[#c5714e]" : "border-[#3c6355] text-[#3c6355]"}`}><Heart size={19} fill={saved ? "currentColor" : "none"} strokeWidth={1.5} /></button>
         <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1"><span className="sr-only">Image {activeImage + 1} of {cardImages.length}</span>{cardImages.map((_, index) => <button type="button" key={index} aria-label={`Show image ${index + 1}`} aria-current={activeImage === index} onClick={() => setActiveImage(index)} className={`size-1.5 rounded-full transition-colors ${activeImage === index ? "bg-white" : "bg-white/55"}`} />)}</div>
       </div>
-      <div className="space-y-2.5 p-4 sm:p-4.5">
+      <div className="space-y-2.5 p-4 sm:p-[1.125rem]">
         <p className="text-[10px] text-[#8d918f]">Lapu-Lapu City, Philippines</p>
         <h3 className="truncate text-sm font-medium text-[#242524]">Kalinga Animal Hospital</h3>
         <div className="flex items-center gap-1.5 text-xs text-[#9a9c9b]"><Star size={13} fill="#ffd000" strokeWidth={0} /><span>4.8 (23)</span><span className="text-[#d9d9d7]">•</span><span>Vet Clinics</span><ArrowUpRight className="ml-auto text-[#ff8b2c]" size={18} /></div>
