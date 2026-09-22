@@ -42,7 +42,7 @@ export function BusinessCard() {
       <div className="min-h-[156px] space-y-3 p-5 sm:min-h-[168px]">
         <p className="text-[10px] text-[#8d918f]">Lapu-Lapu City, Philippines</p>
         <h3 className="truncate text-base font-medium text-[#242524]">Kalinga Animal Hospital</h3>
-        <div className="flex items-center gap-2 text-sm text-[#9a9c9b]"><Star size={14} fill="#ffd000" strokeWidth={0} /><span>4.8 (23)</span><span className="text-[#d9d9d7]">•</span><span>Vet Clinics</span><ArrowUpRight className="ml-auto text-[#ff8b2c]" size={19} /></div>
+        <div className="flex items-center gap-2 whitespace-nowrap text-sm text-[#9a9c9b]"><Star size={14} fill="#ffd000" strokeWidth={0} /><span>4.8 (23)</span><span className="text-[#d9d9d7]">•</span><span>Vet Clinics</span><ArrowUpRight className="ml-auto shrink-0 text-[#ff8b2c]" size={19} /></div>
         <p className="text-sm text-[#8d918f]">Starts at <span className="font-semibold text-[#242524]">Php 1,500</span></p>
       </div>
     </article>
