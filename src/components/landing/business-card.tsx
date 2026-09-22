@@ -1,16 +1,10 @@
-import { ArrowUpRight, Heart, Star } from "lucide-react";
+import { ArrowUpRight, Star } from "lucide-react";
 
-type BusinessCardProps = { featured?: boolean };
-
-export function BusinessCard({ featured = false }: BusinessCardProps) {
+export function BusinessCard() {
   return (
-    <article className="min-w-[236px] overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-transform hover:-translate-y-1">
+    <article className="min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-transform hover:-translate-y-1">
       <div className="relative aspect-[1.36] overflow-hidden bg-[#d5e9e6]">
-        <img src="/kalinga-animal-hospital.png" alt="Kalinga Animal Hospital waterfront view" className="h-full w-full object-cover" />
-        {featured && <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[10px] font-semibold text-[#111111] shadow-sm"><Star size={11} fill="#ffd000" strokeWidth={0} /> Featured</span>}
-        <button type="button" aria-label="Save Kalinga Animal Hospital" className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white text-[#3c6355]">
-          <Heart size={18} strokeWidth={1.5} />
-        </button>
+        <img src="/kalinga-waterfront.png" alt="Kalinga Animal Hospital waterfront view" className="block h-full w-full object-cover" />
         <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1"><span className="size-1.5 rounded-full bg-white" /><span className="size-1.5 rounded-full bg-white/60" /><span className="size-1.5 rounded-full bg-white/60" /></div>
       </div>
       <div className="space-y-1.5 p-3">
