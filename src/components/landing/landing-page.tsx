@@ -34,7 +34,4 @@ export function LandingPage() {
     </main>
   );
 }
-"use client";
-
-import { useState } from "react";
 
