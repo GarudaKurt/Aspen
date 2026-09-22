@@ -1,7 +1,7 @@
 "use client";
 
 import { MapPin, Search } from "lucide-react";
-import { FormEvent } from "react";
+import type { FormEvent } from "react";
 
 type DiscoverySearchProps = { query: string; city: string; onQueryChange: (query: string) => void; onCityChange: (city: string) => void; onSearch: (query: string) => void };
 
