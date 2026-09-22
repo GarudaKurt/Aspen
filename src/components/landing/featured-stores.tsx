@@ -10,7 +10,7 @@ export function FeaturedStores() {
           <div className="hidden gap-2 sm:flex"><button type="button" aria-label="Previous featured stores" className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"><ChevronLeft size={16} /></button><button type="button" aria-label="Next featured stores" className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"><ChevronRight size={16} /></button></div>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {Array.from({ length: 5 }, (_, index) => <BusinessCard key={index} featured />)}
+          {Array.from({ length: 5 }, (_, index) => <BusinessCard key={index} />)}
         </div>
       </div>
     </section>
