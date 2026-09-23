@@ -20,8 +20,8 @@ const SelectValue = SelectPrimitive.Value
 function SelectContent({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Popup>) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner sideOffset={4} className="z-50">
-        <SelectPrimitive.Popup data-slot="select-content" className={cn("min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md", className)} {...props}>
+      <SelectPrimitive.Positioner side="bottom" collisionAvoidance={{ side: "none", align: "shift" }} sideOffset={4} className="z-50">
+        <SelectPrimitive.Popup data-slot="select-content" className={cn("min-w-[8rem] overflow-hidden rounded-md border border-[#d8d8d8] bg-white p-1 text-[#242524] shadow-md", className)} {...props}>
           <SelectPrimitive.List className="max-h-72 overflow-y-auto">{children}</SelectPrimitive.List>
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>
