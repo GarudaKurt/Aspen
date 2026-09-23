@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 
 const navigation = ["Browse", "Featured", "How it works"];
@@ -38,13 +40,14 @@ export function SiteHeader() {
           >
             List your business
           </Link>
-          <button
+          <Button
+          variant="ghost"
             type="button"
             aria-label="Open menu"
             className="rounded-lg border border-[#e1e5e2] p-2 text-[#3c6355] transition-colors hover:bg-[#f5f7f5] md:hidden"
           >
             <Menu size={18} strokeWidth={1.5} />
-          </button>
+          </Button>
         </div>
       </div>
     </header>
