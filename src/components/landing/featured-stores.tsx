@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BusinessCard } from "./business-card";
 
@@ -21,14 +22,14 @@ export function FeaturedStores() {
               className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"
             >
               <ChevronLeft size={16} />
-            </button>
+            </Button>
             <button
               type="button"
               aria-label="Next featured stores"
               className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"
             >
               <ChevronRight size={16} />
-            </button>
+            </Button>
           </div>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-5 min-[560px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
