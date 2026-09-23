@@ -1,13 +1,15 @@
 "use client";
 
+import Image from "next/image";
+
 import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
 const cardImages = [
-  { src: "/kalinga-waterfront.png", position: "center" },
-  { src: "/kalinga-waterfront.png", position: "25% center" },
-  { src: "/kalinga-waterfront.png", position: "75% center" },
+  { src: "/kalinga-waterfront.png", position: "object-center" },
+  { src: "/kalinga-waterfront.png", position: "object-[25%_center]" },
+  { src: "/kalinga-waterfront.png", position: "object-[75%_center]" },
 ];
 
 export function BusinessCard() {
@@ -35,7 +37,7 @@ export function BusinessCard() {
   return (
     <article className="group min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
       <div onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={() => { pointerStart.current = null; }} className="relative aspect-[1.35] cursor-grab touch-none overflow-hidden bg-[#d5e9e6] active:cursor-grabbing">
-        <img draggable={false} src={cardImages[activeImage].src} alt={`Kalinga Animal Hospital view ${activeImage + 1}`} className="block h-full w-full select-none object-cover transition-[object-position] duration-300" style={{ objectPosition: cardImages[activeImage].position }} />
+        <Image draggable={false} src={cardImages[activeImage].src} alt={`Kalinga Animal Hospital view ${activeImage + 1}`} fill sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw" className={`select-none object-cover transition-[object-position] duration-300 ${cardImages[activeImage].position}`} />
         <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => moveImage(-1)} aria-label="Previous card image" className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm transition-colors hover:bg-white lg:flex"><ArrowLeft size={15} /></button>
         <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => moveImage(1)} aria-label="Next card image" className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm transition-colors hover:bg-white lg:flex"><ArrowRight size={15} /></button>
         <button type="button" onClick={() => setSaved((current) => !current)} aria-label={saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"} aria-pressed={saved} className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-transparent bg-transparent text-transparent"><Heart size={19} aria-hidden="true" /></button>
