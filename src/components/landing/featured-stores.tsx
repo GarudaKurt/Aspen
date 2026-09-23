@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { BusinessCard } from "./business-card";
+import { BusinessCard, type BusinessCardProps } from "./business-card";
+
+const featuredBusinesses: BusinessCardProps[] = [
+  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
+  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
+  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
+  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
+];
 
 export function FeaturedStores() {
   return (
