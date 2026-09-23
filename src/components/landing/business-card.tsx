@@ -88,7 +88,7 @@ export function BusinessCard() {
             saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
           }
           aria-pressed={saved}
-          className={`absolute bottom-[-20px] right-[-1px] z-10 flex size-10 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 active:translate-y-0 hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
+          className={`absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 p-0 text-[#3c6355] shadow-sm transition-colors duration-200 active:translate-y-0 hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
         >
           <Heart size={16} fill={saved ? "currentColor" : "none"} strokeWidth={1.8} />
         </Button>
