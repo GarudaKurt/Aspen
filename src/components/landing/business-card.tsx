@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
 import { useRef, useState } from "react";
@@ -24,13 +25,30 @@ export interface BusinessCardProps {
   priceStarts: string;
   images?: BusinessCardImage[];
   href?: string;
+  isLoading?: boolean;
 }
 
-const defaultCardImages: BusinessCardImage[] = [
-  { src: "/kalinga-anima-hospital.png", position: "object-center" },
-  { src: "/kalinga-anima-hospital.png", position: "object-[25%_center]" },
-  { src: "/kalinga-anima-hospital.png", position: "object-[75%_center]" },
-];
+export function BusinessCardSkeleton() {
+  return (
+    <Card
+      aria-label="Loading business card"
+      aria-busy="true"
+      className="min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)]"
+    >
+      <Skeleton className="aspect-[1.35] w-full rounded-none" />
+      <div className="space-y-2 p-2 sm:space-y-2.5 sm:p-2">
+        <Skeleton className="h-3 w-2/5" />
+        <Skeleton className="h-5 w-4/5" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="size-3 rounded-full" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <Skeleton className="h-5 w-2/5" />
+      </div>
+    </Card>
+  );
+}
 
 export function BusinessCard({
   location,
@@ -38,15 +56,23 @@ export function BusinessCard({
   rating,
   services,
   priceStarts,
-  images = defaultCardImages,
+  images = [],
   href = "#",
+  isLoading = false,
 }: BusinessCardProps) {
-  const cardImages = images.length > 0 ? images : defaultCardImages;
+  const cardImages = images;
+  const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const pointerStart = useRef<number | null>(null);
 
+  if (isLoading) {
+    return <BusinessCardSkeleton />;
+  }
+
   const moveImage = (direction: number) => {
+    if (!hasImages) return;
+
     setActiveImage(
       (current) =>
         (current + direction + cardImages.length) % cardImages.length,
@@ -61,10 +87,14 @@ export function BusinessCard({
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (pointerStart.current === null) return;
     const distance = event.clientX - pointerStart.current;
-    if (Math.abs(distance) >= 40) moveImage(distance > 0 ? -1 : 1);
+    if (hasImages && Math.abs(distance) >= 40) {
+      moveImage(distance > 0 ? -1 : 1);
+    }
     pointerStart.current = null;
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
+
+  const currentImage = cardImages[activeImage];
 
   return (
     <Card className="group min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
@@ -76,34 +106,40 @@ export function BusinessCard({
         }}
         className="relative aspect-[1.35] cursor-grab touch-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
       >
-        <Image
-          draggable={false}
-          src={cardImages[activeImage].src}
-          alt={`${cardImages[activeImage].alt ?? businessName} view ${activeImage + 1}`}
-          fill
-          sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
-          className={`select-none object-cover transition-[object-position] duration-300 ${cardImages[activeImage].position}`}
-        />
-        <Button
-          variant="ghost"
-          type="button"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={() => moveImage(-1)}
-          aria-label="Previous card image"
-          className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-none transform-none hover:transform-none active:transform-none focus:transform-none hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
-        >
-          <ArrowLeft size={15} />
-        </Button>
-        <Button
-          variant="ghost"
-          type="button"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={() => moveImage(1)}
-          aria-label="Next card image"
-          className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-none transform-none hover:transform-none active:transform-none focus:transform-none hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
-        >
-          <ArrowRight size={15} />
-        </Button>
+        {currentImage && (
+          <Image
+            draggable={false}
+            src={currentImage.src}
+            alt={`${currentImage.alt ?? businessName} view ${activeImage + 1}`}
+            fill
+            sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
+            className={`select-none object-cover transition-[object-position] duration-300 ${currentImage.position ?? ""}`}
+          />
+        )}
+        {hasImages && (
+          <>
+            <Button
+              variant="ghost"
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => moveImage(-1)}
+              aria-label="Previous card image"
+              className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-none transform-none hover:transform-none active:transform-none focus:transform-none hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
+            >
+              <ArrowLeft size={15} />
+            </Button>
+            <Button
+              variant="ghost"
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => moveImage(1)}
+              aria-label="Next card image"
+              className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-none transform-none hover:transform-none active:transform-none focus:transform-none hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
+            >
+              <ArrowRight size={15} />
+            </Button>
+          </>
+        )}
         <Button
           variant="ghost"
           type="button"
@@ -122,27 +158,27 @@ export function BusinessCard({
             strokeWidth={1.8}
           />
         </Button>
-        <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1">
-          <span className="sr-only">
-            Image {activeImage + 1} of {cardImages.length}
-          </span>
-          {cardImages.map((_, index) => (
-            <Button
-              variant="ghost"
-              type="button"
-              key={index}
-              aria-label={`Show image ${index + 1}`}
-              aria-current={activeImage === index}
-              onClick={() => setActiveImage(index)}
-              className={`size-1.5 rounded-full transition-colors ${activeImage === index ? "bg-white" : "bg-white/55"}`}
-            />
-          ))}
-        </div>
+        {hasImages && (
+          <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1">
+            <span className="sr-only">
+              Image {activeImage + 1} of {cardImages.length}
+            </span>
+            {cardImages.map((_, index) => (
+              <Button
+                variant="ghost"
+                type="button"
+                key={index}
+                aria-label={`Show image ${index + 1}`}
+                aria-current={activeImage === index}
+                onClick={() => setActiveImage(index)}
+                className={`size-1.5 rounded-full transition-colors ${activeImage === index ? "bg-white" : "bg-white/55"}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
       <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
-        <p className="text-[10px] text-[#8d918f]">
-          {location}
-        </p>
+        <p className="text-[10px] text-[#8d918f]">{location}</p>
         <h3 className="truncate text-base font-medium text-[#242524]">
           {businessName}
         </h3>
