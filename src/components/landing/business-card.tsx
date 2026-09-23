@@ -10,13 +10,38 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
 
-const cardImages = [
+export type BusinessCardImage = {
+  src: string;
+  position?: string;
+  alt?: string;
+};
+
+export interface BusinessCardProps {
+  location: string;
+  businessName: string;
+  rating: string;
+  services: string;
+  priceStarts: string;
+  images?: BusinessCardImage[];
+  href?: string;
+}
+
+const defaultCardImages: BusinessCardImage[] = [
   { src: "/kalinga-anima-hospital.png", position: "object-center" },
   { src: "/kalinga-anima-hospital.png", position: "object-[25%_center]" },
   { src: "/kalinga-anima-hospital.png", position: "object-[75%_center]" },
 ];
 
-export function BusinessCard() {
+export function BusinessCard({
+  location,
+  businessName,
+  rating,
+  services,
+  priceStarts,
+  images = defaultCardImages,
+  href = "#",
+}: BusinessCardProps) {
+  const cardImages = images.length > 0 ? images : defaultCardImages;
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const pointerStart = useRef<number | null>(null);
@@ -54,7 +79,7 @@ export function BusinessCard() {
         <Image
           draggable={false}
           src={cardImages[activeImage].src}
-          alt={`Kalinga Animal Hospital view ${activeImage + 1}`}
+          alt={`${cardImages[activeImage].alt ?? businessName} view ${activeImage + 1}`}
           fill
           sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
           className={`select-none object-cover transition-[object-position] duration-300 ${cardImages[activeImage].position}`}
@@ -86,7 +111,7 @@ export function BusinessCard() {
           onPointerUp={(event) => event.stopPropagation()}
           onClick={() => setSaved((current) => !current)}
           aria-label={
-            saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
+            saved ? `Remove ${businessName} from favorites` : `Save ${businessName}`
           }
           aria-pressed={saved}
           className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
@@ -116,19 +141,19 @@ export function BusinessCard() {
       </div>
       <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
         <p className="text-[10px] text-[#8d918f]">
-          Lapu-Lapu City, Philippines
+          {location}
         </p>
         <h3 className="truncate text-base font-medium text-[#242524]">
-          Kalinga Animal Hospital
+          {businessName}
         </h3>
         <div className="flex items-center gap-2 whitespace-nowrap text-sm text-[#9a9c9b]">
           <Star size={13} fill="#ffd000" strokeWidth={0} />
-          <span>4.8 (23)</span>
+          <span>{rating}</span>
           <span className="text-[#d9d9d7]">•</span>
-          <span>Vet Clinics</span>
+          <span>{services}</span>
           <Link
-            href={"#"}
-            aria-label="View Kalinga Animal Hospital details"
+            href={href}
+            aria-label={`View ${businessName} details`}
             className="ml-auto flex shrink-0 items-center justify-center rounded-full text-[#ff8b2c] transition-colors hover:text-[#e67a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8b2c]/50"
           >
             <ArrowUpRight size={16} />
@@ -136,7 +161,7 @@ export function BusinessCard() {
         </div>
         <p className="text-sm leading-5 text-[#8d918f]">
           Starts at{" "}
-          <span className="font-semibold text-[#242524]">Php 1,500</span>
+          <span className="font-semibold text-[#242524]">{priceStarts}</span>
         </p>
       </div>
     </Card>
