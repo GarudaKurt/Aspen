@@ -64,7 +64,7 @@ export function BusinessCard() {
           onPointerDown={(event) => event.stopPropagation()}
           onClick={() => moveImage(-1)}
           aria-label="Previous card image"
-          className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-opacity hover:bg-transparent focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
+          className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-colors hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
         >
           <ArrowLeft size={15} />
         </Button>
@@ -87,7 +87,7 @@ export function BusinessCard() {
             saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
           }
           aria-pressed={saved}
-          className={`absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border-0 bg-transparent text-white shadow-none transition-colors duration-200 hover:bg-transparent ${saved ? "text-[#3c6355]" : ""}`}
+          className={`absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
         >
           <Heart size={19} fill={saved ? "currentColor" : "none"} strokeWidth={1.8} />
         </Button>
