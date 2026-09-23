@@ -74,7 +74,7 @@ export function BusinessCard() {
           onPointerDown={(event) => event.stopPropagation()}
           onClick={() => moveImage(1)}
           aria-label="Next card image"
-          className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-colors hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
+          className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-none transform-none hover:transform-none active:transform-none focus:transform-none hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
         >
           <ArrowRight size={15} />
         </Button>
@@ -88,9 +88,13 @@ export function BusinessCard() {
             saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
           }
           aria-pressed={saved}
-          className={`absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 p-0 text-[#3c6355] shadow-sm transition-colors duration-200 active:translate-y-0 hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
+          className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
         >
-          <Heart size={16} fill={saved ? "currentColor" : "none"} strokeWidth={1.8} />
+          <Heart
+            size={12}
+            fill={saved ? "currentColor" : "none"}
+            strokeWidth={1.8}
+          />
         </Button>
         <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1">
           <span className="sr-only">
@@ -98,7 +102,7 @@ export function BusinessCard() {
           </span>
           {cardImages.map((_, index) => (
             <Button
-          variant="ghost"
+              variant="ghost"
               type="button"
               key={index}
               aria-label={`Show image ${index + 1}`}
@@ -121,7 +125,7 @@ export function BusinessCard() {
           <span>4.8 (23)</span>
           <span className="text-[#d9d9d7]">•</span>
           <span>Vet Clinics</span>
-          <ArrowUpRight className="ml-auto shrink-0 text-[#ff8b2c]" size={18} />
+          <ArrowUpRight className="ml-auto shrink-0 text-[#ff8b2c]" size={16} />
         </div>
         <p className="text-sm leading-5 text-[#8d918f]">
           Starts at{" "}
