@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 
 import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
 import { useRef, useState } from "react";
+import Link from "next/link";
 import type { PointerEvent } from "react";
 
 const cardImages = [
@@ -113,7 +114,7 @@ export function BusinessCard() {
           ))}
         </div>
       </div>
-      <div className="space-y-2 p-4 sm:space-y-2.5 sm:p-4">
+      <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
         <p className="text-[10px] text-[#8d918f]">
           Lapu-Lapu City, Philippines
         </p>
@@ -125,7 +126,13 @@ export function BusinessCard() {
           <span>4.8 (23)</span>
           <span className="text-[#d9d9d7]">•</span>
           <span>Vet Clinics</span>
-          <ArrowUpRight className="ml-auto shrink-0 text-[#ff8b2c]" size={16} />
+          <Link
+            href={"#"}
+            aria-label="View Kalinga Animal Hospital details"
+            className="ml-auto flex shrink-0 items-center justify-center rounded-full text-[#ff8b2c] transition-colors hover:text-[#e67a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8b2c]/50"
+          >
+            <ArrowUpRight size={16} />
+          </Link>
         </div>
         <p className="text-sm leading-5 text-[#8d918f]">
           Starts at{" "}
