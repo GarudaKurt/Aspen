@@ -74,11 +74,10 @@ export function BusinessCard() {
           onPointerDown={(event) => event.stopPropagation()}
           onClick={() => moveImage(1)}
           aria-label="Next card image"
-          className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-opacity hover:bg-transparent focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
+          className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-colors hover:bg-white hover:text-[#3c6355] focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
         >
           <ArrowRight size={15} />
         </Button>
-        <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-[#242524] shadow-sm"><Star size={12} fill="#ffd000" strokeWidth={0} />Featured</span>
         <Button
           variant="ghost"
           type="button"
