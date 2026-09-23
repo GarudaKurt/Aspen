@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GraduationCap, Hotel, ListFilter, MapPin, Scissors, Search, ShoppingBag, Stethoscope } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { colorVariables } from "@/constants/colors";
 
 type DiscoverySearchProps = { query: string; city: string; onQueryChange: (query: string) => void; onCityChange: (city: string) => void; onSearch: (query: string) => void };
 
@@ -30,7 +29,7 @@ export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSe
   };
 
   return (
-    <section id="browse" style={colorVariables} className="px-6 pb-12 pt-8 sm:px-10 sm:pb-16 sm:pt-10 lg:px-[130px]">
+    <section id="browse" className="px-6 pb-12 pt-8 sm:px-10 sm:pb-16 sm:pt-10 lg:px-[130px]">
       <div className="mx-auto max-w-[1440px]">
         <h1 className="max-w-[780px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">Trusted pet care, found in minutes</h1>
         <p className="mt-4 max-w-[640px] text-lg leading-6 text-[#242524] sm:text-xl">Vet clinics, groomers, boarding and supply shops near you<br className="hidden sm:block" /> browse real profiles and book straight from the listing.</p>
@@ -50,7 +49,7 @@ export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSe
                 type="button"
                 key={label}
                 onClick={() => setSelectedCategory(label)}
-                className={`rounded-full border border-transparent bg-transparent px-4 py-2.5 text-base font-semibold text-[var(--color-default-text)] hover:bg-transparent hover:!text-[var(--color-primary)] sm:text-lg ${isActive ? "border-[var(--color-primary)] !text-[var(--color-primary)]" : ""}`}
+                className={`rounded-full border border-transparent bg-transparent px-4 py-2.5 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
               >
                 <Icon size={22} strokeWidth={1.8} />
                 {label}
