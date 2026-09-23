@@ -113,7 +113,7 @@ export function BusinessCard({
             alt={`${currentImage.alt ?? businessName} view ${activeImage + 1}`}
             fill
             sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
-            className={`select-none object-cover transition-[object-position] duration-300 ${currentImage.position ?? ""}`}
+            className={`select-none rounded-sm object-cover transition-[object-position] duration-300 ${currentImage.position ?? ""}`}
           />
         )}
         {hasImages && (
@@ -147,7 +147,9 @@ export function BusinessCard({
           onPointerUp={(event) => event.stopPropagation()}
           onClick={() => setSaved((current) => !current)}
           aria-label={
-            saved ? `Remove ${businessName} from favorites` : `Save ${businessName}`
+            saved
+              ? `Remove ${businessName} from favorites`
+              : `Save ${businessName}`
           }
           aria-pressed={saved}
           className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
