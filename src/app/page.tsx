@@ -1,9 +1,6 @@
-const Home = () => {
-  return (
-    <div>
-       <h1>Hello World</h1>
-    </div>
-  )
+import { LandingPage } from "@/components/landing/landing-page";
+
+export default function Home() {
+  return <LandingPage />;
 }
 
-export default Home
