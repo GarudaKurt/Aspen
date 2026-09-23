@@ -1,13 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { BusinessCard, type BusinessCardProps } from "./business-card";
-
-const featuredBusinesses: BusinessCardProps[] = [
-  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
-  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
-  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
-  { location: "Lapu-Lapu City, Philippines", businessName: "Kalinga Animal Hospital", rating: "4.8 (23)", services: "Vet Clinics", priceStarts: "Php 1,500" },
-];
+import { BusinessCard } from "./business-card";
+import { mockBusinesses } from "./mock-businesses";
 
 export function FeaturedStores() {
   return (
@@ -24,7 +18,7 @@ export function FeaturedStores() {
           </div>
           <div className="hidden gap-2 sm:flex">
             <Button
-          variant="ghost"
+              variant="ghost"
               type="button"
               aria-label="Previous featured stores"
               className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"
@@ -32,7 +26,7 @@ export function FeaturedStores() {
               <ChevronLeft size={16} />
             </Button>
             <Button
-          variant="ghost"
+              variant="ghost"
               type="button"
               aria-label="Next featured stores"
               className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"
@@ -42,8 +36,8 @@ export function FeaturedStores() {
           </div>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-5 min-[560px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 4 }, (_, index) => (
-            <BusinessCard key={index} />
+          {mockBusinesses.slice(0, 4).map((business, index) => (
+            <BusinessCard key={`${business.businessName}-${index}`} {...business} />
           ))}
         </div>
       </div>
