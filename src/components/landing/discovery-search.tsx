@@ -4,21 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Search } from "lucide-react";
-import type { FormEvent } from "react";
+import { GraduationCap, Hotel, ListFilter, MapPin, Scissors, Search, ShoppingBag, Stethoscope } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { colorVariables } from "@/constants/colors";
 
 type DiscoverySearchProps = { query: string; city: string; onQueryChange: (query: string) => void; onCityChange: (city: string) => void; onSearch: (query: string) => void };
 
 const cities = ["Cebu City", "Mandaue City", "Lapu-Lapu City", "Talisay City", "Naga City", "Carcar City", "Danao City"];
 
+const serviceCategories = [
+  { label: "All Services", icon: ListFilter },
+  { label: "Vet Clinics", icon: Stethoscope },
+  { label: "Pet Supplies", icon: ShoppingBag },
+  { label: "Grooming", icon: Scissors },
+  { label: "Boarding", icon: Hotel },
+  { label: "Training", icon: GraduationCap },
+];
+
 export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSearch }: DiscoverySearchProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSearch(query.trim());
   };
 
   return (
-    <section id="browse" className="px-6 pb-12 pt-8 sm:px-10 sm:pb-16 sm:pt-10 lg:px-[130px]">
+    <section id="browse" style={colorVariables} className="px-6 pb-12 pt-8 sm:px-10 sm:pb-16 sm:pt-10 lg:px-[130px]">
       <div className="mx-auto max-w-[1440px]">
         <h1 className="max-w-[780px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">Trusted pet care, found in minutes</h1>
         <p className="mt-4 max-w-[640px] text-lg leading-6 text-[#242524] sm:text-xl">Vet clinics, groomers, boarding and supply shops near you<br className="hidden sm:block" /> browse real profiles and book straight from the listing.</p>
@@ -28,7 +40,24 @@ export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSe
           <Label className="flex min-h-[52px] items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:border-t-0"><MapPin size={18} strokeWidth={1.4} /><Select value={city} onValueChange={(value) => { if (value) onCityChange(value); }}><SelectTrigger aria-label="Choose city" className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none focus-visible:ring-0"><SelectValue /></SelectTrigger><SelectContent>{cities.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent></Select></Label>
           <Button variant="ghost" type="submit" className="mx-2 mb-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[#3c6355] px-5 text-base font-semibold text-white transition-colors text-white hover:bg-[#2f5044] hover:text-white sm:my-2 sm:mb-0">→ <span>Search</span></Button>
         </form>
-        <div className="mt-6 flex max-w-[760px] flex-wrap gap-2.5">{["All Services", "Vet Clinics", "Pet Supplies", "Grooming", "Boarding", "Training"].map((category, index) => <Button variant="ghost" type="button" key={category} className={`rounded-full px-4 py-2 text-xs font-semibold ${index === 0 ? "bg-[#3c6355] text-white" : "bg-[#f3f3f2] text-[#353735] hover:bg-[#e9ece9]"}`}>{category}</Button>)}</div>
+        <div className="mt-6 flex max-w-[760px] flex-wrap gap-2.5">
+          {serviceCategories.map(({ label, icon: Icon }) => {
+            const isActive = selectedCategory === label;
+
+            return (
+              <Button
+                variant="ghost"
+                type="button"
+                key={label}
+                onClick={() => setSelectedCategory(label)}
+                className={`rounded-full border border-transparent bg-transparent px-4 py-2.5 text-base font-semibold text-[var(--color-default-text)] hover:bg-transparent hover:!text-[var(--color-primary)] sm:text-lg ${isActive ? "border-[var(--color-primary)] !text-[var(--color-primary)]" : ""}`}
+              >
+                <Icon size={22} strokeWidth={1.8} />
+                {label}
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
