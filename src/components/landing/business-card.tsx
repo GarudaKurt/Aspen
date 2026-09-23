@@ -64,7 +64,7 @@ export function BusinessCard() {
           onPointerDown={(event) => event.stopPropagation()}
           onClick={() => moveImage(-1)}
           aria-label="Previous card image"
-          className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-colors hover:bg-white hover:text-[#3c6355] active:translate-y-0 focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
+          className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center bg-transparent text-white opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] transition-none hover:bg-white hover:text-[#3c6355] active:translate-y-0 focus-visible:opacity-100 lg:flex lg:group-hover:opacity-100"
         >
           <ArrowLeft size={15} />
         </Button>
