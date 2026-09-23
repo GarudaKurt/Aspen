@@ -7,5 +7,10 @@ pipeline {
                 echo "Hello World"
             }
         }
+        stage('test') {
+            steps {
+                echo "Testing CI/CD"
+            }
+        }
     }
 }
