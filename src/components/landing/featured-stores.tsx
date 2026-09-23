@@ -16,14 +16,16 @@ export function FeaturedStores() {
             </p>
           </div>
           <div className="hidden gap-2 sm:flex">
-            <button
+            <Button
+          variant="ghost"
               type="button"
               aria-label="Previous featured stores"
               className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"
             >
               <ChevronLeft size={16} />
             </Button>
-            <button
+            <Button
+          variant="ghost"
               type="button"
               aria-label="Next featured stores"
               className="flex size-9 items-center justify-center rounded-full border border-[#e2e6e4] text-[#b9c1bd]"
