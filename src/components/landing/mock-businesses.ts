@@ -1,0 +1,108 @@
+import type { BusinessCardProps } from "./business-card";
+
+export const mockBusinesses: BusinessCardProps[] = [
+  {
+    location: "Lapu-Lapu City, Philippines",
+    businessName: "Kalinga Animal Hospital",
+    rating: "4.8 (23)",
+    services: "Vet Clinics",
+    priceStarts: "Php 1,500",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_1.png", position: "object-center" },
+      { src: "/img/mock/image_2.png", position: "object-center" },
+      { src: "/img/mock/image_3.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Cebu City, Philippines",
+    businessName: "Cebu Pet Wellness Center",
+    rating: "4.7 (18)",
+    services: "Vet Clinics",
+    priceStarts: "Php 1,200",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_2.png", position: "object-center" },
+      { src: "/img/mock/image_3.png", position: "object-center" },
+      { src: "/img/mock/image_4.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Mandaue City, Philippines",
+    businessName: "Paws & Claws Grooming",
+    rating: "4.9 (31)",
+    services: "Grooming",
+    priceStarts: "Php 900",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_3.png", position: "object-center" },
+      { src: "/img/mock/image_4.png", position: "object-center" },
+      { src: "/img/mock/image_5.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Talisay City, Philippines",
+    businessName: "Happy Tails Boarding",
+    rating: "4.6 (14)",
+    services: "Boarding",
+    priceStarts: "Php 1,000",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_4.png", position: "object-center" },
+      { src: "/img/mock/image_5.png", position: "object-center" },
+      { src: "/img/mock/image_6.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Naga City, Philippines",
+    businessName: "Pet Pantry Cebu",
+    rating: "4.8 (27)",
+    services: "Pet Supplies",
+    priceStarts: "Php 750",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_5.png", position: "object-center" },
+      { src: "/img/mock/image_6.png", position: "object-center" },
+      { src: "/img/mock/image_1.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Danao City, Philippines",
+    businessName: "Woof Academy",
+    rating: "4.7 (20)",
+    services: "Training",
+    priceStarts: "Php 1,100",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_6.png", position: "object-center" },
+      { src: "/img/mock/image_1.png", position: "object-center" },
+      { src: "/img/mock/image_2.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Carcar City, Philippines",
+    businessName: "Cebu Animal Care",
+    rating: "4.5 (12)",
+    services: "Vet Clinics",
+    priceStarts: "Php 1,300",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_1.png", position: "object-center" },
+      { src: "/img/mock/image_3.png", position: "object-center" },
+      { src: "/img/mock/image_5.png", position: "object-center" },
+    ],
+  },
+  {
+    location: "Cebu City, Philippines",
+    businessName: "Little Paws Pet Shop",
+    rating: "4.9 (36)",
+    services: "Pet Supplies",
+    priceStarts: "Php 650",
+    href: "#",
+    images: [
+      { src: "/img/mock/image_2.png", position: "object-center" },
+      { src: "/img/mock/image_4.png", position: "object-center" },
+      { src: "/img/mock/image_6.png", position: "object-center" },
+    ],
+  },
+];
