@@ -48,7 +48,7 @@ export function BusinessCard() {
         onPointerCancel={() => {
           pointerStart.current = null;
         }}
-        className="relative aspect-[1.35] cursor-grab touch-none overflow-hidden bg-[#d5e9e6] active:cursor-grabbing"
+        className="relative aspect-[1.35] cursor-grab touch-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
       >
         <Image
           draggable={false}
@@ -87,7 +87,7 @@ export function BusinessCard() {
             saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
           }
           aria-pressed={saved}
-          className={`absolute bottom-0 right-3 z-10 flex size-10 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
+          className={`absolute bottom-[-20px] right-[-1px] z-10 flex size-10 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
         >
           <Heart size={19} fill={saved ? "currentColor" : "none"} strokeWidth={1.8} />
         </Button>
