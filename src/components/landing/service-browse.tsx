@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Circle, Dog, Scissors, ShoppingBag, Stethoscope } from "lucide-react";
 
 const services = [
