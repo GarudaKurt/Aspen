@@ -18,7 +18,10 @@ export function BusinessCard() {
   const pointerStart = useRef<number | null>(null);
 
   const moveImage = (direction: number) => {
-    setActiveImage((current) => (current + direction + cardImages.length) % cardImages.length);
+    setActiveImage(
+      (current) =>
+        (current + direction + cardImages.length) % cardImages.length,
+    );
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -36,20 +39,86 @@ export function BusinessCard() {
 
   return (
     <article className="group min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
-      <div onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={() => { pointerStart.current = null; }} className="relative aspect-[1.35] cursor-grab touch-none overflow-hidden bg-[#d5e9e6] active:cursor-grabbing">
-        <Image draggable={false} src={cardImages[activeImage].src} alt={`Kalinga Animal Hospital view ${activeImage + 1}`} fill sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw" className={`select-none object-cover transition-[object-position] duration-300 ${cardImages[activeImage].position}`} />
-        <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => moveImage(-1)} aria-label="Previous card image" className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm transition-colors hover:bg-white lg:flex"><ArrowLeft size={15} /></button>
-        <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => moveImage(1)} aria-label="Next card image" className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm transition-colors hover:bg-white lg:flex"><ArrowRight size={15} /></button>
-        <button type="button" onClick={() => setSaved((current) => !current)} aria-label={saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"} aria-pressed={saved} className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-transparent bg-transparent text-transparent"><Heart size={19} aria-hidden="true" /></button>
-        <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1"><span className="sr-only">Image {activeImage + 1} of {cardImages.length}</span>{cardImages.map((_, index) => <button type="button" key={index} aria-label={`Show image ${index + 1}`} aria-current={activeImage === index} onClick={() => setActiveImage(index)} className={`size-1.5 rounded-full transition-colors ${activeImage === index ? "bg-white" : "bg-white/55"}`} />)}</div>
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => {
+          pointerStart.current = null;
+        }}
+        className="relative aspect-[1.35] cursor-grab touch-none overflow-hidden bg-[#d5e9e6] active:cursor-grabbing"
+      >
+        <Image
+          draggable={false}
+          src={cardImages[activeImage].src}
+          alt={`Kalinga Animal Hospital view ${activeImage + 1}`}
+          fill
+          sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
+          className={`select-none object-cover transition-[object-position] duration-300 ${cardImages[activeImage].position}`}
+        />
+        <button
+          type="button"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => moveImage(-1)}
+          aria-label="Previous card image"
+          className="absolute left-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm transition-colors hover:bg-white lg:flex"
+        >
+          <ArrowLeft size={15} />
+        </button>
+        <button
+          type="button"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => moveImage(1)}
+          aria-label="Next card image"
+          className="absolute right-3 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm transition-colors hover:bg-white lg:flex"
+        >
+          <ArrowRight size={15} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setSaved((current) => !current)}
+          aria-label={
+            saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
+          }
+          aria-pressed={saved}
+          className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-transparent bg-transparent text-transparent"
+        >
+          <Heart size={19} aria-hidden="true" />
+        </button>
+        <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1">
+          <span className="sr-only">
+            Image {activeImage + 1} of {cardImages.length}
+          </span>
+          {cardImages.map((_, index) => (
+            <button
+              type="button"
+              key={index}
+              aria-label={`Show image ${index + 1}`}
+              aria-current={activeImage === index}
+              onClick={() => setActiveImage(index)}
+              className={`size-1.5 rounded-full transition-colors ${activeImage === index ? "bg-white" : "bg-white/55"}`}
+            />
+          ))}
+        </div>
       </div>
       <div className="space-y-2 p-4 sm:space-y-2.5 sm:p-4">
-        <p className="text-[10px] text-[#8d918f]">Lapu-Lapu City, Philippines</p>
-        <h3 className="truncate text-base font-medium text-[#242524]">Kalinga Animal Hospital</h3>
-        <div className="flex items-center gap-2 whitespace-nowrap text-sm text-[#9a9c9b]"><Star size={13} fill="#ffd000" strokeWidth={0} /><span>4.8 (23)</span><span className="text-[#d9d9d7]">•</span><span>Vet Clinics</span><ArrowUpRight className="ml-auto shrink-0 text-[#ff8b2c]" size={18} /></div>
-        <p className="text-sm leading-5 text-[#8d918f]">Starts at <span className="font-semibold text-[#242524]">Php 1,500</span></p>
+        <p className="text-[10px] text-[#8d918f]">
+          Lapu-Lapu City, Philippines
+        </p>
+        <h3 className="truncate text-base font-medium text-[#242524]">
+          Kalinga Animal Hospital
+        </h3>
+        <div className="flex items-center gap-2 whitespace-nowrap text-sm text-[#9a9c9b]">
+          <Star size={13} fill="#ffd000" strokeWidth={0} />
+          <span>4.8 (23)</span>
+          <span className="text-[#d9d9d7]">•</span>
+          <span>Vet Clinics</span>
+          <ArrowUpRight className="ml-auto shrink-0 text-[#ff8b2c]" size={18} />
+        </div>
+        <p className="text-sm leading-5 text-[#8d918f]">
+          Starts at{" "}
+          <span className="font-semibold text-[#242524]">Php 1,500</span>
+        </p>
       </div>
     </article>
   );
 }
-

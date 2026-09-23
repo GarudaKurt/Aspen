@@ -1,5 +1,50 @@
 import Link from "next/link";
 export function SiteFooter() {
-  return <footer className="bg-[#faf9f6] px-6 py-12 sm:px-10 lg:px-[130px]"><div className="mx-auto grid max-w-[1440px] gap-10 text-[#3c6355] sm:grid-cols-2 lg:grid-cols-4"><div><h2 className="text-lg font-bold">Logo here</h2><p className="mt-4 max-w-[250px] text-sm leading-5">Discover and book trusted pet services, all in one directory.</p></div><div><h3 className="text-lg font-bold">For owners</h3><div className="mt-4 space-y-2 text-sm"><Link className="block hover:underline" href="#featured">Find a vet</Link><Link className="block hover:underline" href="#featured">Find a grooming</Link><Link className="block hover:underline" href="#featured">Find a boarding</Link></div></div><div><h3 className="text-lg font-bold">For business</h3><div className="mt-4 space-y-2 text-sm"><Link className="block hover:underline" href="#list-your-business">List your business</Link><Link className="block hover:underline" href="#top">Pricing</Link><Link className="block hover:underline" href="#top">Dashboard</Link></div></div><div><h3 className="text-lg font-bold">Company</h3><div className="mt-4 space-y-2 text-sm"><p>Cebu City</p><p>xyz@gmail.com</p></div></div></div></footer>;
+  return (
+    <footer className="bg-[#faf9f6] px-6 py-12 sm:px-10 lg:px-[130px]">
+      <div className="mx-auto grid max-w-[1440px] gap-10 text-[#3c6355] sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <h2 className="text-lg font-bold">Logo here</h2>
+          <p className="mt-4 max-w-[250px] text-sm leading-5">
+            Discover and book trusted pet services, all in one directory.
+          </p>
+        </div>
+        <div>
+          <h3 className="text-lg font-bold">For owners</h3>
+          <div className="mt-4 space-y-2 text-sm">
+            <Link className="block hover:underline" href="#featured">
+              Find a vet
+            </Link>
+            <Link className="block hover:underline" href="#featured">
+              Find a grooming
+            </Link>
+            <Link className="block hover:underline" href="#featured">
+              Find a boarding
+            </Link>
+          </div>
+        </div>
+        <div>
+          <h3 className="text-lg font-bold">For business</h3>
+          <div className="mt-4 space-y-2 text-sm">
+            <Link className="block hover:underline" href="#list-your-business">
+              List your business
+            </Link>
+            <Link className="block hover:underline" href="#top">
+              Pricing
+            </Link>
+            <Link className="block hover:underline" href="#top">
+              Dashboard
+            </Link>
+          </div>
+        </div>
+        <div>
+          <h3 className="text-lg font-bold">Company</h3>
+          <div className="mt-4 space-y-2 text-sm">
+            <p>Cebu City</p>
+            <p>xyz@gmail.com</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 }
-
