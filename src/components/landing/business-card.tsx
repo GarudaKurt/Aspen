@@ -7,9 +7,9 @@ import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
 const cardImages = [
-  { src: "/kalinga-waterfront.png", position: "object-center" },
-  { src: "/kalinga-waterfront.png", position: "object-[25%_center]" },
-  { src: "/kalinga-waterfront.png", position: "object-[75%_center]" },
+  { src: "/kalinga-anima-hospital.png", position: "object-center" },
+  { src: "/kalinga-anima-hospital.png", position: "object-[25%_center]" },
+  { src: "/kalinga-anima-hospital.png", position: "object-[75%_center]" },
 ];
 
 export function BusinessCard() {
@@ -73,17 +73,7 @@ export function BusinessCard() {
         >
           <ArrowRight size={15} />
         </button>
-        <button
-          type="button"
-          onClick={() => setSaved((current) => !current)}
-          aria-label={
-            saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
-          }
-          aria-pressed={saved}
-          className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-transparent bg-transparent text-transparent"
-        >
-          <Heart size={19} aria-hidden="true" />
-        </button>
+        <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-[#242524] shadow-sm"><Star size={12} fill="#ffd000" strokeWidth={0} />Featured</span>\n        <button\n          type="button"\n          onClick={() => setSaved((current) => !current)}\n          aria-label={\n            saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"\n          }\n          aria-pressed={saved}\n          className={`absolute right-3 top-3 z-10 flex size-10 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-all duration-200 ease-out ${saved ? "bg-[#3c6355] text-white" : ""}`}\n        >\n          <Heart size={19} fill={saved ? "currentColor" : "none"} strokeWidth={1.8} />\n        </button>
         <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/10 px-2 py-1">
           <span className="sr-only">
             Image {activeImage + 1} of {cardImages.length}
