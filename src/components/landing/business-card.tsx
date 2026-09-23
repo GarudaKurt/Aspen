@@ -81,6 +81,8 @@ export function BusinessCard() {
         <Button
           variant="ghost"
           type="button"
+          onPointerDown={(event) => event.stopPropagation()}
+          onPointerUp={(event) => event.stopPropagation()}
           onClick={() => setSaved((current) => !current)}
           aria-label={
             saved ? "Remove from favorites" : "Save Kalinga Animal Hospital"
