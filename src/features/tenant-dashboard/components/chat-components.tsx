@@ -9,7 +9,8 @@ import type { Conversation, Message } from "../types";
 
 export function ChatHeader({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
   return <div className="flex items-center gap-3 border-b bg-white p-4">
-    {onBack ? <Button type="button" variant="ghost" size="icon-sm" className="lg:hidden" onClick={onBack} aria-label="Back to conversations"><ChevronLeft /></Button> : null}\n    <Avatar conversation={conversation} />
+    {onBack ? <Button type="button" variant="ghost" size="icon-sm" className="lg:hidden" onClick={onBack} aria-label="Back to conversations"><ChevronLeft /></Button> : null}
+    <Avatar conversation={conversation} />
     <div className="min-w-0 flex-1">
       <h2 className="truncate font-semibold">{conversation.name}</h2>
       <p className="flex items-center gap-1.5 text-sm text-slate-500">
