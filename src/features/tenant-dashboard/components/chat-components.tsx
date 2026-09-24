@@ -39,7 +39,7 @@ export function ConversationList({
 }) {
   const [query, setQuery] = useState("");
   const visible = conversations.filter((conversation) => conversation.name.toLowerCase().includes(query.toLowerCase()));
-  return <section className="border-b lg:border-b-0 lg:border-r" aria-label="Conversations">
+  return <section className="min-w-0 border-b lg:border-b-0 lg:border-r" aria-label="Conversations">
     <div className="p-4"><Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search conversations" /></div>
     <div className="max-h-[300px] overflow-x-clip overflow-y-auto lg:max-h-[500px]">
       {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
@@ -125,7 +125,7 @@ export function MessageList({
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
   if (!messages.length) return <div className="grid flex-1 place-items-center p-5 text-sm text-slate-500">No messages yet. Start the conversation below.</div>;
-  return <div className="flex-1 space-y-3 overflow-y-auto p-5">{messages.map((message) => <MessageBubble key={message.id} message={message} onEdit={onEdit} onDelete={onDelete} />)}<div ref={endRef} /></div>;
+  return <div className="min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-5">{messages.map((message) => <MessageBubble key={message.id} message={message} onEdit={onEdit} onDelete={onDelete} />)}<div ref={endRef} /></div>;
 }
 
 function MessageBubble({
@@ -146,13 +146,13 @@ function MessageBubble({
 
   if (editing) return <div className="flex justify-end"><form onSubmit={(event) => { event.preventDefault(); const body = draft.trim(); if (body) onEdit(message.id, body); setEditing(false); }} className="flex w-full max-w-[75%] gap-2"><Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label="Edit message" autoFocus /><Button type="submit" size="icon-sm" aria-label="Save message"><Check /></Button><Button type="button" variant="ghost" size="icon-sm" onClick={() => { setDraft(message.body); setEditing(false); }} aria-label="Cancel editing"><X /></Button></form></div>;
 
-  return <div className={`flex ${sent ? "justify-end" : "justify-start"}`}>
-    <div className={`group relative max-w-[75%] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] text-white" : "bg-slate-100 text-slate-800"}`}>
-      <p>{message.body}</p>
+  return <div className={`flex min-w-0 ${sent ? "justify-end" : "justify-start"}`}>
+    <div className={`group relative min-w-0 max-w-[min(75%,28rem)] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] text-white" : "bg-slate-100 text-slate-800"}`}>
+      <p className="break-words [overflow-wrap:anywhere]">{message.body}</p>
       <span className="mt-1 block text-[10px] opacity-70">{message.edited ? "Edited · " : ""}{message.timestamp}</span>
-      {sent && <div className="absolute -right-9 top-1/2 -translate-y-1/2 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
-        <Button type="button" variant="ghost" size="icon-sm" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Message actions"><MoreVertical /></Button>
-        {menuOpen && <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border bg-white p-1 text-slate-800 shadow-lg">
+      {sent && <div className="absolute right-1 top-1 z-30">
+        <Button type="button" variant="ghost" size="icon-sm" className="text-current hover:bg-white/15" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Message actions"><MoreVertical /></Button>
+        {menuOpen && <div className="absolute bottom-8 right-0 z-[60] w-40 rounded-lg border bg-white p-1 text-slate-800 shadow-xl">
           <ActionButton icon={Check} label="Edit message" onClick={() => { setDraft(message.body); setMenuOpen(false); setEditing(true); }} />
           <ActionButton icon={Trash2} label="Delete message" onClick={() => { setMenuOpen(false); onDelete(message.id); }} />
         </div>}
