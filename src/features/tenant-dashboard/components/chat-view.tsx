@@ -74,7 +74,7 @@ export function ChatView() {
     <MobileDashboardNav />
     <h1 className="text-3xl font-bold">Chat</h1>
     <p className="mt-1 text-slate-500">Messages from customers about bookings and questions.</p>
-    <Card className="mt-7 grid min-h-[560px] overflow-hidden bg-white p-0 shadow-none lg:grid-cols-[280px_minmax(0,1fr)]">
+    <Card className="mt-7 grid min-h-[560px] overflow-x-clip overflow-y-visible bg-white p-0 shadow-none lg:grid-cols-[280px_minmax(0,1fr)]">
       <ConversationList conversations={conversations} selectedId={selectedId} onSelect={selectConversation} onDelete={setDeleteId} onArchive={archiveConversation} onToggleMute={toggleMute} />
       <div className="flex min-h-[520px] flex-col">
         {selected ? <><ChatHeader conversation={selected} /><MessageList messages={selected.messages} onEdit={editMessage} onDelete={setDeleteMessageId} /><MessageComposer value={draft} onChange={setDraft} onSend={send} /></> : <div className="grid flex-1 place-items-center p-5 text-center text-slate-500"><div><p>No conversation selected.</p><Button type="button" variant="outline" className="mt-3" onClick={() => conversations[0] && selectConversation(conversations[0].id)}>Choose a conversation</Button></div></div>}
