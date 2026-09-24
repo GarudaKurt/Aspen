@@ -8,6 +8,14 @@ const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(true);
+
+  React.useEffect(() => {
+    const syncToViewport = () => setOpen(window.innerWidth >= 1024);
+    syncToViewport();
+    window.addEventListener("resize", syncToViewport);
+    return () => window.removeEventListener("resize", syncToViewport);
+  }, []);
+
   return <SidebarContext.Provider value={{ open, setOpen }}>{children}</SidebarContext.Provider>;
 }
 
@@ -19,12 +27,19 @@ export function useSidebar() {
 
 export function Sidebar({ children, className }: React.HTMLAttributes<HTMLElement>) {
   const { open } = useSidebar();
-  return <aside className={cn("shrink-0 border-r bg-white transition-[width] duration-200", open ? "w-64" : "w-0 overflow-hidden border-r-0", className)}>{children}</aside>;
+  return <aside
+    data-state={open ? "expanded" : "collapsed"}
+    className={cn(
+      "fixed inset-y-0 left-0 z-50 w-64 border-r bg-white transition-[width,transform] duration-200 lg:static lg:z-auto lg:min-h-[calc(100vh-5rem)]",
+      open ? "translate-x-0" : "-translate-x-full lg:w-16 lg:translate-x-0",
+      className,
+    )}
+  >{children}</aside>;
 }
 
 export function SidebarTrigger({ className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { open, setOpen } = useSidebar();
-  return <button type="button" aria-label={open ? "Collapse menu" : "Expand menu"} onClick={() => setOpen(!open)} className={cn("rounded-md p-2 text-slate-500 hover:bg-slate-100", className)} {...props}>{open ? "‹" : "›"}</button>;
+  return <button type="button" aria-label={open ? "Collapse menu" : "Expand menu"} aria-expanded={open} onClick={() => setOpen(!open)} className={cn("rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]", className)} {...props}>{open ? "‹" : "›"}</button>;
 }
 
 export function SidebarContent({ children, className }: React.HTMLAttributes<HTMLDivElement>) {
