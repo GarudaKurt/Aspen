@@ -25,8 +25,8 @@ export function getCalendarEvents(referenceDate = new Date()): CalendarEvent[] {
 }
 
 export const services: ServiceItem[] = [
-  { id: "s1", title: "Full Grooming Package", price: "₱900", duration: "90 min", status: "Active" },
-  { id: "s2", title: "Basic Bath & Trim", price: "₱450", duration: "60 min", status: "Active" },
-  { id: "s3", title: "Full Grooming Package", price: "₱900", duration: "90 min", status: "Draft" },
-  { id: "s4", title: "Overnight Boarding", price: "₱900", duration: "24 hr", status: "Paused" },
+  { id: "s1", title: "Full Grooming Package", category: "Grooming", description: "A complete grooming session for dogs and cats, including bath, trim, and finishing.", price: "₱900", duration: "90 min", image: "", status: "Active" },
+  { id: "s2", title: "Basic Bath & Trim", category: "Grooming", description: "A gentle bath and tidy trim to keep pets clean and comfortable.", price: "₱450", duration: "60 min", image: "", status: "Active" },
+  { id: "s3", title: "General Consultation", category: "Veterinary", description: "A friendly wellness consultation with practical care guidance.", price: "₱500", duration: "30 min", image: "", status: "Draft" },
+  { id: "s4", title: "Overnight Boarding", category: "Boarding", description: "A safe, supervised overnight stay with daily updates for pet parents.", price: "₱900", duration: "24 hr", image: "", status: "Paused" },
 ];
