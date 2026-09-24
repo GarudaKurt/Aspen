@@ -78,7 +78,7 @@ export function CalendarView() {
       </div>
 
       <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <Card className="p-4 shadow-none">
+        <Card className="bg-white p-4 shadow-none">
           <div className="flex items-center justify-between gap-3">
             <Button variant="outline" size="icon" onClick={() => moveMonth(-1)} aria-label="Previous month">
               <ChevronLeft />
@@ -117,7 +117,7 @@ export function CalendarView() {
           </div>
         </Card>
 
-        <Card className="p-5 shadow-none">
+        <Card className="bg-white p-5 shadow-none">
           <h2 className="text-xl font-semibold">Upcoming</h2>
           {visibleEvents.length ? (
             visibleEvents.map((event) => (
