@@ -95,7 +95,7 @@ function ConversationItem({
       </button>
       <div className="relative hidden sm:block">
         <Button type="button" variant="ghost" size="icon-sm" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Conversation actions"><MoreVertical /></Button>
-        {menuOpen && <div className="absolute right-0 top-9 z-20 w-44 rounded-lg border bg-white p-1 shadow-lg">
+        {menuOpen && <div className="absolute bottom-8 right-0 z-50 w-44 rounded-lg border bg-white p-1 shadow-lg">
           <ActionButton icon={Archive} label="Archive" onClick={() => onArchive(conversation.id)} />
           <ActionButton icon={BellOff} label={conversation.muted ? "Unmute" : "Mute"} onClick={() => onToggleMute(conversation.id)} />
           <ActionButton icon={Trash2} label="Delete" onClick={() => onDelete(conversation.id)} />
