@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, type FormEvent, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
-import { Archive, BellOff, Check, MoreVertical, Phone, Send, Trash2, X } from "lucide-react";
+import { Archive, BellOff, Check, ChevronLeft, MoreVertical, Phone, Send, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Conversation, Message } from "../types";
 
-export function ChatHeader({ conversation }: { conversation: Conversation }) {
+export function ChatHeader({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
   return <div className="flex items-center gap-3 border-b bg-white p-4">
     <Avatar conversation={conversation} />
     <div className="min-w-0 flex-1">
@@ -40,7 +40,7 @@ export function ConversationList({
 }) {
   const [query, setQuery] = useState("");
   const visible = conversations.filter((conversation) => conversation.name.toLowerCase().includes(query.toLowerCase()));
-  return <section className="min-w-0 border-b lg:border-b-0 lg:border-r" aria-label="Conversations">
+  return <section className={`min-w-0 border-b lg:border-b-0 lg:border-r ${className ?? ""}`} aria-label="Conversations">
     <div className="p-4"><Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search conversations" /></div>
     <div className="max-h-[300px] overflow-x-clip overflow-y-auto lg:max-h-[500px]">
       {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
