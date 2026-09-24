@@ -21,7 +21,7 @@ const serviceCategories = [
 ];
 
 export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSearch }: DiscoverySearchProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All Services");
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,6 +39,14 @@ export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSe
           <Label className="flex min-h-[52px] items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:border-t-0"><MapPin size={18} strokeWidth={1.4} /><Select value={city} onValueChange={(value) => { if (value) onCityChange(value); }}><SelectTrigger aria-label="Choose city" className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none focus-visible:ring-0"><SelectValue /></SelectTrigger><SelectContent>{cities.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent></Select></Label>
           <Button variant="ghost" type="submit" className="mx-2 mb-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[#3c6355] px-5 text-base font-semibold text-white transition-colors text-white hover:bg-[#2f5044] hover:text-white sm:my-2 sm:mb-0">→ <span>Search</span></Button>
         </form>
+        <div className="mt-10">
+          <h2 className="text-3xl font-bold tracking-[-0.03em] text-[#3c6355] sm:text-4xl">
+            Browse by service
+          </h2>
+          <p className="mt-2 text-base text-[#777b78] sm:text-lg">
+            Jump straight to what your pet needs.
+          </p>
+        </div>
         <div className="mt-6 flex max-w-[760px] flex-wrap gap-2.5">
           {serviceCategories.map(({ label, icon: Icon }) => {
             const isActive = selectedCategory === label;
@@ -49,9 +57,9 @@ export function DiscoverySearch({ query, city, onQueryChange, onCityChange, onSe
                 type="button"
                 key={label}
                 onClick={() => setSelectedCategory(label)}
-                className={`rounded-full border border-transparent bg-transparent px-4 py-2.5 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
+                className={`rounded-full border border-transparent bg-transparent px-4 py-2.5 text-lg font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-xl ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
               >
-                <Icon size={22} strokeWidth={1.8} />
+                <Icon size={24} strokeWidth={1.8} />
                 {label}
               </Button>
             );
