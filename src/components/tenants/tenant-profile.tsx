@@ -79,6 +79,35 @@ type ServiceCategory = {
   services: ServiceItem[];
 };
 
+type ReviewData = {
+  name: string;
+  starRating: number;
+  comment: string;
+};
+
+const mockReviews: ReviewData[] = [
+  {
+    name: "Marisse T.",
+    starRating: 5,
+    comment: "Staff were gentle with my very anxious cat. Dr. Reyes explained everything clearly before the procedure.",
+  },
+  {
+    name: "Daniel R.",
+    starRating: 5,
+    comment: "Very professional team and a smooth appointment from check-in to follow-up.",
+  },
+  {
+    name: "Andrea M.",
+    starRating: 4,
+    comment: "Clean clinic, kind staff, and helpful advice for keeping my dog healthy.",
+  },
+  {
+    name: "Nico P.",
+    starRating: 5,
+    comment: "They took great care of my pet and made sure I understood the next steps.",
+  },
+];
+
 const serviceCategories: ServiceCategory[] = [
   {
     label: "Veterinary",
@@ -298,6 +327,8 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
               <PhotoGallery providerName={provider.name} />
             ) : activeTab === "Services" ? (
               <ServicesPanel />
+            ) : activeTab === "Reviews" ? (
+              <ReviewsPanel />
             ) : (
               <div className="rounded-xl border border-dashed border-[#d8d8d5] p-8 text-sm text-[#777b78]">
                 {activeTab} for {provider.name} will appear here.
@@ -333,6 +364,66 @@ function ProfileSection({
       <h2 className="mb-6 text-lg font-bold text-[#3c6355] sm:text-xl">{title}</h2>
       {children}
     </section>
+  );
+}
+
+function ReviewsPanel() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start gap-5 border-b border-[#e5e6e4] pb-5">
+        <div>
+          <p className="text-4xl font-bold text-[#3c6355]">4.9</p>
+          <div className="mt-1 flex gap-0.5 text-[#ffd000]" aria-label="Average rating: 4.9 out of 5">
+            {Array.from({ length: 5 }, (_, index) => (
+              <Star key={index} size={14} fill="currentColor" strokeWidth={0} />
+            ))}
+          </div>
+        </div>
+        <p className="max-w-[180px] pt-1 text-xs leading-4 text-[#929492]">
+          Based on 222 reviews
+          <br />
+          from verified visits
+        </p>
+      </div>
+      <div className="divide-y divide-[#e5e6e4]">
+        {mockReviews.map((review) => (
+          <ReviewItem key={`${review.name}-${review.comment}`} {...review} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReviewItem({ name, starRating, comment }: ReviewData) {
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2);
+
+  return (
+    <article className="py-5">
+      <div className="flex items-start gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7f5ed] text-xs font-bold text-[#3c6355]">
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-[#272927]">{name}</p>
+          <div className="mt-1 flex gap-0.5 text-[#ffd000]" aria-label={`${starRating} out of 5 stars`}>
+            {Array.from({ length: 5 }, (_, index) => (
+              <Star
+                key={index}
+                size={13}
+                fill={index < Math.round(starRating) ? "currentColor" : "none"}
+                strokeWidth={index < Math.round(starRating) ? 0 : 1.5}
+              />
+            ))}
+          </div>
+          <p className="mt-2 text-xs leading-5 text-[#929492] sm:text-sm">{comment}</p>
+        </div>
+        <time className="ml-auto shrink-0 text-[10px] text-[#929492]">2 weeks ago</time>
+      </div>
+    </article>
   );
 }
 
