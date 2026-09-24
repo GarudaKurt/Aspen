@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type TouchEvent } from "react";
 import { Archive, BellOff, MoreVertical, Phone, Send, Trash2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,11 +67,11 @@ function ConversationItem({
   const [menuOpen, setMenuOpen] = useState(false);
   const touch = useRef({ x: 0, y: 0 });
 
-  const startTouch = (event: React.TouchEvent) => {
+  const startTouch = (event: TouchEvent) => {
     const point = event.touches[0];
     touch.current = { x: point.clientX, y: point.clientY };
   };
-  const moveTouch = (event: React.TouchEvent) => {
+  const moveTouch = (event: TouchEvent) => {
     const point = event.touches[0];
     const dx = point.clientX - touch.current.x;
     const dy = point.clientY - touch.current.y;
