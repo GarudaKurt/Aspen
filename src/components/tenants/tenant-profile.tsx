@@ -14,7 +14,6 @@ import {
   MessageCircle,
   Pencil,
   Phone,
-  Plus,
   Share2,
   Star,
   Truck,
@@ -65,7 +64,6 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
   const [activeTab, setActiveTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   const handleImageUpload = (
     event: ChangeEvent<HTMLInputElement>,
@@ -122,86 +120,59 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
               <span className="sr-only">Upload or edit cover photo</span>
             </span>
           </label>
-          <div className="absolute inset-x-3 bottom-[-34px] flex items-end justify-between gap-3 sm:inset-x-4 sm:bottom-[-34px]">
-              <div className="flex min-w-0 items-end gap-3">
-                <label className="relative flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-[#3c6355] text-white shadow-sm sm:size-16">
-                  {profilePhoto ? (
-                    <Image
-                      src={profilePhoto}
-                      alt="Profile photo preview"
-                      fill
-                      unoptimized
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <Plus size={25} strokeWidth={1.5} />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={(event) => handleImageUpload(event, setProfilePhoto)}
-                  />
-                  <span className="absolute bottom-1 right-1 inline-flex size-5 items-center justify-center rounded-full bg-white text-[#3c6355] shadow-sm">
-                    <Pencil size={11} />
-                    <span className="sr-only">Upload or edit profile photo</span>
+          <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate text-xl font-bold sm:text-2xl lg:text-3xl">
+                  {provider.name}
+                </h1>
+                {provider.verified && (
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#2768f5] px-2 py-0.5 text-[10px] font-semibold text-white">
+                    <Check size={11} />
+                    Verified
                   </span>
-                </label>
-                <div className="min-w-0 pb-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="truncate text-xl font-bold sm:text-2xl lg:text-3xl">
-                      {provider.name}
-                    </h1>
-                    {provider.verified && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#2768f5] px-2 py-0.5 text-[10px] font-semibold text-white">
-                        <Check size={11} />
-                        Verified
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-[#838684] sm:text-xs">
-                    <Star size={11} fill="#ffd000" strokeWidth={0} />
-                    <span className="font-semibold text-[#242524]">{provider.rating}</span>
-                    <span>·</span>
-                    <span>{provider.reviews}</span>
-                    <span>·</span>
-                    <span>{provider.category}</span>
-                    <span>·</span>
-                    <span>{provider.address}</span>
-                  </p>
-                </div>
+                )}
               </div>
+              <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-[#838684] sm:text-xs">
+                <Star size={11} fill="#ffd000" strokeWidth={0} />
+                <span className="font-semibold text-[#242524]">{provider.rating}</span>
+                <span>·</span>
+                <span>{provider.reviews}</span>
+                <span>·</span>
+                <span>{provider.category}</span>
+                <span>·</span>
+                <span>{provider.address}</span>
+              </p>
+            </div>
 
-              <div className="flex shrink-0 items-center gap-2 pb-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  type="button"
-                  aria-label={saved ? "Remove from favorites" : "Add to favorites"}
-                  aria-pressed={saved}
-                  onClick={() => setSaved((current) => !current)}
-                  className={`rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0] ${saved ? "bg-[#3c6355] text-white hover:bg-[#3c6355]" : ""}`}
-                >
-                  <Heart size={17} fill={saved ? "currentColor" : "none"} />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  type="button"
-                  aria-label="Share provider"
-                  className="rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0]"
-                >
-                  <Share2 size={16} />
-                </Button>
-                <Button
-                  type="button"
-                  className="hidden h-9 rounded-full bg-[#3c6355] px-3 text-xs text-white hover:bg-[#2f5044] sm:inline-flex"
-                >
-                  <MessageCircle size={14} />
-                  Message
-                </Button>
-              </div>
+            <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                aria-label={saved ? "Remove from favorites" : "Add to favorites"}
+                aria-pressed={saved}
+                onClick={() => setSaved((current) => !current)}
+                className={`rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0] ${saved ? "bg-[#3c6355] text-white hover:bg-[#3c6355]" : ""}`}
+              >
+                <Heart size={17} fill={saved ? "currentColor" : "none"} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                aria-label="Share provider"
+                className="rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0]"
+              >
+                <Share2 size={16} />
+              </Button>
+              <Button
+                type="button"
+                className="h-9 rounded-full bg-[#3c6355] px-3 text-xs text-white hover:bg-[#2f5044]"
+              >
+                <MessageCircle size={14} />
+                Message
+              </Button>
             </div>
           </div>
         </section>
