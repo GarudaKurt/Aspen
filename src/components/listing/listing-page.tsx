@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
   BookOpenCheck,
   Building2,
@@ -77,7 +78,7 @@ export function ListingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f6f4] px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
       <div className="mx-auto max-w-[1040px]">
         <header className="flex items-center justify-between border-b border-[#dededb] pb-5">
           <Link
@@ -175,20 +176,24 @@ export function ListingPage() {
 function ListingStepper({ activeIndex }: { activeIndex: number }) {
   return (
     <nav aria-label="Listing progress" className="overflow-x-auto pb-2 lg:overflow-visible">
-      <ol className="flex min-w-max gap-5 lg:block lg:min-w-0 lg:space-y-5">
+      <ol className="flex min-w-max items-start gap-0 lg:block lg:min-w-0">
         {steps.map(({ label, path, icon: Icon }, index) => {
           const isCurrent = index === activeIndex;
           const isComplete = index < activeIndex;
+          const isReached = index <= activeIndex;
+          const hasNext = index < steps.length - 1;
 
           return (
-            <li key={label} className="relative lg:pb-1">
+            <li key={label} className="relative flex flex-1 items-start lg:block lg:pb-6">
               <Link
                 href={path}
                 aria-current={isCurrent ? "step" : undefined}
-                className={`group flex items-center gap-2 text-xs ${isCurrent ? "text-[#3c6355]" : isComplete ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}
+                className={`group relative z-10 flex min-w-[78px] flex-col items-center gap-2 text-center text-xs lg:flex-row lg:items-center lg:gap-2 lg:text-left ${isReached ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}
               >
-                <span className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border bg-white ${isCurrent ? "border-[#3c6355] text-[#3c6355]" : isComplete ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#cfd2cf] text-[#a0a4a1]"}`}>
-                  {isComplete ? <Check size={15} /> : <Icon size={15} />}
+                <span
+                  className={`relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${isCurrent ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : isComplete ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
+                >
+                  {isComplete ? <Check size={16} strokeWidth={2.5} /> : <Icon size={16} />}
                 </span>
                 <span className="hidden sm:block lg:block">
                   <span className="block font-semibold">{label}</span>
@@ -197,8 +202,11 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
                   </span>
                 </span>
               </Link>
-              {index < steps.length - 1 && (
-                <span className="absolute left-4 top-8 hidden h-5 border-l border-dashed border-[#cfd2cf] lg:block" />
+              {hasNext && (
+                <span
+                  aria-hidden="true"
+                  className={`absolute z-0 bg-[#cfd2cf] transition-colors duration-200 ${isComplete ? "bg-[#3c6355]" : ""} left-[calc(50%+18px)] right-0 top-4 h-0.5 lg:left-4 lg:right-auto lg:top-9 lg:h-auto lg:w-0.5 lg:-translate-x-1/2 lg:bottom-0`}
+                />
               )}
             </li>
           );
