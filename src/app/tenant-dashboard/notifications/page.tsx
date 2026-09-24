@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, CalendarDays, CreditCard, Star } from "lucide-react";
+import { CalendarDays, CreditCard, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MobileDashboardNav } from "@/features/tenant-dashboard/components/dashboard-shell";
 
 const notifications = [
   { id: "n1", type: "Bookings", title: "New booking request from Juan Dela Cruz", detail: "Full Grooming Package · Sat, Sep 20 · 2:00 PM", icon: CalendarDays },
-  { id: "n2", type: "Reviews", title: "Maria Santos left a 5-star review", detail: ""Bella looks amazing, thank you!"", icon: Star },
+  { id: "n2", type: "Reviews", title: "Maria Santos left a 5-star review", detail: "\"Bella looks amazing, thank you!\"", icon: Star },
   { id: "n3", type: "Payments", title: "Payment received — ₱650", detail: "Overnight Boarding · Maria Santos", icon: CreditCard },
 ];
 
