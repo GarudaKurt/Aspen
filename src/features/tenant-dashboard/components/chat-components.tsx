@@ -147,43 +147,96 @@ export function MessageList({
   onDelete: (messageId: string) => void;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
+  const [openMessageId, setOpenMessageId] = useState<string | null>(null);
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
+
   if (!messages.length) return <div className="grid flex-1 place-items-center p-5 text-sm text-slate-500">No messages yet. Start the conversation below.</div>;
-  return <div className="min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-5">{messages.map((message) => <MessageBubble key={message.id} message={message} onEdit={onEdit} onDelete={onDelete} />)}<div ref={endRef} /></div>;
+
+  return <div className="min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-5">
+    {messages.map((message) => (
+      <MessageBubble
+        key={message.id}
+        message={message}
+        isActionsOpen={openMessageId === message.id}
+        onToggleActions={() => setOpenMessageId((current) => current === message.id ? null : message.id)}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    ))}
+    <div ref={endRef} />
+  </div>;
 }
 
 function MessageBubble({
   message,
+  isActionsOpen,
+  onToggleActions,
   onEdit,
   onDelete,
 }: {
   message: Message;
+  isActionsOpen: boolean;
+  onToggleActions: () => void;
   onEdit: (messageId: string, body: string) => void;
   onDelete: (messageId: string) => void;
 }) {
   const sent = message.from === "provider";
   const [editing, setEditing] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [draft, setDraft] = useState(message.body);
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const pointer = useRef({ x: 0, y: 0, horizontal: false });
 
   if (message.deleted) return <div className="flex justify-end"><p className="rounded-2xl bg-slate-100 px-4 py-2 text-sm italic text-slate-400">Message deleted</p></div>;
 
   if (editing) return <div className="flex justify-end"><form onSubmit={(event) => { event.preventDefault(); const body = draft.trim(); if (body) onEdit(message.id, body); setEditing(false); }} className="flex w-full max-w-[75%] gap-2"><Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label="Edit message" autoFocus /><Button type="submit" size="icon-sm" aria-label="Save message"><Check /></Button><Button type="button" variant="ghost" size="icon-sm" onClick={() => { setDraft(message.body); setEditing(false); }} aria-label="Cancel editing"><X /></Button></form></div>;
 
-  return <div className={`flex min-w-0 ${sent ? "justify-end" : "justify-start"}`}>
-    <div className={`group relative min-w-0 max-w-[min(75%,28rem)] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] pr-10 text-white" : "bg-slate-100 text-slate-800"}`}>
+  if (!sent) return <div className="flex min-w-0 justify-start"><div className="min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-800"><p className="break-words [overflow-wrap:anywhere]">{message.body}</p><span className="mt-1 block text-[10px] opacity-70">{message.timestamp}</span></div></div>;
+
+  const offset = isActionsOpen ? -160 : dragX;
+  const closeActions = () => { setDragX(0); onToggleActions(); };
+
+  return <div className="relative min-w-0 overflow-hidden" onPointerDown={(event) => { pointer.current = { x: event.clientX, y: event.clientY, horizontal: false }; }} onPointerMove={(event) => {
+    const dx = event.clientX - pointer.current.x;
+    const dy = event.clientY - pointer.current.y;
+    if (!pointer.current.horizontal && Math.abs(dy) > Math.abs(dx)) return;
+    if (Math.abs(dx) > 8) pointer.current.horizontal = true;
+    if (pointer.current.horizontal) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setDragging(true);
+      setDragX(Math.max(-160, Math.min(0, dx)));
+    }
+  }} onPointerUp={(event) => {
+    if (pointer.current.horizontal) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      setDragging(false);
+      if (dragX < -60) onToggleActions();
+      else { setDragX(0); if (isActionsOpen) onToggleActions(); }
+    }
+  }} onPointerCancel={() => { setDragging(false); setDragX(0); }}>
+    <div className="absolute inset-y-0 right-0 flex w-40 items-center justify-end gap-1 bg-slate-100 px-2">
+      <MessageActionButton icon={Check} label="Edit" onClick={() => { setDraft(message.body); setDragX(0); setEditing(true); onToggleActions(); }} />
+      <MessageActionButton icon={Trash2} label="Delete" onClick={() => { setDragX(0); onToggleActions(); onDelete(message.id); }} />
+      <MessageActionButton icon={X} label="Cancel" onClick={() => { setDragX(0); if (isActionsOpen) onToggleActions(); }} />
+    </div>
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label="Sent message. Press Enter or ArrowLeft to show actions."
+      aria-expanded={isActionsOpen}
+      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " " || event.key === "ArrowLeft") { event.preventDefault(); onToggleActions(); } if (event.key === "Escape" && isActionsOpen) { event.preventDefault(); onToggleActions(); } }}
+      className={`relative ml-auto min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-[#3c6355] px-4 py-2 text-sm text-white transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] ${dragging ? "duration-0" : ""}`}
+      style={{ transform: `translateX(${offset}px)` }}
+    >
       <p className="break-words [overflow-wrap:anywhere]">{message.body}</p>
       <span className="mt-1 block text-[10px] opacity-70">{message.edited ? "Edited · " : ""}{message.timestamp}</span>
-      {sent && <div className="absolute right-2 top-2 z-30">
-        <Button type="button" variant="ghost" size="icon-sm" className="text-current hover:bg-white/15" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Message actions"><MoreVertical /></Button>
-        {menuOpen && <div className="absolute bottom-8 right-0 z-[60] w-40 rounded-lg border bg-white p-1 text-slate-800 shadow-xl">
-          <ActionButton icon={Check} label="Edit message" onClick={() => { setDraft(message.body); setMenuOpen(false); setEditing(true); }} />
-          <ActionButton icon={Trash2} label="Delete message" onClick={() => { setMenuOpen(false); onDelete(message.id); }} />
-          <ActionButton icon={X} label="Cancel" onClick={() => setMenuOpen(false)} />
-        </div>}
-      </div>}
     </div>
   </div>;
+}
+
+function MessageActionButton({ icon: Icon, label, onClick }: { icon: typeof Check; label: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="flex min-w-10 flex-col items-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]" aria-label={label}><Icon className="size-4" />{label}</button>;
 }
 
 
