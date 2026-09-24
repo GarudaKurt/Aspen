@@ -329,30 +329,13 @@ function ProfileSection({
 }
 
 function ServicesPanel() {
-  const [selectedCategory, setSelectedCategory] = useState(serviceCategories[0].label);
-  const category = serviceCategories.find(({ label }) => label === selectedCategory) ?? serviceCategories[0];
+  const services = serviceCategories.flatMap(({ services: categoryServices }) => categoryServices);
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap gap-2 border-b border-[#d8d8d5]">
-        {serviceCategories.map(({ label }) => (
-          <Button
-            key={label}
-            variant="ghost"
-            type="button"
-            onClick={() => setSelectedCategory(label)}
-            aria-pressed={selectedCategory === label}
-            className={`rounded-none px-3 pb-3 text-sm font-semibold text-[#3c6355] hover:bg-transparent hover:text-[#c5714e] ${selectedCategory === label ? "border-b-2 border-[#c5714e]" : "text-[#777b78]"}`}
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
-      <div className="divide-y divide-[#e5e6e4]">
-        {category.services.map((service) => (
-          <ServiceItemRow key={service.title} {...service} />
-        ))}
-      </div>
+    <div className="divide-y divide-[#e5e6e4]">
+      {services.map((service) => (
+        <ServiceItemRow key={service.title} {...service} />
+      ))}
     </div>
   );
 }
