@@ -34,4 +34,3 @@ export function Calendar({ selected, onSelect, disabled }: CalendarProps) {
   </div>;
 }
 
-import * as React from "react";
