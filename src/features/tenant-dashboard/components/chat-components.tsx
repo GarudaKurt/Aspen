@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type TouchEvent } from "react";
+import { createPortal } from "react-dom";
 import { Archive, BellOff, Check, MoreVertical, Phone, Send, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,8 @@ function ConversationItem({
 }) {
   const [swiped, setSwiped] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const actionButtonRef = useRef<HTMLButtonElement>(null);
   const touch = useRef({ x: 0, y: 0 });
 
   const startTouch = (event: TouchEvent) => {
@@ -94,12 +97,30 @@ function ConversationItem({
         <span className="flex shrink-0 flex-col items-end gap-1 text-xs text-slate-400"><span>{conversation.timestamp}</span>{conversation.unreadCount ? <span className="grid min-w-5 place-items-center rounded-full bg-[#3c6355] px-1 text-[10px] text-white">{conversation.unreadCount}</span> : null}</span>
       </button>
       <div className="relative hidden sm:block">
-        <Button type="button" variant="ghost" size="icon-sm" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Conversation actions"><MoreVertical /></Button>
-        {menuOpen && <div className="absolute bottom-8 right-0 z-50 w-44 rounded-lg border bg-white p-1 shadow-lg">
-          <ActionButton icon={Archive} label="Archive" onClick={() => onArchive(conversation.id)} />
-          <ActionButton icon={BellOff} label={conversation.muted ? "Unmute" : "Mute"} onClick={() => onToggleMute(conversation.id)} />
-          <ActionButton icon={Trash2} label="Delete" onClick={() => onDelete(conversation.id)} />
-        </div>}
+        <Button
+          ref={actionButtonRef}
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => {
+            const rect = actionButtonRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            setMenuPosition({ top: rect.bottom + 4, left: Math.max(8, rect.right - 176) });
+            setMenuOpen((open) => !open);
+          }}
+          aria-expanded={menuOpen}
+          aria-label="Conversation actions"
+        >
+          <MoreVertical />
+        </Button>
+        {menuOpen && menuPosition && typeof document !== "undefined" && createPortal(
+          <div className="fixed z-[100] w-44 rounded-lg border bg-white p-1 text-slate-800 shadow-xl" style={{ top: menuPosition.top, left: menuPosition.left }}>
+            <ActionButton icon={Archive} label="Archive" onClick={() => { setMenuOpen(false); onArchive(conversation.id); }} />
+            <ActionButton icon={BellOff} label={conversation.muted ? "Unmute" : "Mute"} onClick={() => { setMenuOpen(false); onToggleMute(conversation.id); }} />
+            <ActionButton icon={Trash2} label="Delete" onClick={() => { setMenuOpen(false); onDelete(conversation.id); }} />
+          </div>,
+          document.body,
+        )}
       </div>
     </div>
   </div>;
