@@ -216,6 +216,7 @@ function MessageBubble({
       if (dragX < -60) onToggleActions();
       else { setDragX(0); if (isActionsOpen) onToggleActions(); }
     }
+    pointer.current.active = false;
   }} onPointerCancel={() => { pointer.current.active = false; setDragging(false); setDragX(0); }}>
     <div className={`absolute inset-y-0 right-0 z-0 flex w-40 items-center justify-end gap-1 bg-slate-100 px-2 transition-opacity duration-150 ${isActionsOpen || dragging ? "visible opacity-100" : "invisible pointer-events-none opacity-0"}`}>
       <MessageActionButton icon={Check} label="Edit" onClick={() => { setDraft(message.body); setDragX(0); setEditing(true); onToggleActions(); }} />
