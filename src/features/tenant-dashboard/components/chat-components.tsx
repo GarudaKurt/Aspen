@@ -9,7 +9,7 @@ import type { Conversation, Message } from "../types";
 
 export function ChatHeader({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
   return <div className="flex items-center gap-3 border-b bg-white p-4">
-    <Avatar conversation={conversation} />
+    {onBack ? <Button type="button" variant="ghost" size="icon-sm" className="lg:hidden" onClick={onBack} aria-label="Back to conversations"><ChevronLeft /></Button> : null}\n    <Avatar conversation={conversation} />
     <div className="min-w-0 flex-1">
       <h2 className="truncate font-semibold">{conversation.name}</h2>
       <p className="flex items-center gap-1.5 text-sm text-slate-500">
@@ -30,6 +30,7 @@ export function ConversationList({
   onDelete,
   onArchive,
   onToggleMute,
+  className,
 }: {
   conversations: Conversation[];
   selectedId: string | null;
@@ -37,6 +38,7 @@ export function ConversationList({
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onToggleMute: (id: string) => void;
+  className?: string;
 }) {
   const [query, setQuery] = useState("");
   const visible = conversations.filter((conversation) => conversation.name.toLowerCase().includes(query.toLowerCase()));
