@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type LucideIcon, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   BookOpenCheck,
   Building2,
   Check,
   ChevronLeft,
   FileCheck2,
-  IdCard,
-  Plus,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -58,8 +56,6 @@ export function ListingPage() {
     0,
     steps.findIndex(({ path }) => pathname === path),
   );
-  const activeStep = steps[activeIndex];
-
   const goNext = () => {
     router.push(steps[Math.min(activeIndex + 1, steps.length - 1)].path);
   };
