@@ -247,6 +247,8 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
                   </div>
                 </ProfileSection>
               </>
+            ) : activeTab === "Photos" ? (
+              <PhotoGallery providerName={provider.name} />
             ) : (
               <div className="rounded-xl border border-dashed border-[#d8d8d5] p-8 text-sm text-[#777b78]">
                 {activeTab} for {provider.name} will appear here.
@@ -282,6 +284,34 @@ function ProfileSection({
       <h2 className="mb-6 text-lg font-bold text-[#3c6355] sm:text-xl">{title}</h2>
       {children}
     </section>
+  );
+}
+
+function PhotoGallery({ providerName }: { providerName: string }) {
+  const photos = [
+    "/img/mock/image_1.png",
+    "/img/mock/image_2.png",
+    "/img/mock/image_4.png",
+    "/img/mock/image_6.png",
+  ];
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {photos.map((src, index) => (
+        <div
+          key={src}
+          className="relative aspect-square overflow-hidden rounded-2xl bg-[#f0f0ef]"
+        >
+          <Image
+            src={src}
+            alt={`${providerName} photo ${index + 1}`}
+            fill
+            sizes="(min-width: 640px) 220px, 50vw"
+            className="object-cover transition-transform duration-300 hover:scale-105"
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 
