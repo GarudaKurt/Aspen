@@ -44,6 +44,6 @@ export type ServiceItem = {
   description: string;
   price: string;
   duration: string;
-  image?: string;
+  photos: string[];
   status: ServiceStatus;
 };
