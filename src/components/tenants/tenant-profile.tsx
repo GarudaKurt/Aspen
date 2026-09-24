@@ -373,7 +373,7 @@ function ProfileSection({
 
 function ReviewsPanel() {
   return (
-    <div className="space-y-6">
+    <div className="rounded-2xl border border-[#d8d8d5] bg-white p-4 shadow-sm sm:p-6">
       <div className="flex items-start gap-5 border-b border-[#e5e6e4] pb-5">
         <div>
           <p className="text-4xl font-bold text-[#3c6355]">4.9</p>
@@ -389,7 +389,7 @@ function ReviewsPanel() {
           from verified visits
         </p>
       </div>
-      <div className="divide-y divide-[#e5e6e4]">
+      <div className="space-y-3">
         {mockReviews.map((review) => (
           <ReviewItem key={`${review.name}-${review.comment}`} {...review} />
         ))}
@@ -407,7 +407,7 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
     .slice(0, 2);
 
   return (
-    <article className="py-5">
+    <article className="rounded-xl border border-[#e5e6e4] bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-start gap-3">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7f5ed] text-xs font-bold text-[#3c6355]">
           {initials}
@@ -555,9 +555,12 @@ function ScheduleCard() {
           </div>
         ))}
       </div>
-      <Button className="mt-5 w-full bg-[#3c6355] px-2 text-[10px] text-white hover:bg-[#2f5044]">
+      <Link
+        href="/request-appointment"
+        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-[10px] font-medium text-white hover:bg-[#2f5044]"
+      >
         Request Appointment
-      </Button>
+      </Link>
       <p className="mt-5 text-center text-[8px] text-[#a7a9a7]">
         Free to request · no payment required now
       </p>
