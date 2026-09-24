@@ -6,7 +6,6 @@ import { DiscoverySearch } from "./discovery-search";
 import { BusinessDirectory } from "./business-directory";
 import { FeaturedStores } from "./featured-stores";
 import { OwnerCta } from "./owner-cta";
-import { ServiceBrowse } from "./service-browse";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 
@@ -31,7 +30,6 @@ export function LandingPage() {
         onSearch={setSubmittedQuery}
       />
       <FeaturedStores />
-      <ServiceBrowse />
       <BusinessDirectory query={submittedQuery} city={city} />
       <OwnerCta />
       <SiteFooter />
