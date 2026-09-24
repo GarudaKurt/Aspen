@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type TouchEvent } from "react";
-import { Archive, BellOff, MoreVertical, Phone, Send, Trash2, Video } from "lucide-react";
+import { Archive, BellOff, Check, MoreVertical, Phone, Send, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Conversation, Message } from "../types";
@@ -18,7 +18,6 @@ export function ChatHeader({ conversation }: { conversation: Conversation }) {
     </div>
     <div className="flex items-center gap-1">
       <Button type="button" variant="ghost" size="icon" disabled title="Voice calls coming soon" aria-label="Start voice call"><Phone /></Button>
-      <Button type="button" variant="ghost" size="icon" disabled title="Video calls coming soon" aria-label="Start video call"><Video /></Button>
     </div>
   </div>;
 }
@@ -114,17 +113,54 @@ function Avatar({ conversation }: { conversation: Conversation }) {
   return <span className="relative grid size-11 shrink-0 place-items-center rounded-full bg-sky-100 font-semibold text-sky-600">{conversation.initials}<span className={`absolute bottom-0 right-0 size-3 rounded-full border-2 border-white ${conversation.online ? "bg-emerald-500" : "bg-slate-300"}`} /></span>;
 }
 
-export function MessageList({ messages }: { messages: Message[] }) {
+export function MessageList({
+  messages,
+  onEdit,
+  onDelete,
+}: {
+  messages: Message[];
+  onEdit: (messageId: string, body: string) => void;
+  onDelete: (messageId: string) => void;
+}) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
   if (!messages.length) return <div className="grid flex-1 place-items-center p-5 text-sm text-slate-500">No messages yet. Start the conversation below.</div>;
-  return <div className="flex-1 space-y-3 overflow-y-auto p-5">{messages.map((message) => <MessageBubble key={message.id} message={message} />)}<div ref={endRef} /></div>;
+  return <div className="flex-1 space-y-3 overflow-y-auto p-5">{messages.map((message) => <MessageBubble key={message.id} message={message} onEdit={onEdit} onDelete={onDelete} />)}<div ref={endRef} /></div>;
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({
+  message,
+  onEdit,
+  onDelete,
+}: {
+  message: Message;
+  onEdit: (messageId: string, body: string) => void;
+  onDelete: (messageId: string) => void;
+}) {
   const sent = message.from === "provider";
-  return <div className={`flex ${sent ? "justify-end" : "justify-start"}`}><p className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] text-white" : "bg-slate-100 text-slate-800"}`}>{message.body}<span className="mt-1 block text-[10px] opacity-70">{message.timestamp}</span></p></div>;
+  const [editing, setEditing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [draft, setDraft] = useState(message.body);
+
+  if (message.deleted) return <div className="flex justify-end"><p className="rounded-2xl bg-slate-100 px-4 py-2 text-sm italic text-slate-400">Message deleted</p></div>;
+
+  if (editing) return <div className="flex justify-end"><form onSubmit={(event) => { event.preventDefault(); const body = draft.trim(); if (body) onEdit(message.id, body); setEditing(false); }} className="flex w-full max-w-[75%] gap-2"><Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label="Edit message" autoFocus /><Button type="submit" size="icon-sm" aria-label="Save message"><Check /></Button><Button type="button" variant="ghost" size="icon-sm" onClick={() => { setDraft(message.body); setEditing(false); }} aria-label="Cancel editing"><X /></Button></form></div>;
+
+  return <div className={`flex ${sent ? "justify-end" : "justify-start"}`}>
+    <div className={`group relative max-w-[75%] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] text-white" : "bg-slate-100 text-slate-800"}`}>
+      <p>{message.body}</p>
+      <span className="mt-1 block text-[10px] opacity-70">{message.edited ? "Edited · " : ""}{message.timestamp}</span>
+      {sent && <div className="absolute -right-9 top-1/2 -translate-y-1/2 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+        <Button type="button" variant="ghost" size="icon-sm" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Message actions"><MoreVertical /></Button>
+        {menuOpen && <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border bg-white p-1 text-slate-800 shadow-lg">
+          <ActionButton icon={Check} label="Edit message" onClick={() => { setDraft(message.body); setMenuOpen(false); setEditing(true); }} />
+          <ActionButton icon={Trash2} label="Delete message" onClick={() => { setMenuOpen(false); onDelete(message.id); }} />
+        </div>}
+      </div>}
+    </div>
+  </div>;
 }
+
 
 export function MessageComposer({ value, onChange, onSend }: { value: string; onChange: (value: string) => void; onSend: (event: FormEvent<HTMLFormElement>) => void }) {
   return <form onSubmit={onSend} className="flex gap-2 border-t bg-white p-4"><Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Write a reply..." aria-label="Write a reply" /><Button type="submit" size="icon" className="bg-[#3c6355] text-white" aria-label="Send message"><Send /></Button></form>;
