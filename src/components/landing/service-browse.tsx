@@ -47,12 +47,14 @@ export function ServiceBrowse() {
               key={label}
               className="flex min-w-[112px] items-center gap-2 rounded-full bg-white px-8 py-5.5 text-left shadow-[0_3px_5px_rgba(20,20,20,0.18)] transition-transform hover:-translate-y-0.5"
             >
-              <Icon size={17} className={color} strokeWidth={1.5} />
+              <Icon size={20} className={color} strokeWidth={1.5} />
               <span>
-                <span className="block text-xs font-semibold text-[#171817]">
+                <span className="block text-md font-semibold text-[#171817]">
                   {label}
                 </span>
-                <span className="block text-[9px] text-[#a0a39f]">{count}</span>
+                <span className="block text-[12px] text-[#a0a39f]">
+                  {count}
+                </span>
               </span>
             </Button>
           ))}
