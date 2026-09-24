@@ -89,17 +89,8 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
         </header>
 
         <section className="pt-6 sm:pt-8">
-          <div className="relative h-[220px] rounded-2xl bg-[#f0f0ef] sm:h-[300px] lg:h-[390px]">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="View more provider photos"
-              className="absolute right-3 top-1/2 size-9 -translate-y-1/2 rounded-full bg-white/70 text-[#555957] hover:bg-white"
-            >
-              <span aria-hidden="true">›</span>
-            </Button>
-
-            <div className="absolute inset-x-3 bottom-[-34px] flex items-end justify-between gap-3 sm:inset-x-4 sm:bottom-[-40px]">
+          <div className="relative h-[150px] rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
+            <div className="absolute inset-x-3 bottom-[-34px] flex items-end justify-between gap-3 sm:inset-x-4 sm:bottom-[-34px]">
               <div className="flex min-w-0 items-end gap-3">
                 <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#3c6355] text-white shadow-sm sm:size-16">
                   <Plus size={25} strokeWidth={1.5} />
@@ -162,7 +153,7 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
           </div>
         </section>
 
-        <Card className="mt-16 grid overflow-hidden rounded-2xl border-[#d8d8d5] bg-white shadow-none sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
+        <Card className="mt-14 grid overflow-hidden rounded-2xl border-[#d8d8d5] bg-white shadow-none sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
           <Stat label="Status" value="OPEN - Closes 8 PM" />
           <Stat label="Price tier" value="Start at 1500 - Premium" />
           <Stat label="Response time" value="Usually within 1 hr" />
