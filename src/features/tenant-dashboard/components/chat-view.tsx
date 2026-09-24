@@ -10,11 +10,13 @@ import { ChatHeader, ConversationList, MessageComposer, MessageList } from "./ch
 
 export function ChatView() {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);\n  const [mobileListOpen, setMobileListOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);
+  const [mobileListOpen, setMobileListOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
-  const selected = useMemo(() => conversations.find((item) => item.id === selectedId), [conversations, selectedId]);\n  const showMobileList = mobileListOpen || !selected;
+  const selected = useMemo(() => conversations.find((item) => item.id === selectedId), [conversations, selectedId]);
+  const showMobileList = mobileListOpen || !selected;
 
   const updateConversation = (id: string, update: (conversation: Conversation) => Conversation) => {
     setConversations((items) => items.map((conversation) => conversation.id === id ? update(conversation) : conversation));
