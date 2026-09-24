@@ -289,17 +289,17 @@ function ProfileSection({
 
 function PhotoGallery({ providerName }: { providerName: string }) {
   const photos = [
-    "/img/mock/image_1.png",
-    "/img/mock/image_2.png",
-    "/img/mock/image_4.png",
-    "/img/mock/image_6.png",
+    { src: "/kalinga-anima-hospital.png", position: "object-center" },
+    { src: "/kalinga-anima-hospital.png", position: "object-[25%_center]" },
+    { src: "/kalinga-anima-hospital.png", position: "object-[75%_center]" },
+    { src: "/kalinga-anima-hospital.png", position: "object-center" },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {photos.map((src, index) => (
+      {photos.map(({ src, position }, index) => (
         <div
-          key={src}
+          key={`${src}-${index}`}
           className="relative aspect-square overflow-hidden rounded-2xl bg-[#f0f0ef]"
         >
           <Image
@@ -307,7 +307,7 @@ function PhotoGallery({ providerName }: { providerName: string }) {
             alt={`${providerName} photo ${index + 1}`}
             fill
             sizes="(min-width: 640px) 220px, 50vw"
-            className="object-cover transition-transform duration-300 hover:scale-105"
+            className={`object-cover transition-transform duration-300 hover:scale-105 ${position}`}
           />
         </div>
       ))}
