@@ -21,6 +21,14 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 export type TenantProfileData = {
   name: string;
@@ -329,13 +337,47 @@ function ProfileSection({
 }
 
 function ServicesPanel() {
-  const services = serviceCategories.flatMap(({ services: categoryServices }) => categoryServices);
+  const [selectedCategory, setSelectedCategory] = useState(serviceCategories[0].label);
+  const category =
+    serviceCategories.find(({ label }) => label === selectedCategory) ??
+    serviceCategories[0];
 
   return (
-    <div className="divide-y divide-[#e5e6e4]">
-      {services.map((service) => (
-        <ServiceItemRow key={service.title} {...service} />
-      ))}
+    <div className="space-y-6">
+      <div className="max-w-sm">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#777b78]">
+          Service type
+        </p>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger
+            aria-label="Choose a service type"
+            className="h-11 rounded-xl border-[#d8d8d5] bg-white text-sm font-semibold text-[#3c6355] shadow-none"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {serviceCategories.map(({ label }) => (
+              <SelectItem key={label} value={label}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="rounded-xl border border-[#e5e6e4] bg-white px-4 sm:px-6">
+        <div className="border-b border-[#e5e6e4] py-4">
+          <h3 className="text-base font-bold text-[#3c6355]">{category.label}</h3>
+          <p className="mt-1 text-xs text-[#929492]">
+            Available services and starting prices
+          </p>
+        </div>
+        <div className="divide-y divide-[#e5e6e4]">
+          {category.services.map((service) => (
+            <ServiceItemRow key={service.title} {...service} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
