@@ -35,10 +35,15 @@ export type CalendarEvent = {
   customer: string;
 };
 
+export type ServiceStatus = "Active" | "Draft" | "Paused";
+
 export type ServiceItem = {
   id: string;
   title: string;
+  category: string;
+  description: string;
   price: string;
   duration: string;
-  status: "Active" | "Draft" | "Paused";
+  image?: string;
+  status: ServiceStatus;
 };
