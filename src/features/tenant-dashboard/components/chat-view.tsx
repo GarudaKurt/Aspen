@@ -10,11 +10,11 @@ import { ChatHeader, ConversationList, MessageComposer, MessageList } from "./ch
 
 export function ChatView() {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);\n  const [mobileListOpen, setMobileListOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
-  const selected = useMemo(() => conversations.find((item) => item.id === selectedId), [conversations, selectedId]);
+  const selected = useMemo(() => conversations.find((item) => item.id === selectedId), [conversations, selectedId]);\n  const showMobileList = mobileListOpen || !selected;
 
   const updateConversation = (id: string, update: (conversation: Conversation) => Conversation) => {
     setConversations((items) => items.map((conversation) => conversation.id === id ? update(conversation) : conversation));
@@ -36,6 +36,7 @@ export function ChatView() {
 
   const selectConversation = (id: string) => {
     setSelectedId(id);
+    setMobileListOpen(false);
     updateConversation(id, (conversation) => ({ ...conversation, unreadCount: 0 }));
   };
 
@@ -75,9 +76,9 @@ export function ChatView() {
     <h1 className="text-3xl font-bold">Chat</h1>
     <p className="mt-1 text-slate-500">Messages from customers about bookings and questions.</p>
     <Card className="mt-7 grid min-h-[560px] overflow-x-clip overflow-y-visible bg-white p-0 shadow-none lg:grid-cols-[280px_minmax(0,1fr)]">
-      <ConversationList conversations={conversations} selectedId={selectedId} onSelect={selectConversation} onDelete={setDeleteId} onArchive={archiveConversation} onToggleMute={toggleMute} />
-      <div className="min-w-0 flex min-h-[520px] flex-col">
-        {selected ? <><ChatHeader conversation={selected} /><MessageList messages={selected.messages} onEdit={editMessage} onDelete={setDeleteMessageId} /><MessageComposer value={draft} onChange={setDraft} onSend={send} /></> : <div className="grid flex-1 place-items-center p-5 text-center text-slate-500"><div><p>No conversation selected.</p><Button type="button" variant="outline" className="mt-3" onClick={() => conversations[0] && selectConversation(conversations[0].id)}>Choose a conversation</Button></div></div>}
+      <ConversationList className={showMobileList ? "block" : "hidden lg:block"} conversations={conversations} selectedId={selectedId} onSelect={selectConversation} onDelete={setDeleteId} onArchive={archiveConversation} onToggleMute={toggleMute} />
+      <div className={showMobileList ? "hidden lg:flex min-w-0 min-h-[520px] flex-col" : "flex min-w-0 min-h-[520px] flex-col"}>
+        {selected ? <><ChatHeader conversation={selected} onBack={() => setMobileListOpen(true)} /><MessageList messages={selected.messages} onEdit={editMessage} onDelete={setDeleteMessageId} /><MessageComposer value={draft} onChange={setDraft} onSend={send} /></> : <div className="grid flex-1 place-items-center p-5 text-center text-slate-500"><div><p>No conversation selected.</p><Button type="button" variant="outline" className="mt-3" onClick={() => conversations[0] && selectConversation(conversations[0].id)}>Choose a conversation</Button></div></div>}
       </div>
     </Card>
     {deleteMessageId && <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4" role="presentation">
