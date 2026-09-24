@@ -555,9 +555,12 @@ function ScheduleCard() {
           </div>
         ))}
       </div>
-      <Button className="mt-5 w-full bg-[#3c6355] px-2 text-[10px] text-white hover:bg-[#2f5044]">
+      <Link
+        href="/request-appointment"
+        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-[10px] font-medium text-white hover:bg-[#2f5044]"
+      >
         Request Appointment
-      </Button>
+      </Link>
       <p className="mt-5 text-center text-[8px] text-[#a7a9a7]">
         Free to request · no payment required now
       </p>
