@@ -37,15 +37,12 @@ export function ServicesView({ initialServices }: { initialServices: ServiceItem
       <div><h1 className="text-3xl font-bold">Services</h1><p className="mt-1 text-slate-500">Manage what you offer and how it appears to customers.</p></div>
       <Button type="button" onClick={openCreate} className="bg-[#3c6355] text-white hover:bg-[#2f5044]"><Plus className="mr-2 size-4" />Add service</Button>
     </div>
-    {items.length ? <div className="mt-7 grid gap-4 md:grid-cols-2">{items.map((service) => <Card key={service.id} className="overflow-hidden bg-white p-0 shadow-none">
-      <div className="flex min-h-32">
-        {service.image ? <img src={service.image} alt="" className="hidden w-32 object-cover sm:block" /> : <div className="hidden w-32 place-items-center bg-[#e8f5ef] text-3xl font-bold text-[#3c6355] sm:grid">{service.title.charAt(0)}</div>}
-        <div className="min-w-0 flex-1 p-5">
+    {items.length ? <div className="mt-7 grid gap-4 md:grid-cols-2">{items.map((service) => <Card key={service.id} className="bg-white p-5 shadow-none">
+        <div className="min-w-0">
           <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-medium text-[#3c6355]">{service.category}</p><h2 className="truncate text-lg font-semibold">{service.title}</h2></div><span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusClass(service.status)}`}>{service.status}</span></div>
           <p className="mt-2 line-clamp-2 text-sm text-slate-500">{service.description}</p>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3"><div><strong>{service.price}</strong><span className="ml-2 text-sm text-slate-400">{service.duration}</span></div><div className="flex gap-1"><Button type="button" variant="ghost" size="icon-sm" title="Preview service" aria-label="Preview service" onClick={() => setPreviewing(service)}><Eye /></Button><Button type="button" variant="ghost" size="icon-sm" title="Edit service" aria-label="Edit service" onClick={() => openEdit(service)}><Pencil /></Button><Button type="button" variant="ghost" size="icon-sm" title={service.status === "Active" ? "Pause service" : "Publish service"} aria-label={service.status === "Active" ? "Pause service" : "Publish service"} onClick={() => toggle(service.id)}><Power /></Button><Button type="button" variant="ghost" size="icon-sm" className="text-red-600 hover:text-red-700" title="Delete service" aria-label="Delete service" onClick={() => remove(service.id)}><Trash2 /></Button></div></div>
         </div>
-      </div>
     </Card>)}</div> : <Card className="mt-7 bg-white p-10 text-center shadow-none"><h2 className="font-semibold">No services yet</h2><p className="mt-1 text-sm text-slate-500">Add your first service so customers know what you offer.</p><Button type="button" onClick={openCreate} className="mt-4 bg-[#3c6355] text-white hover:bg-[#2f5044]">Add service</Button></Card>}
     <ServiceFormSheet open={formOpen} service={editing} onClose={() => setFormOpen(false)} onSave={save} />
     <ServicePreviewSheet service={previewing} onClose={() => setPreviewing(null)} />
