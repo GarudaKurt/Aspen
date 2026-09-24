@@ -60,6 +60,45 @@ const hours = [
   ["Sunday", "8 AM – 12 PM"],
 ];
 
+type ServiceItem = {
+  title: string;
+  description: string;
+  price: string;
+};
+
+type ServiceCategory = {
+  label: string;
+  services: ServiceItem[];
+};
+
+const serviceCategories: ServiceCategory[] = [
+  {
+    label: "Veterinary",
+    services: [
+      { title: "General Consultation", description: "Checkup and health assessment", price: "₱500" },
+      { title: "Core Vaccination", description: "Rabies, DHPPi, or feline core vaccines", price: "₱650" },
+      { title: "Dental Cleaning", description: "Scaling and polishing under sedation", price: "₱650" },
+      { title: "Emergency Care", description: "Walk-in urgent and after-hours care", price: "₱650" },
+    ],
+  },
+  {
+    label: "Grooming",
+    services: [
+      { title: "Full Grooming", description: "Bath, haircut, nail trim, and ear cleaning", price: "₱900" },
+      { title: "Grooming Add-on", description: "Bath, nail trim, and ear cleaning", price: "₱500" },
+      { title: "De-shedding Treatment", description: "Deep coat care for heavy shedders", price: "₱750" },
+    ],
+  },
+  {
+    label: "Boarding",
+    services: [
+      { title: "Day Boarding", description: "Supervised daytime care and play", price: "₱800" },
+      { title: "Overnight Boarding", description: "Comfortable overnight stay with check-ins", price: "₱1,500" },
+      { title: "Boarding Add-on", description: "Medication and special care support", price: "₱300" },
+    ],
+  },
+];
+
 export function TenantProfile({ provider = defaultProvider }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
@@ -249,6 +288,8 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
               </>
             ) : activeTab === "Photos" ? (
               <PhotoGallery providerName={provider.name} />
+            ) : activeTab === "Services" ? (
+              <ServicesPanel />
             ) : (
               <div className="rounded-xl border border-dashed border-[#d8d8d5] p-8 text-sm text-[#777b78]">
                 {activeTab} for {provider.name} will appear here.
@@ -284,6 +325,47 @@ function ProfileSection({
       <h2 className="mb-6 text-lg font-bold text-[#3c6355] sm:text-xl">{title}</h2>
       {children}
     </section>
+  );
+}
+
+function ServicesPanel() {
+  const [selectedCategory, setSelectedCategory] = useState(serviceCategories[0].label);
+  const category = serviceCategories.find(({ label }) => label === selectedCategory) ?? serviceCategories[0];
+
+  return (
+    <div>
+      <div className="mb-6 flex flex-wrap gap-2 border-b border-[#d8d8d5]">
+        {serviceCategories.map(({ label }) => (
+          <Button
+            key={label}
+            variant="ghost"
+            type="button"
+            onClick={() => setSelectedCategory(label)}
+            aria-pressed={selectedCategory === label}
+            className={`rounded-none px-3 pb-3 text-sm font-semibold text-[#3c6355] hover:bg-transparent hover:text-[#c5714e] ${selectedCategory === label ? "border-b-2 border-[#c5714e]" : "text-[#777b78]"}`}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      <div className="divide-y divide-[#e5e6e4]">
+        {category.services.map((service) => (
+          <ServiceItemRow key={service.title} {...service} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ServiceItemRow({ title, description, price }: ServiceItem) {
+  return (
+    <article className="flex items-start justify-between gap-6 py-5">
+      <div className="min-w-0">
+        <h3 className="text-sm font-bold text-[#272927] sm:text-base">{title}</h3>
+        <p className="mt-1 text-xs text-[#929492] sm:text-sm">{description}</p>
+      </div>
+      <p className="shrink-0 pt-0.5 text-sm font-bold text-[#3c6355] sm:text-base">{price}</p>
+    </article>
   );
 }
 
