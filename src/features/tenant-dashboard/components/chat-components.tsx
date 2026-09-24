@@ -117,9 +117,10 @@ function ConversationItem({
         </Button>
         {menuOpen && menuPosition && typeof document !== "undefined" && createPortal(
           <div className="fixed z-[100] w-44 rounded-lg border bg-white p-1 text-slate-800 shadow-xl" style={{ top: menuPosition.top, left: menuPosition.left }}>
-            <ActionButton icon={Archive} label="Archive" onClick={() => { setMenuOpen(false); onArchive(conversation.id); }} />
-            <ActionButton icon={BellOff} label={conversation.muted ? "Unmute" : "Mute"} onClick={() => { setMenuOpen(false); onToggleMute(conversation.id); }} />
-            <ActionButton icon={Trash2} label="Delete" onClick={() => { setMenuOpen(false); onDelete(conversation.id); }} />
+            <ActionButton icon={Archive} label="Archive" onClick={() => { setMenuOpen(false); setMenuPosition(null); onArchive(conversation.id); }} />
+            <ActionButton icon={BellOff} label={conversation.muted ? "Unmute" : "Mute"} onClick={() => { setMenuOpen(false); setMenuPosition(null); onToggleMute(conversation.id); }} />
+            <ActionButton icon={Trash2} label="Delete" onClick={() => { setMenuOpen(false); setMenuPosition(null); onDelete(conversation.id); }} />
+            <ActionButton icon={X} label="Cancel" onClick={() => { setMenuOpen(false); setMenuPosition(null); }} />
           </div>,
           document.body,
         )}
@@ -178,6 +179,7 @@ function MessageBubble({
         {menuOpen && <div className="absolute bottom-8 right-0 z-[60] w-40 rounded-lg border bg-white p-1 text-slate-800 shadow-xl">
           <ActionButton icon={Check} label="Edit message" onClick={() => { setDraft(message.body); setMenuOpen(false); setEditing(true); }} />
           <ActionButton icon={Trash2} label="Delete message" onClick={() => { setMenuOpen(false); onDelete(message.id); }} />
+          <ActionButton icon={X} label="Cancel" onClick={() => setMenuOpen(false)} />
         </div>}
       </div>}
     </div>
