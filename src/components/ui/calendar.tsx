@@ -18,6 +18,7 @@ function sameDay(first?: Date, second?: Date) {
 
 export function Calendar({ selected, onSelect, disabled }: CalendarProps) {
   const [viewDate, setViewDate] = React.useState(selected ?? new Date());
+  React.useEffect(() => { if (selected) setViewDate(selected); }, [selected]);
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
