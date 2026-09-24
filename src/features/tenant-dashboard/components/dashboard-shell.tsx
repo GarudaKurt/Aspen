@@ -37,26 +37,17 @@ export function MobileDashboardNav() {
   const { open, setOpen } = useSidebar();
 
   return (
-    <div className="mb-5 flex gap-2 overflow-x-auto lg:hidden">
-      <Button variant="outline" size="icon" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} onClick={() => setOpen(!open)}>
+    <div className="mb-5 flex lg:hidden">
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        aria-label={open ? "Close menu" : "Open menu"}
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
         <Menu />
       </Button>
-      {[
-        "Dashboard",
-        "Profile",
-        "Services",
-        "Chat",
-        "Notifications",
-        "Calendar",
-      ].map((item) => (
-        <Link
-          key={item}
-          href={`/tenant-dashboard/${item === "Dashboard" ? "" : item.toLowerCase()}`}
-          className="inline-flex h-8 shrink-0 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium hover:bg-slate-50"
-        >
-          {item}
-        </Link>
-      ))}
     </div>
   );
 }
