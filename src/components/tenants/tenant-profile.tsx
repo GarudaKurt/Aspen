@@ -9,6 +9,7 @@ import {
   Check,
   CreditCard,
   Heart,
+  ImagePlus,
   MapPin,
   Menu,
   MessageCircle,
@@ -83,6 +84,7 @@ type ReviewData = {
   name: string;
   starRating: number;
   comment: string;
+  photos?: string[];
 };
 
 const mockReviews: ReviewData[] = [
@@ -90,11 +92,13 @@ const mockReviews: ReviewData[] = [
     name: "Marisse T.",
     starRating: 5,
     comment: "Staff were gentle with my very anxious cat. Dr. Reyes explained everything clearly before the procedure.",
+    photos: ["/kalinga-anima-hospital.png"],
   },
   {
     name: "Daniel R.",
     starRating: 5,
     comment: "Very professional team and a smooth appointment from check-in to follow-up.",
+    photos: ["/kalinga-anima-hospital.png"],
   },
   {
     name: "Andrea M.",
@@ -394,7 +398,8 @@ function ReviewsPanel() {
   );
 }
 
-function ReviewItem({ name, starRating, comment }: ReviewData) {
+function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
+  const [reviewPhotos, setReviewPhotos] = useState(photos);
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -420,6 +425,31 @@ function ReviewItem({ name, starRating, comment }: ReviewData) {
             ))}
           </div>
           <p className="mt-2 text-xs leading-5 text-[#929492] sm:text-sm">{comment}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {reviewPhotos.map((photo, index) => (
+              <Image
+                key={`${photo}-${index}`}
+                src={photo}
+                alt={`${name} review photo ${index + 1}`}
+                width={72}
+                height={72}
+                className="size-16 rounded-lg object-cover"
+              />
+            ))}
+            <label className="inline-flex size-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#cfd4d1] text-[#3c6355] transition-colors hover:bg-[#f2f5f3]">
+              <ImagePlus size={18} />
+              <span className="sr-only">Upload a photo with your review</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) setReviewPhotos((current) => [...current, URL.createObjectURL(file)]);
+                }}
+              />
+            </label>
+          </div>
         </div>
         <time className="ml-auto shrink-0 text-[10px] text-[#929492]">2 weeks ago</time>
       </div>
