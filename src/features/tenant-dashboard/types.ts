@@ -12,6 +12,8 @@ export type Conversation = {
   preview: string;
   timestamp: string;
   online?: boolean;
+  unreadCount?: number;
+  muted?: boolean;
   messages: Message[];
 };
 
