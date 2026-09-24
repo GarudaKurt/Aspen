@@ -94,9 +94,27 @@ function ProviderCard() {
 }
 
 function AppointmentStepper({ activeIndex }: { activeIndex: number }) {
-  return <nav aria-label="Appointment progress" className="overflow-x-auto pb-2 lg:overflow-visible"><ol className="flex min-w-max items-start lg:block lg:min-w-0">{steps.map(({ label, icon: Icon }, index) => { const current = index === activeIndex; const complete = index < activeIndex; return <li key={label} className="relative flex flex-1 items-start lg:block lg:pb-7"><div className={`relative z-10 flex min-w-[84px] flex-col items-center gap-2 text-center text-xs lg:flex-row lg:items-center lg:gap-2 lg:text-left ${index <= activeIndex ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}><span className={`flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white ${current ? "border-[#3c6355] ring-4 ring-[#3c6355]/10" : complete ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#cfd2cf]"}`}>{complete ? <Check size={16} /> : <Icon size={16} />}</span><span className="hidden sm:block lg:block"><strong className="block">{label}</strong><small className="block text-[9px] text-[#a0a4a1]">{current ? "Current step" : complete ? "Completed" : "Not selected yet"}</small></span></div>{index < steps.length - 1 && <span aria-hidden="true" className={`absolute z-0 bg-[#cfd2cf] ${complete ? "bg-[#3c6355]" : ""} left-[calc(50%+18px)] right-0 top-4 h-0.5 lg:left-4 lg:right-auto lg:top-9 lg:h-auto lg:w-0.5 lg:-translate-x-1/2 lg:bottom-0`} />}</li>;})}</ol></nav>;
+  return <nav aria-label="Appointment progress" className="pb-2">
+    <ol className="space-y-1">
+      {steps.map(({ label, icon: Icon }, index) => {
+        const current = index === activeIndex;
+        const complete = index < activeIndex;
+        return <li key={label} className="relative flex items-start pb-5 last:pb-0">
+          {index < steps.length - 1 && <span aria-hidden="true" className={`absolute bottom-0 left-[18px] top-9 w-0.5 ${complete ? "bg-[#3c6355]" : "bg-[#cfd2cf]"}`} />}
+          <div className={`relative z-10 flex items-center gap-3 ${index <= activeIndex ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}>
+            <span className={`flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${current ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : complete ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#cfd2cf] text-[#a0a4a1]"}`}>
+              {complete ? <Check size={16} strokeWidth={2.5} /> : <Icon size={16} />}
+            </span>
+            <span className="block text-left">
+              <strong className="block text-sm">{label}</strong>
+              <small className="block text-[10px] text-[#a0a4a1]">{current ? "Current step" : complete ? "Completed" : "Not selected yet"}</small>
+            </span>
+          </div>
+        </li>;
+      })}
+    </ol>
+  </nav>;
 }
-
 function ServiceStep({ selected, onToggle }: { selected: string[]; onToggle: (id: string) => void }) {
   return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="space-y-3">{services.filter((service) => service.status === "Active").map((service) => { const checked = selected.includes(service.id); return <button key={service.id} type="button" onClick={() => onToggle(service.id)} aria-pressed={checked} className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${checked ? "border-[#3c6355] ring-1 ring-[#3c6355]" : "border-[#d7d8d5] hover:border-[#3c6355]"}`}><span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border ${checked ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#d7d8d5]"}`}>{checked && <Check size={14} />}</span><span className="min-w-0 flex-1"><strong className="block">{service.title}</strong><span className="block text-sm text-slate-400">{service.description}</span></span><strong className="shrink-0 text-[#3c6355]">{service.price}</strong></button>;})}</div></FormSection>;
 }
