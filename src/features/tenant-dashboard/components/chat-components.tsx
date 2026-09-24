@@ -192,7 +192,7 @@ function MessageBubble({
 
   if (editing) return <div className="flex justify-end"><form onSubmit={(event) => { event.preventDefault(); const body = draft.trim(); if (body) onEdit(message.id, body); setEditing(false); }} className="flex w-full max-w-[75%] gap-2"><Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label="Edit message" autoFocus /><Button type="submit" size="icon-sm" aria-label="Save message"><Check /></Button><Button type="button" variant="ghost" size="icon-sm" onClick={() => { setDraft(message.body); setEditing(false); }} aria-label="Cancel editing"><X /></Button></form></div>;
 
-  if (!sent) return <div className="flex min-w-0 justify-start"><div className="min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-800"><p className="break-words [overflow-wrap:anywhere]">{message.body}</p><span className="mt-1 block text-[10px] opacity-70">{message.timestamp}</span></div></div>;
+  if (!sent) return <div className="flex min-w-0 justify-start"><div className="w-fit min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-800"><p className="break-words [overflow-wrap:anywhere]">{message.body}</p><span className="mt-1 block text-[10px] opacity-70">{message.timestamp}</span></div></div>;
 
   const offset = isActionsOpen ? -160 : dragX;
   const closeActions = () => { setDragX(0); onToggleActions(); };
@@ -226,7 +226,7 @@ function MessageBubble({
       aria-label="Sent message. Press Enter or ArrowLeft to show actions."
       aria-expanded={isActionsOpen}
       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " " || event.key === "ArrowLeft") { event.preventDefault(); onToggleActions(); } if (event.key === "Escape" && isActionsOpen) { event.preventDefault(); onToggleActions(); } }}
-      className={`relative ml-auto min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-[#3c6355] px-4 py-2 text-sm text-white transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] ${dragging ? "duration-0" : ""}`}
+      className={`relative ml-auto w-fit min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-[#3c6355] px-4 py-2 text-sm text-white transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] ${dragging ? "duration-0" : ""}`}
       style={{ transform: `translateX(${offset}px)` }}
     >
       <p className="break-words [overflow-wrap:anywhere]">{message.body}</p>
