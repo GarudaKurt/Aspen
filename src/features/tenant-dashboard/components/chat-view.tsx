@@ -12,7 +12,8 @@ export function ChatView() {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);
   const [draft, setDraft] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);\n  const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
   const selected = useMemo(() => conversations.find((item) => item.id === selectedId), [conversations, selectedId]);
 
   const updateConversation = (id: string, update: (conversation: Conversation) => Conversation) => {
