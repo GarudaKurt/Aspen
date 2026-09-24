@@ -29,11 +29,9 @@ const getMonthDays = (date: Date) => {
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
   const leadingDays = (firstDay.getDay() + 6) % 7;
   const totalDays = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  const previousMonthDays = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
-
   return Array.from({ length: Math.ceil((leadingDays + totalDays) / 7) * 7 }, (_, index) => {
     const dayOffset = index - leadingDays;
-    return new Date(date.getFullYear(), date.getMonth(), dayOffset + 1 || previousMonthDays);
+    return new Date(date.getFullYear(), date.getMonth(), dayOffset + 1);
   });
 };
 
