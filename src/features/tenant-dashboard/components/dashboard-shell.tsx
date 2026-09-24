@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -34,9 +34,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 }
 
 export function MobileDashboardNav() {
+  const { open, setOpen } = useSidebar();
+
   return (
     <div className="mb-5 flex gap-2 overflow-x-auto lg:hidden">
-      <Button variant="outline" size="icon" aria-label="Open menu">
+      <Button variant="outline" size="icon" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} onClick={() => setOpen(!open)}>
         <Menu />
       </Button>
       {[
