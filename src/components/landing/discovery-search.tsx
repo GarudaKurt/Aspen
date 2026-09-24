@@ -124,7 +124,7 @@ export function DiscoverySearch({
             Search
           </Button>
         </form>
-        <div className="mt-6 flex max-w-[760px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mt-6 flex max-w-[760px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-4 lg:justify-items-start lg:gap-2 lg:overflow-visible">
           {serviceCategories.map(({ label, icon: Icon }) => {
             const isActive = selectedCategory === label;
 
