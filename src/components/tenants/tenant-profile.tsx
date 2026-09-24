@@ -184,7 +184,7 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
           <Stat label="Since" value="Member since 2024" />
         </Card>
 
-        <div className="mt-6 flex gap-7 overflow-x-auto border-b border-[#d8d8d5] px-2 sm:gap-9">
+        <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 border-b border-[#d8d8d5] px-2 sm:gap-x-10">
           {tabs.map((tab) => (
             <Button
               key={tab}
@@ -194,12 +194,12 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
               className={`relative h-10 shrink-0 rounded-none px-0 text-base font-medium text-[#171817] hover:bg-transparent hover:text-[#3c6355] sm:text-lg ${activeTab === tab ? "text-[#3c6355] after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:bg-[#c5714e]" : ""}`}
             >
               {tab}
-              {tab !== "Overview" && <span className="ml-1 text-sm text-[#777b78]">· 5</span>}
+              
             </Button>
           ))}
         </div>
 
-        <div className="grid gap-8 px-2 py-6 sm:px-4 lg:grid-cols-[1fr_190px] lg:gap-12">
+        <div className="grid gap-12 px-2 py-8 sm:px-4 lg:grid-cols-[1fr_260px] lg:gap-16">
           <div>
             {activeTab === "Overview" ? (
               <>
@@ -213,7 +213,7 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
                 </ProfileSection>
 
                 <ProfileSection title="Amenities">
-                  <div className="flex max-w-[700px] flex-wrap gap-3">
+                  <div className="flex max-w-[700px] flex-wrap gap-4">
                     {amenities.map(({ label, icon: Icon }) => (
                       <span
                         key={label}
@@ -227,7 +227,7 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
                 </ProfileSection>
 
                 <ProfileSection title="Hours">
-                  <div className="max-w-[255px] space-y-2 text-xs font-semibold text-[#3c6355]">
+                  <div className="max-w-[320px] space-y-3 text-xs font-semibold text-[#3c6355]">
                     {hours.map(([day, time]) => (
                       <div
                         key={day}
@@ -278,8 +278,8 @@ function ProfileSection({
   children: ReactNode;
 }) {
   return (
-    <section className="mb-8">
-      <h2 className="mb-4 text-lg font-bold text-[#3c6355] sm:text-xl">{title}</h2>
+    <section className="mb-12">
+      <h2 className="mb-6 text-lg font-bold text-[#3c6355] sm:text-xl">{title}</h2>
       {children}
     </section>
   );
@@ -287,9 +287,9 @@ function ProfileSection({
 
 function ScheduleCard() {
   return (
-    <Card className="h-fit rounded-xl border-[#d8d8d5] bg-white p-3 shadow-none">
-      <h2 className="text-base font-bold text-[#3c6355]">This week</h2>
-      <div className="mt-3 space-y-2 text-[10px] font-semibold text-[#3c6355]">
+    <Card className="h-fit rounded-xl border-[#d8d8d5] bg-white p-5 shadow-none">
+      <h2 className="text-lg font-bold text-[#3c6355]">This week</h2>
+      <div className="mt-5 space-y-3 text-xs font-semibold text-[#3c6355]">
         {hours.map(([day, time]) => (
           <div key={day} className="flex justify-between border-b border-[#bfc3c0] pb-2">
             <span>{day}</span>
@@ -297,10 +297,10 @@ function ScheduleCard() {
           </div>
         ))}
       </div>
-      <Button className="mt-3 w-full bg-[#3c6355] px-2 text-[10px] text-white hover:bg-[#2f5044]">
+      <Button className="mt-5 w-full bg-[#3c6355] px-2 text-[10px] text-white hover:bg-[#2f5044]">
         Request Appointment
       </Button>
-      <p className="mt-3 text-center text-[7px] text-[#a7a9a7]">
+      <p className="mt-5 text-center text-[8px] text-[#a7a9a7]">
         Free to request · no payment required now
       </p>
     </Card>
