@@ -24,7 +24,7 @@ export function DashboardSidebar() {
   const groups = [["main", "Main"], ["content", "Content"], ["business", "Business"]] as const;
 
   return <Sidebar className="lg:relative">
-    <SidebarContent className={`p-3 transition-[padding] duration-200 lg:${open ? "p-5" : "p-2"}`}>
+    <SidebarContent className={`transition-[padding] duration-200 ${open ? "p-3 lg:p-5" : "p-2 lg:p-2"}`}>
       <div className={`mb-6 flex items-center ${open ? "justify-between" : "justify-center"}`}>
         {open && <h2 className="text-xl font-semibold">Menu</h2>}
         <SidebarTrigger />
