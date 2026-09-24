@@ -105,7 +105,9 @@ function ConversationItem({
           onClick={() => {
             const rect = actionButtonRef.current?.getBoundingClientRect();
             if (!rect) return;
-            setMenuPosition({ top: rect.bottom + 4, left: Math.max(8, rect.right - 176) });
+            const menuHeight = 140;
+            const top = rect.bottom + menuHeight > window.innerHeight ? rect.top - menuHeight - 4 : rect.bottom + 4;
+            setMenuPosition({ top: Math.max(8, top), left: Math.max(8, rect.right - 176) });
             setMenuOpen((open) => !open);
           }}
           aria-expanded={menuOpen}
