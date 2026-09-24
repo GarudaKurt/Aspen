@@ -7,12 +7,16 @@ import type { LucideIcon } from "lucide-react";
 import { CalendarDays, Check, ChevronLeft, PawPrint, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { services } from "@/features/tenant-dashboard/mock-data";
+
+type Period = "Morning" | "Afternoon" | "Evening";
 
 type AppointmentDraft = {
   serviceIds: string[];
   date: string;
+  period: Period;
   time: string;
   petName: string;
   petType: string;
@@ -29,8 +33,8 @@ const steps: Step[] = [
   { label: "Pet", path: "/request-appointment/pet", icon: PawPrint },
   { label: "Your details", path: "/request-appointment/details", icon: UserRound },
 ];
-const times = ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"];
-const initialDraft: AppointmentDraft = { serviceIds: [], date: "", time: "", petName: "", petType: "", reason: "", fullName: "", phone: "", email: "" };
+const timeSlots: Record<Period, string[]> = { Morning: ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"], Afternoon: ["12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"], Evening: ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"] };
+const initialDraft: AppointmentDraft = { serviceIds: [], date: "", period: "Morning", time: "", petName: "", petType: "", reason: "", fullName: "", phone: "", email: "" };
 
 export function AppointmentPage() {
   const pathname = usePathname();
@@ -74,7 +78,7 @@ export function AppointmentPage() {
         <div><ProviderCard /><AppointmentStepper activeIndex={activeIndex} /></div>
         <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
           {activeIndex === 0 && <ServiceStep selected={draft.serviceIds} onToggle={toggleService} />}
-          {activeIndex === 1 && <DateStep date={draft.date} time={draft.time} onDate={(value) => update("date", value)} onTime={(value) => update("time", value)} />}
+          {activeIndex === 1 && <DateStep date={draft.date} period={draft.period} time={draft.time} onDate={(value) => update("date", value)} onPeriod={(value) => { update("period", value); if (!timeSlots[value].includes(draft.time)) update("time", ""); }} onTime={(value) => update("time", value)} />}
           {activeIndex === 2 && <PetStep draft={draft} update={update} />}
           {activeIndex === 3 && <DetailsStep draft={draft} update={update} />}
           {error && <p role="alert" className="mt-5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
@@ -97,10 +101,12 @@ function ServiceStep({ selected, onToggle }: { selected: string[]; onToggle: (id
   return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="space-y-3">{services.filter((service) => service.status === "Active").map((service) => { const checked = selected.includes(service.id); return <button key={service.id} type="button" onClick={() => onToggle(service.id)} aria-pressed={checked} className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${checked ? "border-[#3c6355] ring-1 ring-[#3c6355]" : "border-[#d7d8d5] hover:border-[#3c6355]"}`}><span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border ${checked ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#d7d8d5]"}`}>{checked && <Check size={14} />}</span><span className="min-w-0 flex-1"><strong className="block">{service.title}</strong><span className="block text-sm text-slate-400">{service.description}</span></span><strong className="shrink-0 text-[#3c6355]">{service.price}</strong></button>;})}</div></FormSection>;
 }
 
-function DateStep({ date, time, onDate, onTime }: { date: string; time: string; onDate: (value: string) => void; onTime: (value: string) => void }) {
-  return <FormSection title="Preferred date & time" description="Pick a time that works for you."><div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_2fr]"><label className="text-sm font-semibold">Date<Input type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => onDate(event.target.value)} className="mt-2" /></label><div><p className="text-sm font-semibold">Time of day</p><div className="mt-2 flex flex-wrap gap-2">{["Morning", "Afternoon", "Evening"].map((period) => <Button key={period} type="button" variant={time && time.startsWith(period.slice(0, 3)) ? "default" : "outline"} className={time.startsWith(period.slice(0, 3)) ? "bg-[#3c6355] text-white" : ""} onClick={() => onTime(period)}>{period}</Button>)}</div><div className="mt-4 flex flex-wrap gap-2">{times.map((slot) => <Button key={slot} type="button" variant="outline" className={time === slot ? "border-[#3c6355] bg-[#e8f5ef] text-[#3c6355]" : ""} onClick={() => onTime(slot)}>{slot}</Button>)}</div></div></div></FormSection>;
+function DateStep({ date, period, time, onDate, onPeriod, onTime }: { date: string; period: Period; time: string; onDate: (value: string) => void; onPeriod: (value: Period) => void; onTime: (value: string) => void }) {
+  const selectedDate = date ? new Date(`${date}T12:00:00`) : undefined;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return <FormSection title="Preferred date & time" description="Pick a date, time period, and available slot."><div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]"><div><p className="mb-2 text-sm font-semibold">Date</p><Calendar selected={selectedDate} onSelect={(value) => onDate(`${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`)} disabled={(value) => value < today} /></div><div><p className="text-sm font-semibold">Time of day</p><div className="mt-2 flex flex-wrap gap-2">{(["Morning", "Afternoon", "Evening"] as Period[]).map((item) => <Button key={item} type="button" variant={period === item ? "default" : "outline"} className={period === item ? "bg-[#3c6355] text-white hover:bg-[#2f5044]" : ""} onClick={() => onPeriod(item)}>{item}</Button>)}</div><p className="mt-5 text-sm font-semibold">Available time slots</p><div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">{timeSlots[period].map((slot) => <Button key={slot} type="button" variant="outline" className={time === slot ? "border-[#3c6355] bg-[#e8f5ef] text-[#3c6355]" : ""} onClick={() => onTime(slot)}>{slot}</Button>)}</div></div></div></FormSection>;
 }
-
 function PetStep({ draft, update }: { draft: AppointmentDraft; update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void }) {
   return <FormSection title="About your pet" description="Help the provider prepare for your visit."><div className="grid gap-4 sm:grid-cols-2"><Field label="Pet's name"><Input value={draft.petName} onChange={(event) => update("petName", event.target.value)} placeholder="e.g. Mel-mel" /></Field><Field label="Pet's type"><select value={draft.petType} onChange={(event) => update("petType", event.target.value)} className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"><option value="">Select type</option><option>Dog</option><option>Cat</option><option>Other</option></select></Field></div><Field label="Reason's for visit"><textarea value={draft.reason} onChange={(event) => update("reason", event.target.value)} className="min-h-28 w-full rounded-md border border-input px-3 py-2 text-sm" placeholder="Tell us what your pet needs." /></Field></FormSection>;
 }
