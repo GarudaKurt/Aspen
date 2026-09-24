@@ -174,7 +174,7 @@ function MessageBubble({
     <div className={`group relative min-w-0 max-w-[min(75%,28rem)] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] text-white" : "bg-slate-100 text-slate-800"}`}>
       <p className="break-words [overflow-wrap:anywhere]">{message.body}</p>
       <span className="mt-1 block text-[10px] opacity-70">{message.edited ? "Edited · " : ""}{message.timestamp}</span>
-      {sent && <div className="absolute right-1 top-1 z-30">
+      {sent && <div className="absolute right-2 top-2 z-30">
         <Button type="button" variant="ghost" size="icon-sm" className="text-current hover:bg-white/15" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Message actions"><MoreVertical /></Button>
         {menuOpen && <div className="absolute bottom-8 right-0 z-[60] w-40 rounded-lg border bg-white p-1 text-slate-800 shadow-xl">
           <ActionButton icon={Check} label="Edit message" onClick={() => { setDraft(message.body); setMenuOpen(false); setEditing(true); }} />
