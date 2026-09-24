@@ -22,6 +22,8 @@ export type Message = {
   body: string;
   timestamp: string;
   from: "customer" | "provider";
+  edited?: boolean;
+  deleted?: boolean;
 };
 
 export type CalendarEvent = {
