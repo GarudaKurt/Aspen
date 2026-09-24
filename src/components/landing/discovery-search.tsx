@@ -78,9 +78,9 @@ export function DiscoverySearch({
         </p>
         <form
           onSubmit={submitSearch}
-          className="mt-7 flex max-w-[660px] flex-col overflow-hidden rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
+          className="mt-7 flex h-[62px] max-w-[660px] min-w-0 flex-row items-center overflow-hidden rounded-2xl border border-[#c8c8c5] bg-white"
         >
-          <div className="flex min-h-[58px] flex-1 items-center gap-3 px-5 text-[#8e918e]">
+          <div className="flex min-h-0 min-w-0 flex-1 items-center gap-2 px-3 text-[#8e918e] sm:gap-3 sm:px-5">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
             <Input
               value={query}
@@ -90,8 +90,8 @@ export function DiscoverySearch({
               className="min-w-0 flex-1 border-0 bg-transparent px-0 text-base text-[#242524] shadow-none outline-none placeholder:text-[#8e918e] focus-visible:ring-0 sm:text-lg"
             />
           </div>
-          <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
-          <div className="flex min-h-[52px] items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:border-t-0">
+          <div className="mx-1 h-9 w-px shrink-0 bg-[#e6e5e1] sm:mx-4" />
+          <div className="flex min-h-0 shrink-0 items-center gap-1 border-l border-[#e6e5e1] px-2 text-[#444743] sm:gap-2 sm:px-5">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
             <Select
               value={city}
@@ -118,10 +118,10 @@ export function DiscoverySearch({
             variant="ghost"
             type="submit"
             aria-label="Search"
-            className="flex h-auto min-h-[52px] w-full items-center justify-start gap-3 rounded-none border-t border-[#e6e5e1] bg-transparent px-5 text-base font-semibold text-[#2c2c2c] transition-colors hover:bg-[#f3f3f2] hover:text-[#3c6355] sm:mx-2 sm:my-2 sm:h-11 sm:min-h-[44px] sm:w-auto sm:shrink-0 sm:justify-center sm:gap-2 sm:rounded-xl sm:border-0 sm:px-4"
+            className="mx-1 flex h-11 min-h-0 w-auto shrink-0 items-center justify-center gap-2 rounded-xl bg-transparent px-3 text-base font-semibold text-[#2c2c2c] transition-colors hover:bg-[#f3f3f2] hover:text-[#3c6355] sm:mx-2 sm:px-4"
           >
             <Search size={20} strokeWidth={1.8} className="shrink-0" />
-            Search
+            <span className="hidden sm:inline">Search</span>
           </Button>
         </form>
         <div className="mt-6 flex max-w-[760px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
