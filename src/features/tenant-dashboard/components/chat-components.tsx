@@ -41,7 +41,7 @@ export function ConversationList({
   const visible = conversations.filter((conversation) => conversation.name.toLowerCase().includes(query.toLowerCase()));
   return <section className="border-b lg:border-b-0 lg:border-r" aria-label="Conversations">
     <div className="p-4"><Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search conversations" /></div>
-    <div className="max-h-[300px] overflow-y-auto lg:max-h-[500px]">
+    <div className="max-h-[300px] overflow-x-clip overflow-y-auto lg:max-h-[500px]">
       {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
     </div>
   </section>;
@@ -78,7 +78,7 @@ function ConversationItem({
     if (dx > 24) setSwiped(false);
   };
 
-  return <div className="relative overflow-hidden border-t">
+  return <div className="relative overflow-x-clip overflow-y-visible border-t">
     <div className="absolute inset-y-0 right-0 flex items-center gap-1 bg-slate-100 px-2">
       <Button type="button" variant="ghost" size="icon-sm" onClick={() => onArchive(conversation.id)} title="Archive conversation" aria-label="Archive conversation"><Archive /></Button>
       <Button type="button" variant="ghost" size="icon-sm" onClick={() => onToggleMute(conversation.id)} title={conversation.muted ? "Unmute notifications" : "Mute notifications"} aria-label={conversation.muted ? "Unmute notifications" : "Mute notifications"}><BellOff /></Button>
