@@ -1,17 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useState, type ChangeEvent, type ReactNode } from "react";
 import {
   Accessibility,
   ArrowLeft,
   Check,
-  Clock3,
   CreditCard,
   Heart,
   MapPin,
   Menu,
   MessageCircle,
+  Pencil,
   Phone,
   Plus,
   Share2,
@@ -63,6 +64,16 @@ const hours = [
 export function TenantProfile({ provider = defaultProvider }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  const handleImageUpload = (
+    event: ChangeEvent<HTMLInputElement>,
+    setPreview: (preview: string) => void,
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) setPreview(URL.createObjectURL(file));
+  };
 
   return (
     <main className="min-h-screen bg-[#f7f7f5] px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
@@ -89,12 +100,54 @@ export function TenantProfile({ provider = defaultProvider }: TenantProfileProps
         </header>
 
         <section className="pt-6 sm:pt-8">
-          <div className="relative h-[150px] rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
-            <div className="absolute inset-x-3 bottom-[-34px] flex items-end justify-between gap-3 sm:inset-x-4 sm:bottom-[-34px]">
+          <label className="relative block h-[150px] cursor-pointer overflow-hidden rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
+            {coverPhoto && (
+              <Image
+                src={coverPhoto}
+                alt="Cover photo preview"
+                fill
+                unoptimized
+                sizes="(min-width: 1024px) 1120px, 100vw"
+                className="object-cover"
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(event) => handleImageUpload(event, setCoverPhoto)}
+            />
+            <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm">
+              <Pencil size={16} />
+              <span className="sr-only">Upload or edit cover photo</span>
+            </span>
+          </label>
+          <div className="absolute inset-x-3 bottom-[-34px] flex items-end justify-between gap-3 sm:inset-x-4 sm:bottom-[-34px]">
               <div className="flex min-w-0 items-end gap-3">
-                <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#3c6355] text-white shadow-sm sm:size-16">
-                  <Plus size={25} strokeWidth={1.5} />
-                </div>
+                <label className="relative flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-[#3c6355] text-white shadow-sm sm:size-16">
+                  {profilePhoto ? (
+                    <Image
+                      src={profilePhoto}
+                      alt="Profile photo preview"
+                      fill
+                      unoptimized
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <Plus size={25} strokeWidth={1.5} />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(event) => handleImageUpload(event, setProfilePhoto)}
+                  />
+                  <span className="absolute bottom-1 right-1 inline-flex size-5 items-center justify-center rounded-full bg-white text-[#3c6355] shadow-sm">
+                    <Pencil size={11} />
+                    <span className="sr-only">Upload or edit profile photo</span>
+                  </span>
+                </label>
                 <div className="min-w-0 pb-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="truncate text-xl font-bold sm:text-2xl lg:text-3xl">
