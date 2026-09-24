@@ -171,7 +171,7 @@ function MessageBubble({
   if (editing) return <div className="flex justify-end"><form onSubmit={(event) => { event.preventDefault(); const body = draft.trim(); if (body) onEdit(message.id, body); setEditing(false); }} className="flex w-full max-w-[75%] gap-2"><Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label="Edit message" autoFocus /><Button type="submit" size="icon-sm" aria-label="Save message"><Check /></Button><Button type="button" variant="ghost" size="icon-sm" onClick={() => { setDraft(message.body); setEditing(false); }} aria-label="Cancel editing"><X /></Button></form></div>;
 
   return <div className={`flex min-w-0 ${sent ? "justify-end" : "justify-start"}`}>
-    <div className={`group relative min-w-0 max-w-[min(75%,28rem)] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] text-white" : "bg-slate-100 text-slate-800"}`}>
+    <div className={`group relative min-w-0 max-w-[min(75%,28rem)] rounded-2xl px-4 py-2 text-sm ${sent ? "bg-[#3c6355] pr-10 text-white" : "bg-slate-100 text-slate-800"}`}>
       <p className="break-words [overflow-wrap:anywhere]">{message.body}</p>
       <span className="mt-1 block text-[10px] opacity-70">{message.edited ? "Edited · " : ""}{message.timestamp}</span>
       {sent && <div className="absolute right-2 top-2 z-30">
