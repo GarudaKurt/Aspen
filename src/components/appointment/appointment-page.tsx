@@ -95,19 +95,19 @@ function ProviderCard() {
 
 function AppointmentStepper({ activeIndex }: { activeIndex: number }) {
   return <nav aria-label="Appointment progress" className="pb-2">
-    <ol className="space-y-1">
+    <ol className="grid grid-cols-4 gap-1 lg:block">
       {steps.map(({ label, icon: Icon }, index) => {
         const current = index === activeIndex;
         const complete = index < activeIndex;
-        return <li key={label} className="relative flex items-start pb-5 last:pb-0">
-          {index < steps.length - 1 && <span aria-hidden="true" className={`absolute bottom-0 left-[18px] top-9 w-0.5 ${complete ? "bg-emerald-600" : "bg-[#cfd2cf]"}`} />}
-          <div className={`relative z-10 flex items-center gap-3 ${index <= activeIndex ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}>
-            <span className={`flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${current ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : complete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}>
-              {complete ? <Check size={16} strokeWidth={2.5} /> : <Icon size={16} />}
+        return <li key={label} className="relative flex min-w-0 items-start justify-center pb-2 lg:block lg:pb-5 lg:last:pb-0">
+          {index < steps.length - 1 && <span aria-hidden="true" className={`absolute left-[calc(50%+16px)] right-[calc(-50%+16px)] top-4 h-0.5 ${complete ? "bg-emerald-600" : "bg-[#cfd2cf]"} lg:bottom-0 lg:left-[18px] lg:right-auto lg:top-9 lg:h-auto lg:w-0.5`} />}
+          <div className={`relative z-10 flex min-w-0 flex-col items-center gap-1 text-center lg:flex-row lg:items-center lg:gap-3 lg:text-left ${index <= activeIndex ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}>
+            <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 lg:size-9 ${current ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : complete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}>
+              {complete ? <Check size={15} strokeWidth={2.5} /> : <Icon size={15} />}
             </span>
-            <span className="block text-left">
-              <strong className="block text-sm">{label}</strong>
-              <small className="block text-[10px] text-[#a0a4a1]">{current ? "Current step" : complete ? "Completed" : "Not selected yet"}</small>
+            <span className="block min-w-0 text-center lg:text-left">
+              <strong className="block truncate text-[10px] sm:text-xs lg:text-sm">{label}</strong>
+              <small className="block text-[9px] text-[#a0a4a1] lg:text-[10px]">{current ? "Current step" : complete ? "Completed" : "Not selected yet"}</small>
             </span>
           </div>
         </li>;
