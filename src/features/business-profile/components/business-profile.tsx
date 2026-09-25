@@ -47,6 +47,7 @@ export type TenantProfileData = {
   serviceCoverage?: string[];
   coverPhoto?: string | null;
   businessHours?: BusinessHoursDay[];
+  slug?: string;
   verified?: boolean;
 };
 
@@ -357,7 +358,7 @@ export function BusinessProfile({
             )}
           </div>
 
-          <ScheduleCard schedule={schedule} />
+          <ScheduleCard schedule={schedule} businessSlug={provider.slug} />
         </div>
       </div>
     </main>
@@ -573,7 +574,7 @@ function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
   );
 }
 
-function ScheduleCard({ schedule }: { schedule: BusinessHoursDay[] }) {
+function ScheduleCard({ schedule, businessSlug }: { schedule: BusinessHoursDay[]; businessSlug?: string }) {
   const businessStatus = getBusinessHoursStatus(schedule);
 
   return (
@@ -588,7 +589,7 @@ function ScheduleCard({ schedule }: { schedule: BusinessHoursDay[] }) {
         <BusinessHoursList schedule={schedule} />
       </div>
       <Link
-        href="/request-appointment"
+        href={businessSlug ? `/business-profile/${businessSlug}/request-appointment` : "/request-appointment"}
         className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-[10px] font-medium text-white hover:bg-[#2f5044]"
       >
         Request Appointment
