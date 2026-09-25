@@ -51,7 +51,7 @@ export const useTenantProfileStore = create<TenantProfileStore>()(
     }),
     {
       name: "aspen-tenant-profile",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({ profile: state.profile }),
       merge: (persisted, current) => {
         const parsed = tenantProfileSchema.partial().safeParse(
