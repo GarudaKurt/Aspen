@@ -24,6 +24,7 @@ export default async function BusinessProfileBySlugPage({
     category: business.services,
     address: business.location,
     coverPhoto: business.images?.[0]?.src ?? null,
+    slug: business.slug,
     serviceCoverage: [business.services],
     verified: true,
   };
