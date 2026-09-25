@@ -144,6 +144,7 @@ export function MessageList({
   messages,
   onEdit,
   onDelete,
+  currentUser,
 }: {
   messages: Message[];
   onEdit: (messageId: string, body: string) => void;
