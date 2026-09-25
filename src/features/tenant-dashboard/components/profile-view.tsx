@@ -13,6 +13,8 @@ import {
   type BusinessHoursDay,
 } from "@/features/business-profile/business-hours";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TimePicker } from "@/components/ui/time-picker";
@@ -39,7 +41,7 @@ export function ProfileView() {
   const [customAmenity, setCustomAmenity] = useState("");
   const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
   const [editingAmenityName, setEditingAmenityName] = useState("");
-  const [amenityNotice, setAmenityNotice] = useState("");
+  const [pendingAmenity, setPendingAmenity] = useState<BusinessAmenity | null>(null);
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingHours, setEditingHours] = useState(false);
   const [editingAmenities, setEditingAmenities] = useState(false);
@@ -159,7 +161,6 @@ export function ProfileView() {
     setEditingAmenityId(null);
     setEditingAmenityName("");
     setErrors({});
-    setAmenityNotice("");
     setEditingAmenities(true);
   };
 
@@ -175,6 +176,7 @@ export function ProfileView() {
 
   const saveAmenities = () => {
     updateTenantProfile({ amenities: amenitiesDraft });
+    toast({ title: "Amenities saved", description: "Your amenity changes were saved.", variant: "success" });
     setErrors({});
     setEditingAmenities(false);
   };
@@ -206,17 +208,43 @@ export function ProfileView() {
       ),
     );
     cancelCustomAmenityEdit();
+    toast({ title: "Amenity updated", description: label + " was updated.", variant: "success" });
     setErrors((current) => ({ ...current, amenities: "" }));
+  };
+
+  const requestRemoveAmenity = (id: string) => {
+    const amenity = amenitiesDraft.find((item) => item.id === id);
+    if (amenity) setPendingAmenity(amenity);
+  };
+
+  const confirmRemoveAmenity = () => {
+    if (!pendingAmenity) return;
+    try {
+      setAmenitiesDraft((current) => current.filter((item) => item.id !== pendingAmenity.id));
+      toast({
+        title: "Amenity removed",
+        description: pendingAmenity.label + " was removed from your profile.",
+        variant: "success",
+      });
+      if (editingAmenityId === pendingAmenity.id) cancelCustomAmenityEdit();
+      setPendingAmenity(null);
+    } catch {
+      toast({
+        title: "Unable to remove amenity",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleAmenity = (amenity: BusinessAmenity) => {
     const selected = amenitiesDraft.some((item) => item.id === amenity.id);
-    setAmenitiesDraft((current) =>
-      selected
-        ? current.filter((item) => item.id !== amenity.id)
-        : [...current, amenity],
-    );
-    setAmenityNotice(selected ? amenity.label + " removed." : "");
+    if (selected) {
+      requestRemoveAmenity(amenity.id);
+      return;
+    }
+    setAmenitiesDraft((current) => [...current, amenity]);
+    toast({ title: "Amenity added", description: amenity.label + " is now selected.", variant: "success" });
   };
 
   const addCustomAmenity = () => {
@@ -238,13 +266,7 @@ export function ProfileView() {
     setErrors((current) => ({ ...current, amenities: "" }));
   };
 
-  const removeAmenity = (id: string) => {
-    const amenity = amenitiesDraft.find((item) => item.id === id);
-    if (!amenity) return;
-    setAmenitiesDraft((current) => current.filter((item) => item.id !== id));
-    setAmenityNotice(amenity.label + " removed.");
-    if (editingAmenityId === id) cancelCustomAmenityEdit();
-  };
+
 
   const startCoverageEdit = () => {
     setCoverageDraft(profile.serviceCoverage);
@@ -531,7 +553,7 @@ export function ProfileView() {
             onCustomAmenityChange={setCustomAmenity}
             onToggle={toggleAmenity}
             onAddCustom={addCustomAmenity}
-            onRemove={removeAmenity}
+            onRemove={requestRemoveAmenity}
             editingId={editingAmenityId}
             editingName={editingAmenityName}
             onStartEdit={startCustomAmenityEdit}
@@ -555,11 +577,6 @@ export function ProfileView() {
           </div>
         )}
         {errors.amenities && <p className="mt-2 text-xs text-red-600">{errors.amenities}</p>}
-        {amenityNotice && (
-          <p role="status" className="mt-2 text-xs text-emerald-600">
-            {amenityNotice}
-          </p>
-        )}
       </Card>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
@@ -617,6 +634,19 @@ export function ProfileView() {
           </div>
         )}
       </Card>
+
+      <AlertDialog open={Boolean(pendingAmenity)} onOpenChange={(open) => !open && setPendingAmenity(null)}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove amenity?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to remove {pendingAmenity?.label} from your business profile?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setPendingAmenity(null)}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmRemoveAmenity}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialog>
 
       <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
         <SheetContent
