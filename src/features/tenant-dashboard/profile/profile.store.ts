@@ -17,6 +17,7 @@ export const initialTenantProfile: TenantProfile = {
   name: "PawSpot Grooming & Boarding",
   rating: "4.9",
   reviews: "38 reviews",
+  favorites: 24,
   category: "Grooming, Boarding",
   address: "Cebu City",
   description: "Full-service grooming and short-stay boarding for dogs and cats.",
