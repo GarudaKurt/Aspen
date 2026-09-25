@@ -451,7 +451,7 @@ export function ProfileView() {
         )}
       </Card>
 
-      <Card className="h-full bg-white p-6 shadow-none">
+      <Card className="mt-5 h-full bg-white p-7 shadow-none sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">Amenities</h2>
@@ -708,8 +708,8 @@ function AmenitiesEditor({
   onRemove: (id: string) => void;
 }) {
   return (
-    <div className="mt-5 space-y-4">
-      <div className="grid gap-2 sm:grid-cols-2">
+    <div className="mt-6 space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2">
         {amenityOptions.map((amenity) => (
           <label key={amenity.id} className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm">
             <input
