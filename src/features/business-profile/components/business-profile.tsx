@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { amenityOptions, type BusinessAmenity } from "../amenities";
+import { AmenityIcon } from "./amenity-icon";
 import {
   getBusinessHoursDisplayRows,
   getBusinessHoursStatus,
@@ -48,6 +50,7 @@ export type TenantProfileData = {
   coverPhoto?: string | null;
   businessHours?: BusinessHoursDay[];
   slug?: string;
+  amenities?: BusinessAmenity[];
   verified?: boolean;
 };
 
@@ -67,13 +70,7 @@ const defaultProvider: TenantProfileData = {
 
 const tabs = ["Overview", "Photos", "Services", "Reviews"];
 
-const amenities = [
-  { label: "Walk-ins welcome", icon: Check },
-  { label: "Free parking", icon: Truck },
-  { label: "Cards payment", icon: CreditCard },
-  { label: "Wheel chair accessible", icon: Accessibility },
-  { label: "24/7 Emergency hotline", icon: Phone },
-];
+
 
 
 
@@ -157,6 +154,7 @@ export function BusinessProfile({
   const [coverPhoto, setCoverPhoto] = useState<string | null>(provider.coverPhoto ?? null);
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);
+  const displayedAmenities = provider.amenities ?? amenityOptions.slice(0, 3);
 
   const handleImageUpload = (
     event: ChangeEvent<HTMLInputElement>,
@@ -309,15 +307,17 @@ export function BusinessProfile({
 
                 <ProfileSection title="Amenities">
                   <div className="flex max-w-[700px] flex-wrap gap-4">
-                    {amenities.map(({ label, icon: Icon }) => (
+                    {displayedAmenities.length ? displayedAmenities.map((amenity) => (
                       <span
-                        key={label}
+                        key={amenity.id}
                         className="inline-flex items-center gap-1.5 rounded-full border border-[#dedbd8] px-3 py-1.5 text-xs font-semibold text-[#272927]"
                       >
-                        <Icon size={14} className="text-[#3c6355]" />
-                        {label}
+                        <span className="text-[#3c6355]"><AmenityIcon amenity={amenity} /></span>
+                        {amenity.label}
                       </span>
-                    ))}
+                    )) : (
+                      <p className="text-sm text-[#929492]">No amenities listed.</p>
+                    )}
                   </div>
                 </ProfileSection>
 
