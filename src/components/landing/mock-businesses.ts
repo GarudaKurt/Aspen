@@ -1,4 +1,5 @@
 import type { BusinessCardProps } from "./business-card";
+import type { BusinessService } from "@/domain/business";
 
 export const mockBusinesses: BusinessCardProps[] = [
   {
@@ -8,6 +9,11 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.8 (23)",
     services: "Vet Clinics",
     priceStarts: "Php 1,500",
+    servicesOffered: [
+      { id: "kalinga-consultation", title: "General Consultation", category: "Veterinary", description: "Checkup and health assessment", price: "₱500", duration: "30 min", photos: [], status: "Active" },
+      { id: "kalinga-vaccination", title: "Core Vaccination", category: "Veterinary", description: "Rabies, DHPPi, or feline core vaccines", price: "₱650", duration: "30 min", photos: [], status: "Active" },
+      { id: "kalinga-dental", title: "Dental Cleaning", category: "Veterinary", description: "Scaling and polishing under sedation", price: "₱650", duration: "60 min", photos: [], status: "Active" },
+    ],
     href: "#",
     images: [
       { src: "/img/mock/image_1.png", position: "object-center" },
@@ -22,6 +28,10 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.7 (18)",
     services: "Vet Clinics",
     priceStarts: "Php 1,200",
+    servicesOffered: [
+      { id: "wellness-consultation", title: "Wellness Consultation", category: "Veterinary", description: "Routine health assessment and care guidance", price: "₱450", duration: "30 min", photos: [], status: "Active" },
+      { id: "wellness-vaccination", title: "Pet Vaccination", category: "Veterinary", description: "Core vaccinations for dogs and cats", price: "₱600", duration: "30 min", photos: [], status: "Active" },
+    ],
     href: "#",
     images: [
       { src: "/img/mock/image_2.png", position: "object-center" },
@@ -36,6 +46,10 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.9 (31)",
     services: "Grooming",
     priceStarts: "Php 900",
+    servicesOffered: [
+      { id: "paws-full-groom", title: "Full Grooming Package", category: "Grooming", description: "Bath, trim, nail care, and finishing", price: "₱900", duration: "90 min", photos: [], status: "Active" },
+      { id: "paws-bath-trim", title: "Basic Bath & Trim", category: "Grooming", description: "A gentle bath and tidy trim", price: "₱450", duration: "60 min", photos: [], status: "Active" },
+    ],
     href: "#",
     images: [
       { src: "/img/mock/image_3.png", position: "object-center" },
@@ -50,6 +64,10 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.6 (14)",
     services: "Boarding",
     priceStarts: "Php 1,000",
+    servicesOffered: [
+      { id: "tails-day-boarding", title: "Day Boarding", category: "Boarding", description: "Supervised daytime care and play", price: "₱800", duration: "8 hr", photos: [], status: "Active" },
+      { id: "tails-overnight", title: "Overnight Boarding", category: "Boarding", description: "Comfortable overnight care with updates", price: "₱1,500", duration: "24 hr", photos: [], status: "Active" },
+    ],
     href: "#",
     images: [
       { src: "/img/mock/image_4.png", position: "object-center" },
@@ -64,6 +82,7 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.8 (27)",
     services: "Pet Supplies",
     priceStarts: "Php 750",
+    servicesOffered: [],
     href: "#",
     images: [
       { src: "/img/mock/image_5.png", position: "object-center" },
@@ -78,6 +97,10 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.7 (20)",
     services: "Training",
     priceStarts: "Php 1,100",
+    servicesOffered: [
+      { id: "woof-basic-training", title: "Basic Obedience", category: "Training", description: "Foundational commands and leash skills", price: "₱1,100", duration: "60 min", photos: [], status: "Active" },
+      { id: "woof-puppy-training", title: "Puppy Training", category: "Training", description: "Positive training for young pets", price: "₱900", duration: "60 min", photos: [], status: "Active" },
+    ],
     href: "#",
     images: [
       { src: "/img/mock/image_6.png", position: "object-center" },
@@ -92,6 +115,10 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.5 (12)",
     services: "Vet Clinics",
     priceStarts: "Php 1,300",
+    servicesOffered: [
+      { id: "care-consultation", title: "General Consultation", category: "Veterinary", description: "General checkup and treatment advice", price: "₱500", duration: "30 min", photos: [], status: "Active" },
+      { id: "care-dental", title: "Dental Cleaning", category: "Veterinary", description: "Professional dental cleaning", price: "₱700", duration: "60 min", photos: [], status: "Active" },
+    ],
     href: "#",
     images: [
       { src: "/img/mock/image_1.png", position: "object-center" },
@@ -106,6 +133,7 @@ export const mockBusinesses: BusinessCardProps[] = [
     rating: "4.9 (36)",
     services: "Pet Supplies",
     priceStarts: "Php 650",
+    servicesOffered: [],
     href: "#",
     images: [
       { src: "/img/mock/image_2.png", position: "object-center" },
