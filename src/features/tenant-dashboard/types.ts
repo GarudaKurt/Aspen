@@ -14,15 +14,4 @@ export type CalendarEvent = {
   customer: string;
 };
 
-export type ServiceStatus = "Active" | "Draft" | "Paused";
-
-export type ServiceItem = {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  price: string;
-  duration: string;
-  photos: string[];
-  status: ServiceStatus;
-};
+export type { BusinessService as ServiceItem, BusinessServiceStatus as ServiceStatus } from "@/domain/business";
