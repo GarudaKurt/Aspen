@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, ChevronRight, CalendarDays, MessageCircle, Star, WalletCards } from "lucide-react";
+import { CalendarDays, Check, MessageCircle, Star, WalletCards } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MobileDashboardNav } from "./dashboard-shell";
