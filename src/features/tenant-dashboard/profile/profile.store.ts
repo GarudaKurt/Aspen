@@ -2,11 +2,13 @@
 
 import { useSyncExternalStore } from "react";
 import type { TenantProfileData } from "@/features/business-profile/components/business-profile";
+import { initialBusinessHours, type BusinessHoursDay } from "@/features/business-profile/business-hours";
 
 export type TenantProfile = TenantProfileData & {
   description: string;
   serviceCoverage: string[];
   weeklyAvailabilitySet: boolean;
+  businessHours: BusinessHoursDay[];
 };
 
 export const initialTenantProfile: TenantProfile = {
@@ -19,6 +21,7 @@ export const initialTenantProfile: TenantProfile = {
   serviceCoverage: ["Grooming", "Boarding", "Training"],
   coverPhoto: null,
   weeklyAvailabilitySet: false,
+  businessHours: initialBusinessHours,
   verified: true,
 };
 
