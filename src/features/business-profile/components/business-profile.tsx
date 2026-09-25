@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { amenityOptions, type BusinessAmenity } from "../amenities";
 import { AmenityIcon } from "./amenity-icon";
+import { useFavoriteBusiness } from "../favorites";
 import {
   getBusinessHoursDisplayRows,
   getBusinessHoursStatus,
@@ -39,6 +40,7 @@ export type TenantProfileData = {
   name: string;
   rating: string;
   reviews: string;
+  favorites?: number;
   category: string;
   address: string;
   description?: string;
@@ -59,6 +61,7 @@ const defaultProvider: TenantProfileData = {
   name: "Kalinga Animal Hospital",
   rating: "4.9",
   reviews: "212 reviews",
+  favorites: 64,
   category: "Vet Clinic",
   address: "Kalayaan Ave, Quezon City",
   verified: true,
@@ -146,7 +149,8 @@ export function BusinessProfile({
   preview = false,
 }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
-  const [saved, setSaved] = useState(false);
+  const businessKey = provider.slug ?? provider.name;
+  const { isFavorite, toggleFavorite } = useFavoriteBusiness(businessKey);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(provider.coverPhoto ?? null);
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);
@@ -230,6 +234,9 @@ export function BusinessProfile({
                 <span>·</span>
                 <span>{provider.reviews}</span>
                 <span>·</span>
+                <Heart size={11} fill="currentColor" className="text-[#3c6355]" />
+                <span>{(provider.favorites ?? 0) + (isFavorite ? 1 : 0)} favorites</span>
+                <span>·</span>
                 <span>{provider.category}</span>
                 <span>·</span>
                 <span>{provider.address}</span>
@@ -241,12 +248,12 @@ export function BusinessProfile({
                 variant="outline"
                 size="icon"
                 type="button"
-                aria-label={saved ? "Remove from favorites" : "Add to favorites"}
-                aria-pressed={saved}
-                onClick={() => setSaved((current) => !current)}
-                className={`rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0] ${saved ? "bg-[#3c6355] text-white hover:bg-[#3c6355]" : ""}`}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                aria-pressed={isFavorite}
+                onClick={toggleFavorite}
+                className={`rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0] ${isFavorite ? "bg-[#3c6355] text-white hover:bg-[#3c6355]" : ""}`}
               >
-                <Heart size={17} fill={saved ? "currentColor" : "none"} />
+                <Heart size={17} fill={isFavorite ? "currentColor" : "none"} />
               </Button>
               <Button
                 variant="outline"
