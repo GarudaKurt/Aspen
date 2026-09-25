@@ -148,6 +148,7 @@ export function MessageList({
   messages: Message[];
   onEdit: (messageId: string, body: string) => void;
   onDelete: (messageId: string) => void;
+  currentUser?: Message["from"];
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   const [openMessageId, setOpenMessageId] = useState<string | null>(null);
@@ -165,6 +166,7 @@ export function MessageList({
         onToggleActions={() => setOpenMessageId((current) => current === message.id ? null : message.id)}
         onEdit={onEdit}
         onDelete={onDelete}
+        currentUser={currentUser ?? "provider"}
       />
     ))}
     <div ref={endRef} />
@@ -177,6 +179,7 @@ function MessageBubble({
   onToggleActions,
   onEdit,
   onDelete,
+  currentUser,
 }: {
   message: Message;
   isActionsOpen: boolean;
