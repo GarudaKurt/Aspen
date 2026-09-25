@@ -4,6 +4,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Lapu-Lapu City, Philippines",
     businessName: "Kalinga Animal Hospital",
+    slug: "kalinga-animal-hospital",
     rating: "4.8 (23)",
     services: "Vet Clinics",
     priceStarts: "Php 1,500",
@@ -17,6 +18,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Cebu City, Philippines",
     businessName: "Cebu Pet Wellness Center",
+    slug: "cebu-pet-wellness-center",
     rating: "4.7 (18)",
     services: "Vet Clinics",
     priceStarts: "Php 1,200",
@@ -30,6 +32,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Mandaue City, Philippines",
     businessName: "Paws & Claws Grooming",
+    slug: "paws-and-claws-grooming",
     rating: "4.9 (31)",
     services: "Grooming",
     priceStarts: "Php 900",
@@ -43,6 +46,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Talisay City, Philippines",
     businessName: "Happy Tails Boarding",
+    slug: "happy-tails-boarding",
     rating: "4.6 (14)",
     services: "Boarding",
     priceStarts: "Php 1,000",
@@ -56,6 +60,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Naga City, Philippines",
     businessName: "Pet Pantry Cebu",
+    slug: "pet-pantry-cebu",
     rating: "4.8 (27)",
     services: "Pet Supplies",
     priceStarts: "Php 750",
@@ -69,6 +74,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Danao City, Philippines",
     businessName: "Woof Academy",
+    slug: "woof-academy",
     rating: "4.7 (20)",
     services: "Training",
     priceStarts: "Php 1,100",
@@ -82,6 +88,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Carcar City, Philippines",
     businessName: "Cebu Animal Care",
+    slug: "cebu-animal-care",
     rating: "4.5 (12)",
     services: "Vet Clinics",
     priceStarts: "Php 1,300",
@@ -95,6 +102,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Cebu City, Philippines",
     businessName: "Little Paws Pet Shop",
+    slug: "little-paws-pet-shop",
     rating: "4.9 (36)",
     services: "Pet Supplies",
     priceStarts: "Php 650",
