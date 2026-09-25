@@ -2,23 +2,18 @@
 
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
-import { Eye, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile, type TenantProfileData } from "@/features/business-profile/components/business-profile";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MobileDashboardNav } from "./dashboard-shell";
-import { ServiceFormSheet } from "./service-form-sheet";
-import { services as initialServices } from "../mock-data";
-import type { ServiceItem } from "../types";
 
 type EditableProfile = TenantProfileData & {
   description: string;
   serviceCoverage: string[];
 };
-
-type ServiceDraft = Omit<ServiceItem, "id">;
 
 const coverageOptions = ["Grooming", "Boarding", "Training", "Veterinary"];
 
@@ -42,10 +37,6 @@ export function ProfileView() {
   const [editingCoverage, setEditingCoverage] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [serviceItems, setServiceItems] = useState<ServiceItem[]>(initialServices);
-  const [serviceFormOpen, setServiceFormOpen] = useState(false);
-  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
-  const [deleteServiceId, setDeleteServiceId] = useState<string | null>(null);
 
   const startInfoEdit = () => {
     setDraft(profile);
@@ -129,42 +120,6 @@ export function ProfileView() {
         ? current.filter((item) => item !== coverage)
         : [...current, coverage],
     );
-  };
-
-  const openCreateService = () => {
-    setEditingService(null);
-    setServiceFormOpen(true);
-  };
-
-  const openEditService = (service: ServiceItem) => {
-    setEditingService(service);
-    setServiceFormOpen(true);
-  };
-
-  const saveService = (draft: ServiceDraft) => {
-    if (editingService) {
-      setServiceItems((current) =>
-        current.map((service) =>
-          service.id === editingService.id ? { ...draft, id: editingService.id } : service,
-        ),
-      );
-    } else {
-      setServiceItems((current) => [
-        ...current,
-        { ...draft, id: crypto.randomUUID() },
-      ]);
-    }
-    setServiceFormOpen(false);
-    setEditingService(null);
-  };
-
-  const confirmDeleteService = () => {
-    if (deleteServiceId) {
-      setServiceItems((current) =>
-        current.filter((service) => service.id !== deleteServiceId),
-      );
-    }
-    setDeleteServiceId(null);
   };
 
   return (
@@ -341,37 +296,27 @@ export function ProfileView() {
       </div>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-semibold">Service Coverage</h2>
-          <div className="flex flex-wrap gap-2">
-            {!editingCoverage ? (
-              <Button type="button" variant="ghost" onClick={startCoverageEdit}>
-                <Pencil className="mr-2 size-4" /> Edit coverage
-              </Button>
-            ) : (
-              <>
-                <Button type="button" variant="ghost" onClick={cancelCoverageEdit}>
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
-                  onClick={saveCoverage}
-                >
-                  Save coverage
-                </Button>
-              </>
-            )}
-            <Button
-              type="button"
-              className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
-              onClick={openCreateService}
-            >
-              <Plus className="mr-2 size-4" /> Create service
+          {!editingCoverage ? (
+            <Button type="button" variant="ghost" onClick={startCoverageEdit}>
+              <Pencil className="mr-2 size-4" /> Edit
             </Button>
-          </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" onClick={cancelCoverageEdit}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                onClick={saveCoverage}
+              >
+                Save
+              </Button>
+            </div>
+          )}
         </div>
-
         {editingCoverage ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {coverageOptions.map((coverage) => (
@@ -404,111 +349,7 @@ export function ProfileView() {
             ))}
           </div>
         )}
-
-        <div className="mt-6 space-y-3">
-          <div className="flex items-center justify-between border-b pb-2">
-            <h3 className="font-semibold">Services</h3>
-            <span className="text-xs text-slate-500">{serviceItems.length} listed</span>
-          </div>
-          {serviceItems.length ? (
-            serviceItems.map((service) => (
-              <article
-                key={service.id}
-                className="rounded-xl border border-slate-200 p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#3c6355]">{service.category}</p>
-                    <h3 className="truncate font-semibold">{service.title}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{service.description}</p>
-                    <p className="mt-2 text-sm font-semibold">
-                      {service.price}
-                      <span className="ml-2 font-normal text-slate-400">{service.duration}</span>
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Preview service"
-                      aria-label={`Preview ${service.title}`}
-                      onClick={() => openEditService(service)}
-                    >
-                      <Eye />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Edit service"
-                      aria-label={`Edit ${service.title}`}
-                      onClick={() => openEditService(service)}
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="text-red-600 hover:text-red-700"
-                      title="Delete service"
-                      aria-label={`Delete ${service.title}`}
-                      onClick={() => setDeleteServiceId(service.id)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </div>
-              </article>
-            ))
-          ) : (
-            <p className="rounded-lg border border-dashed p-5 text-center text-sm text-slate-500">
-              No services yet. Create your first service above.
-            </p>
-          )}
-        </div>
       </Card>
-
-      <ServiceFormSheet
-        open={serviceFormOpen}
-        service={editingService}
-        onClose={() => {
-          setServiceFormOpen(false);
-          setEditingService(null);
-        }}
-        onSave={saveService}
-      />
-
-      {deleteServiceId && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4" role="presentation">
-          <div
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="delete-service-title"
-            className="w-full max-w-sm rounded-xl border bg-white p-6 shadow-xl"
-          >
-            <h2 id="delete-service-title" className="text-lg font-semibold">
-              Delete service?
-            </h2>
-            <p className="mt-2 text-sm text-slate-500">
-              This service will be removed from your profile.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setDeleteServiceId(null)}>
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="bg-red-600 text-white hover:bg-red-700"
-                onClick={confirmDeleteService}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
         <SheetContent
