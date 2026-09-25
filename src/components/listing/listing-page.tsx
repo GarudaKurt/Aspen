@@ -191,7 +191,7 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
                 className={`group relative z-10 flex min-w-[78px] flex-col items-center gap-2 text-center text-xs lg:flex-row lg:items-center lg:gap-2 lg:text-left ${isReached ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}
               >
                 <span
-                  className={`relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${isCurrent ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : isComplete ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
+                  className={`relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${isCurrent ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : isComplete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
                 >
                   {isComplete ? <Check size={16} strokeWidth={2.5} /> : <Icon size={16} />}
                 </span>
@@ -205,7 +205,7 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
               {hasNext && (
                 <span
                   aria-hidden="true"
-                  className={`absolute z-0 bg-[#cfd2cf] transition-colors duration-200 ${isComplete ? "bg-[#3c6355]" : ""} left-[calc(50%+18px)] right-0 top-4 h-0.5 lg:left-4 lg:right-auto lg:top-9 lg:h-auto lg:w-0.5 lg:-translate-x-1/2 lg:bottom-0`}
+                  className={`absolute z-0 bg-[#cfd2cf] transition-colors duration-200 ${isComplete ? "bg-emerald-600" : ""} left-[calc(50%+18px)] right-0 top-4 h-0.5 lg:left-4 lg:right-auto lg:top-9 lg:h-auto lg:w-0.5 lg:-translate-x-1/2 lg:bottom-0`}
                 />
               )}
             </li>
