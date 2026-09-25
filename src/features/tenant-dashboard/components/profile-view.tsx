@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
 import { Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
+import { amenityOptions, type BusinessAmenity } from "@/features/business-profile/amenities";
+import { AmenityIcon } from "@/features/business-profile/components/amenity-icon";
 import {
   businessDays,
   getBusinessHoursDisplayRows,
@@ -33,8 +35,11 @@ export function ProfileView() {
   const [hoursDraft, setHoursDraft] = useState<BusinessHoursDay[]>(profile.businessHours);
   const [copySourceDay, setCopySourceDay] = useState(profile.businessHours[0]?.day ?? businessDays[0]);
   const [copyTargetDays, setCopyTargetDays] = useState<string[]>([]);
+  const [amenitiesDraft, setAmenitiesDraft] = useState<BusinessAmenity[]>(profile.amenities);
+  const [customAmenity, setCustomAmenity] = useState("");
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingHours, setEditingHours] = useState(false);
+  const [editingAmenities, setEditingAmenities] = useState(false);
   const [editingCoverage, setEditingCoverage] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMaximized, setPreviewMaximized] = useState(false);
@@ -143,6 +148,56 @@ export function ProfileView() {
 
     setDraft((current) => ({ ...current, coverPhoto: URL.createObjectURL(file) }));
     setErrors((current) => ({ ...current, photo: "" }));
+  };
+
+  const startAmenitiesEdit = () => {
+    setAmenitiesDraft(profile.amenities);
+    setCustomAmenity("");
+    setErrors({});
+    setEditingAmenities(true);
+  };
+
+  const cancelAmenitiesEdit = () => {
+    setAmenitiesDraft(profile.amenities);
+    setCustomAmenity("");
+    setErrors({});
+    setEditingAmenities(false);
+  };
+
+  const saveAmenities = () => {
+    updateTenantProfile({ amenities: amenitiesDraft });
+    setErrors({});
+    setEditingAmenities(false);
+  };
+
+  const toggleAmenity = (amenity: BusinessAmenity) => {
+    setAmenitiesDraft((current) =>
+      current.some((item) => item.id === amenity.id)
+        ? current.filter((item) => item.id !== amenity.id)
+        : [...current, amenity],
+    );
+  };
+
+  const addCustomAmenity = () => {
+    const label = customAmenity.trim();
+    if (!label) {
+      setErrors({ amenities: "Enter a custom amenity before adding it." });
+      return;
+    }
+    if (amenitiesDraft.some((amenity) => amenity.label.toLowerCase() === label.toLowerCase())) {
+      setErrors({ amenities: "That amenity has already been added." });
+      return;
+    }
+    setAmenitiesDraft((current) => [
+      ...current,
+      { id: `custom-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, label, custom: true },
+    ]);
+    setCustomAmenity("");
+    setErrors((current) => ({ ...current, amenities: "" }));
+  };
+
+  const removeAmenity = (id: string) => {
+    setAmenitiesDraft((current) => current.filter((amenity) => amenity.id !== id));
   };
 
   const startCoverageEdit = () => {
@@ -349,7 +404,8 @@ export function ProfileView() {
         </Card>
       </div>
 
-      <Card className="mt-5 bg-white p-6 shadow-none">
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <Card className="h-full bg-white p-6 shadow-none">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">Business Hours</h2>
@@ -395,6 +451,62 @@ export function ProfileView() {
           <p className="mt-2 text-xs text-red-600">{errors.businessHours}</p>
         )}
       </Card>
+
+      <Card className="h-full bg-white p-6 shadow-none">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold">Amenities</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Highlight what customers can expect at your business.
+            </p>
+          </div>
+          {!editingAmenities ? (
+            <Button type="button" variant="ghost" onClick={startAmenitiesEdit}>
+              <Pencil className="mr-2 size-4" /> Edit
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" onClick={cancelAmenitiesEdit}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                onClick={saveAmenities}
+              >
+                Save
+              </Button>
+            </div>
+          )}
+        </div>
+        {editingAmenities ? (
+          <AmenitiesEditor
+            selected={amenitiesDraft}
+            customAmenity={customAmenity}
+            onCustomAmenityChange={setCustomAmenity}
+            onToggle={toggleAmenity}
+            onAddCustom={addCustomAmenity}
+            onRemove={removeAmenity}
+          />
+        ) : (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {profile.amenities.length ? profile.amenities.map((amenity) => (
+              <span
+                key={amenity.id}
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-600"
+              >
+                <AmenityIcon amenity={amenity} />
+                {amenity.label}
+              </span>
+            )) : (
+              <p className="text-sm text-slate-500">No amenities added yet.</p>
+            )}
+          </div>
+        )}
+        {errors.amenities && <p className="mt-2 text-xs text-red-600">{errors.amenities}</p>}
+      </Card>
+
+      </div>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
         <div className="flex items-center justify-between gap-3">
@@ -578,6 +690,67 @@ function BusinessHoursEditor({
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+
+function AmenitiesEditor({
+  selected,
+  customAmenity,
+  onCustomAmenityChange,
+  onToggle,
+  onAddCustom,
+  onRemove,
+}: {
+  selected: BusinessAmenity[];
+  customAmenity: string;
+  onCustomAmenityChange: (value: string) => void;
+  onToggle: (amenity: BusinessAmenity) => void;
+  onAddCustom: () => void;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="mt-5 space-y-4">
+      <div className="grid gap-2 sm:grid-cols-2">
+        {amenityOptions.map((amenity) => (
+          <label key={amenity.id} className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm">
+            <input
+              type="checkbox"
+              checked={selected.some((item) => item.id === amenity.id)}
+              onChange={() => onToggle(amenity)}
+              className="size-4 accent-[#3c6355]"
+            />
+            <span className="text-[#3c6355]"><AmenityIcon amenity={amenity} /></span>
+            <span>{amenity.label}</span>
+          </label>
+        ))}
+      </div>
+      <div>
+        <label htmlFor="custom-amenity" className="text-sm font-medium">Custom amenity</label>
+        <div className="mt-2 flex gap-2">
+          <Input
+            id="custom-amenity"
+            value={customAmenity}
+            onChange={(event) => onCustomAmenityChange(event.target.value)}
+            placeholder="e.g. Grooming tables"
+          />
+          <Button type="button" variant="outline" onClick={onAddCustom}>Add</Button>
+        </div>
+      </div>
+      {selected.filter((amenity) => amenity.custom).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selected.filter((amenity) => amenity.custom).map((amenity) => (
+            <span key={amenity.id} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm">
+              <AmenityIcon amenity={amenity} />
+              {amenity.label}
+              <button type="button" onClick={() => onRemove(amenity.id)} aria-label={`Remove ${amenity.label}`}>
+                <X className="size-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
