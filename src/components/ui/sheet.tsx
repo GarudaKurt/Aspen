@@ -12,11 +12,26 @@ export function Sheet({ open, onOpenChange, children }: { open: boolean; onOpenC
   </div>;
 }
 
-export function SheetContent({ children, onClose, title }: { children: ReactNode; onClose: () => void; title: string }) {
-  return <aside className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col overflow-y-auto border-l bg-white shadow-2xl">
+export function SheetContent({
+  children,
+  onClose,
+  title,
+  className,
+  headerActions,
+}: {
+  children: ReactNode;
+  onClose: () => void;
+  title: string;
+  className?: string;
+  headerActions?: ReactNode;
+}) {
+  return <aside className={`absolute inset-y-0 right-0 flex w-full max-w-lg flex-col overflow-y-auto border-l bg-white shadow-2xl transition-[max-width] duration-200 ${className ?? ""}`}>
     <div className="flex items-center justify-between border-b p-5">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close panel"><X /></Button>
+      <div className="flex items-center gap-1">
+        {headerActions}
+        <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Close panel"><X /></Button>
+      </div>
     </div>
     {children}
   </aside>;
