@@ -11,6 +11,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
 import type { BusinessService } from "@/domain/business";
+import { useFavoriteBusiness } from "@/features/business-profile/favorites";
 
 export type BusinessCardImage = {
   src: string;
@@ -67,7 +68,8 @@ export function BusinessCard({
   const cardImages = images;
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
-  const [saved, setSaved] = useState(false);
+  const businessKey = slug ?? businessName;
+  const { isFavorite, toggleFavorite } = useFavoriteBusiness(businessKey);
   const pointerStart = useRef<number | null>(null);
 
   if (isLoading) {
@@ -149,18 +151,18 @@ export function BusinessCard({
           type="button"
           onPointerDown={(event) => event.stopPropagation()}
           onPointerUp={(event) => event.stopPropagation()}
-          onClick={() => setSaved((current) => !current)}
+          onClick={toggleFavorite}
           aria-label={
-            saved
+            isFavorite
               ? `Remove ${businessName} from favorites`
               : `Save ${businessName}`
           }
-          aria-pressed={saved}
-          className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
+          aria-pressed={isFavorite}
+          className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${isFavorite ? "bg-[#3c6355] text-white" : ""}`}
         >
           <Heart
             size={12}
-            fill={saved ? "currentColor" : "none"}
+            fill={isFavorite ? "currentColor" : "none"}
             strokeWidth={1.8}
           />
         </Button>
