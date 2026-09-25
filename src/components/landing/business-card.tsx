@@ -57,6 +57,7 @@ export function BusinessCard({
   rating,
   services,
   priceStarts,
+  slug,
   images = [],
   href = "#",
   isLoading = false,
