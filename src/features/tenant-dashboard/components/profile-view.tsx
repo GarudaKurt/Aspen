@@ -404,8 +404,7 @@ export function ProfileView() {
         </Card>
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-      <Card className="h-full bg-white p-6 shadow-none">
+      <Card className="mt-5 bg-white p-6 shadow-none">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">Business Hours</h2>
@@ -505,8 +504,6 @@ export function ProfileView() {
         )}
         {errors.amenities && <p className="mt-2 text-xs text-red-600">{errors.amenities}</p>}
       </Card>
-
-      </div>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
         <div className="flex items-center justify-between gap-3">
