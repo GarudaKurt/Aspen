@@ -11,7 +11,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
 import type { BusinessService } from "@/domain/business";
-import { useFavoriteBusiness } from "@/features/business-profile/favorites";
+import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
 export type BusinessCardImage = {
   src: string;
@@ -69,7 +69,8 @@ export function BusinessCard({
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
   const businessKey = slug ?? businessName;
-  const { isFavorite, toggleFavorite } = useFavoriteBusiness(businessKey);
+  const isFavorite = useFavoritesStore((state) => state.favoriteIds.includes(businessKey));
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
   const pointerStart = useRef<number | null>(null);
 
   if (isLoading) {
