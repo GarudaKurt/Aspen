@@ -45,10 +45,49 @@ export function ConversationList({
   const visible = conversations.filter((conversation) => conversation.name.toLowerCase().includes(query.toLowerCase()));
   return <section className={`min-w-0 border-b lg:border-b-0 lg:border-r ${className ?? ""}`} aria-label="Conversations">
     <div className="p-4"><Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search conversations" /></div>
+    <OnlineUsers conversations={visible} onSelect={onSelect} />
     <div className="max-h-[300px] overflow-x-clip overflow-y-auto lg:max-h-[500px]">
       {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
     </div>
   </section>;
+}
+
+function OnlineUsers({
+  conversations,
+  onSelect,
+}: {
+  conversations: Conversation[];
+  onSelect: (id: string) => void;
+}) {
+  const onlineUsers = conversations.filter((conversation) => conversation.online);
+
+  if (!onlineUsers.length) return null;
+
+  return (
+    <div className="border-b bg-white px-4 py-3 lg:hidden" aria-label="Online users">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-slate-700">Online now</p>
+        <span className="text-[10px] text-slate-400">{onlineUsers.length}</span>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+        {onlineUsers.map((conversation) => (
+          <button
+            key={conversation.id}
+            type="button"
+            onClick={() => onSelect(conversation.id)}
+            className="flex min-w-0 items-center gap-2 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]"
+            aria-label={`Open chat with ${conversation.name}, online now`}
+          >
+            <Avatar conversation={conversation} />
+            <span className="min-w-0 max-w-28">
+              <strong className="block truncate text-xs text-slate-800">{conversation.name}</strong>
+              <span className="block text-[10px] text-emerald-600">Online</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function ConversationItem({
