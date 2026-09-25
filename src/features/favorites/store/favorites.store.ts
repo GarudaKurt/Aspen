@@ -38,7 +38,7 @@ export const useFavoritesStore = create<FavoritesStore>()(
         if (!parsedId.success) return;
         set({ favoriteIds: get().favoriteIds.filter((id) => id !== parsedId.data) });
       },
-      isFavorite: (businessId) => get().favoriteIds.includes(businessId),
+      isFavorite: (businessId) => {\n        const parsedId = favoriteBusinessIdSchema.safeParse(businessId.trim());\n        return parsedId.success && get().favoriteIds.includes(parsedId.data);\n      },
     }),
     {
       name: "aspen-favorites",
