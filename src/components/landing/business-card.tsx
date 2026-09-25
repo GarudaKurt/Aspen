@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
+import type { BusinessService } from "@/domain/business";
 
 export type BusinessCardImage = {
   src: string;
@@ -24,6 +25,7 @@ export interface BusinessCardProps {
   services: string;
   priceStarts: string;
   slug?: string;
+  servicesOffered?: BusinessService[];
   images?: BusinessCardImage[];
   href?: string;
   isLoading?: boolean;
