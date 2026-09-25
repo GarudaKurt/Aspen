@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { services } from "@/features/tenant-dashboard/mock-data";
+import type { BusinessService } from "@/domain/business";
 
 type Period = "Morning" | "Afternoon" | "Evening";
 
@@ -43,6 +43,7 @@ type AppointmentPageProps = {
   businessLocation?: string;
   businessCategory?: string;
   businessRating?: string;
+  services?: BusinessService[];
 };
 const timeSlots: Record<Period, string[]> = { Morning: ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"], Afternoon: ["12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"], Evening: ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"] };
 const initialDraft: AppointmentDraft = { serviceIds: [], date: "", period: "Morning", time: "", petName: "", petType: "", reason: "", fullName: "", phone: "", email: "" };
@@ -53,6 +54,7 @@ export function AppointmentPage({
   businessLocation = "Kalayaan Ave, QC",
   businessCategory = "Vet Clinic",
   businessRating = "4.9",
+  services = [],
 }: AppointmentPageProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
@@ -80,7 +82,14 @@ export function AppointmentPage({
   const toggleService = (id: string) => update("serviceIds", draft.serviceIds.includes(id) ? draft.serviceIds.filter((item) => item !== id) : [...draft.serviceIds, id]);
 
   const next = () => {
+    const availableServices = services.filter((service) => service.status === "Active");
+    if (activeIndex === 0 && !availableServices.length) {
+      return setError("This business has no available services at the moment.");
+    }
     if (activeIndex === 0 && !draft.serviceIds.length) return setError("Select at least one service to continue.");
+    if (activeIndex === 0 && draft.serviceIds.some((id) => !availableServices.some((service) => service.id === id))) {
+      return setError("Select only services offered by this business.");
+    }
     if (activeIndex === 1 && (!draft.date || !draft.time)) return setError("Choose a date and time to continue.");
     if (activeIndex === 2 && (!draft.petName || !draft.petType || !draft.reason)) return setError("Complete your pet's details to continue.");
     if (activeIndex === 3 && (!draft.fullName || !draft.phone || !draft.email)) return setError("Complete your contact details to send the request.");
@@ -101,7 +110,7 @@ export function AppointmentPage({
       <div className="grid gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:items-start">
         <div><ProviderCard name={businessName} location={businessLocation} category={businessCategory} rating={businessRating} /><AppointmentStepper activeIndex={activeIndex} steps={steps} /></div>
         <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
-          {activeIndex === 0 && <ServiceStep selected={draft.serviceIds} onToggle={toggleService} />}
+          {activeIndex === 0 && <ServiceStep services={services} selected={draft.serviceIds} onToggle={toggleService} />}
           {activeIndex === 1 && <DateStep date={draft.date} period={draft.period} time={draft.time} onDate={(value) => update("date", value)} onPeriod={(value) => { update("period", value); if (!timeSlots[value].includes(draft.time)) update("time", ""); }} onTime={(value) => update("time", value)} />}
           {activeIndex === 2 && <PetStep draft={draft} update={update} />}
           {activeIndex === 3 && <DetailsStep draft={draft} update={update} businessName={businessName} />}
@@ -149,8 +158,12 @@ function AppointmentStepper({ activeIndex, steps }: { activeIndex: number; steps
     </ol>
   </nav>;
 }
-function ServiceStep({ selected, onToggle }: { selected: string[]; onToggle: (id: string) => void }) {
-  return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="space-y-3">{services.filter((service) => service.status === "Active").map((service) => { const checked = selected.includes(service.id); return <button key={service.id} type="button" onClick={() => onToggle(service.id)} aria-pressed={checked} className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${checked ? "border-[#3c6355] ring-1 ring-[#3c6355]" : "border-[#d7d8d5] hover:border-[#3c6355]"}`}><span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border ${checked ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#d7d8d5]"}`}>{checked && <Check size={14} />}</span><span className="min-w-0 flex-1"><strong className="block">{service.title}</strong><span className="block text-sm text-slate-400">{service.description}</span></span><strong className="shrink-0 text-[#3c6355]">{service.price}</strong></button>;})}</div></FormSection>;
+function ServiceStep({ services, selected, onToggle }: { services: BusinessService[]; selected: string[]; onToggle: (id: string) => void }) {
+  const availableServices = services.filter((service) => service.status === "Active");
+  if (!availableServices.length) {
+    return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="rounded-xl border border-dashed border-[#d7d8d5] bg-[#fafaf9] p-6 text-sm text-[#777b78]">This business has no available services right now.</div></FormSection>;
+  }
+  return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="space-y-3">{availableServices.map((service) => { const checked = selected.includes(service.id); return <button key={service.id} type="button" onClick={() => onToggle(service.id)} aria-pressed={checked} className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${checked ? "border-[#3c6355] ring-1 ring-[#3c6355]" : "border-[#d7d8d5] hover:border-[#3c6355]"}`}><span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border ${checked ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#d7d8d5]"}`}>{checked && <Check size={14} />}</span><span className="min-w-0 flex-1"><strong className="block">{service.title}</strong><span className="block text-sm text-slate-400">{service.description}</span></span><strong className="shrink-0 text-[#3c6355]">{service.price}</strong></button>;})}</div></FormSection>;
 }
 
 function DateStep({ date, period, time, onDate, onPeriod, onTime }: { date: string; period: Period; time: string; onDate: (value: string) => void; onPeriod: (value: Period) => void; onTime: (value: string) => void }) {
