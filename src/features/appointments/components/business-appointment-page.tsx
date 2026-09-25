@@ -14,6 +14,7 @@ export async function BusinessAppointmentPage({ slug }: { slug: string }) {
       businessLocation={business.location}
       businessCategory={business.services}
       businessRating={business.rating.split(" ")[0]}
+      services={business.servicesOffered ?? []}
     />
   );
 }
