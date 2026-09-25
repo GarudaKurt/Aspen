@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
-import { Eye, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { BusinessProfile, type TenantProfileData } from "@/features/business-profile/components/business-profile";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -427,16 +427,6 @@ export function ProfileView() {
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Preview service"
-                      aria-label={`Preview ${service.title}`}
-                      onClick={() => openEditService(service)}
-                    >
-                      <Eye />
-                    </Button>
                     <Button
                       type="button"
                       variant="ghost"
