@@ -16,7 +16,7 @@ export const businessDays = [
 ] as const;
 
 export const initialBusinessHours: BusinessHoursDay[] = [
-  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => ({
+  ...["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => ({
     day,
     open: true,
     openTime: "08:00",
