@@ -154,7 +154,7 @@ export function BusinessProfile({ provider = defaultProvider }: TenantProfilePro
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f7f5] px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
+    <main className="min-h-screen bg-white px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
       <div className="mx-auto max-w-[1120px]">
         <header className="flex items-center justify-between border-b border-[#d9d9d6] pb-4">
           <Link
