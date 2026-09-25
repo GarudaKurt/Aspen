@@ -7,6 +7,7 @@ import { BusinessProfile } from "@/features/business-profile/components/business
 import {
   businessDays,
   formatBusinessTime,
+  getBusinessHoursDisplayRows,
   isValidBusinessHours,
   type BusinessHoursDay,
 } from "@/features/business-profile/business-hours";
@@ -483,12 +484,10 @@ export function ProfileView() {
 function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
   return (
     <div className="max-w-[520px] space-y-2 text-sm">
-      {schedule.map((entry) => (
-        <div key={entry.day} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
-          <span className="font-medium">{entry.day}</span>
-          <span className="text-right text-slate-500">
-            {entry.open ? `${formatBusinessTime(entry.openTime)} – ${formatBusinessTime(entry.closeTime)}` : "Closed"}
-          </span>
+      {getBusinessHoursDisplayRows(schedule).map((row) => (
+        <div key={row.label} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
+          <span className="font-medium">{row.label}</span>
+          <span className="text-right text-slate-500">{row.value}</span>
         </div>
       ))}
     </div>
