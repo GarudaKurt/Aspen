@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
-import { Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
+import { Check, Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
 import { amenityOptions, type BusinessAmenity } from "@/features/business-profile/amenities";
 import { AmenityIcon } from "@/features/business-profile/components/amenity-icon";
@@ -37,6 +37,8 @@ export function ProfileView() {
   const [copyTargetDays, setCopyTargetDays] = useState<string[]>([]);
   const [amenitiesDraft, setAmenitiesDraft] = useState<BusinessAmenity[]>(profile.amenities);
   const [customAmenity, setCustomAmenity] = useState("");
+  const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
+  const [editingAmenityName, setEditingAmenityName] = useState("");
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingHours, setEditingHours] = useState(false);
   const [editingAmenities, setEditingAmenities] = useState(false);
@@ -153,6 +155,8 @@ export function ProfileView() {
   const startAmenitiesEdit = () => {
     setAmenitiesDraft(profile.amenities);
     setCustomAmenity("");
+    setEditingAmenityId(null);
+    setEditingAmenityName("");
     setErrors({});
     setEditingAmenities(true);
   };
@@ -160,6 +164,8 @@ export function ProfileView() {
   const cancelAmenitiesEdit = () => {
     setAmenitiesDraft(profile.amenities);
     setCustomAmenity("");
+    setEditingAmenityId(null);
+    setEditingAmenityName("");
     setErrors({});
     setEditingAmenities(false);
   };
@@ -170,9 +176,41 @@ export function ProfileView() {
     setEditingAmenities(false);
   };
 
-  const toggleAmenity = (amenity: BusinessAmenity) => {
+  const startCustomAmenityEdit = (amenity: BusinessAmenity) => {
+    setEditingAmenityId(amenity.id);
+    setEditingAmenityName(amenity.label);
+    setErrors({});
+  };
+
+  const cancelCustomAmenityEdit = () => {
+    setEditingAmenityId(null);
+    setEditingAmenityName("");
+  };
+
+  const saveCustomAmenityEdit = () => {
+    const label = editingAmenityName.trim();
+    if (!editingAmenityId || !label) {
+      setErrors({ amenities: "Enter a name for the custom amenity." });
+      return;
+    }
+    if (amenitiesDraft.some((amenity) => amenity.id !== editingAmenityId && amenity.label.toLowerCase() === label.toLowerCase())) {
+      setErrors({ amenities: "That amenity has already been added." });
+      return;
+    }
     setAmenitiesDraft((current) =>
-      current.some((item) => item.id === amenity.id)
+      current.map((amenity) =>
+        amenity.id === editingAmenityId ? { ...amenity, label, custom: true } : amenity,
+      ),
+    );
+    cancelCustomAmenityEdit();
+    setErrors((current) => ({ ...current, amenities: "" }));
+  };
+
+  const toggleAmenity = (amenity: BusinessAmenity) => {
+    const selected = amenitiesDraft.some((item) => item.id === amenity.id);
+    if (selected && !window.confirm(`Remove ${amenity.label} from your amenities?`)) return;
+    setAmenitiesDraft((current) =>
+      selected
         ? current.filter((item) => item.id !== amenity.id)
         : [...current, amenity],
     );
@@ -486,6 +524,12 @@ export function ProfileView() {
             onToggle={toggleAmenity}
             onAddCustom={addCustomAmenity}
             onRemove={removeAmenity}
+            editingId={editingAmenityId}
+            editingName={editingAmenityName}
+            onStartEdit={startCustomAmenityEdit}
+            onEditNameChange={setEditingAmenityName}
+            onSaveEdit={saveCustomAmenityEdit}
+            onCancelEdit={cancelCustomAmenityEdit}
           />
         ) : (
           <div className="mt-5 flex flex-wrap gap-2">
@@ -699,6 +743,12 @@ function AmenitiesEditor({
   onToggle,
   onAddCustom,
   onRemove,
+  editingId,
+  editingName,
+  onStartEdit,
+  onEditNameChange,
+  onSaveEdit,
+  onCancelEdit,
 }: {
   selected: BusinessAmenity[];
   customAmenity: string;
@@ -706,6 +756,12 @@ function AmenitiesEditor({
   onToggle: (amenity: BusinessAmenity) => void;
   onAddCustom: () => void;
   onRemove: (id: string) => void;
+  editingId: string | null;
+  editingName: string;
+  onStartEdit: (amenity: BusinessAmenity) => void;
+  onEditNameChange: (value: string) => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
 }) {
   return (
     <div className="mt-5 space-y-4">
@@ -740,10 +796,32 @@ function AmenitiesEditor({
           {selected.filter((amenity) => amenity.custom).map((amenity) => (
             <span key={amenity.id} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm">
               <AmenityIcon amenity={amenity} />
-              {amenity.label}
-              <button type="button" onClick={() => onRemove(amenity.id)} aria-label={`Remove ${amenity.label}`}>
-                <X className="size-3.5" />
-              </button>
+              {editingId === amenity.id ? (
+                <>
+                  <Input
+                    value={editingName}
+                    onChange={(event) => onEditNameChange(event.target.value)}
+                    aria-label="Custom amenity name"
+                    className="h-7 w-36"
+                  />
+                  <button type="button" onClick={onSaveEdit} aria-label="Save amenity name">
+                    <Check className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={onCancelEdit} aria-label="Cancel amenity edit">
+                    <X className="size-3.5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span>{amenity.label}</span>
+                  <button type="button" onClick={() => onStartEdit(amenity)} aria-label={`Edit ${amenity.label}`}>
+                    <Pencil className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => onRemove(amenity.id)} aria-label={`Remove ${amenity.label}`}>
+                    <X className="size-3.5" />
+                  </button>
+                </>
+              )}
             </span>
           ))}
         </div>
