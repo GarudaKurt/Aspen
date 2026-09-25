@@ -6,7 +6,6 @@ import { Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
 import {
   businessDays,
-  formatBusinessTime,
   getBusinessHoursDisplayRows,
   isValidBusinessHours,
   type BusinessHoursDay,
