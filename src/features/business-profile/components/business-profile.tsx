@@ -22,7 +22,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  formatBusinessTime,
   getBusinessHoursDisplayRows,
   getBusinessHoursStatus,
   initialBusinessHours,
