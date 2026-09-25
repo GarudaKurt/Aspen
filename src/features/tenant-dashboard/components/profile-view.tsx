@@ -2,40 +2,31 @@
 
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
-import { Pencil, Upload, X } from "lucide-react";
+import { Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile, type TenantProfileData } from "@/features/business-profile/components/business-profile";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MobileDashboardNav } from "./dashboard-shell";
+import {
+  updateTenantProfile,
+  useTenantProfile,
+} from "../profile/profile.store";
+import type { TenantProfile } from "../profile/profile.store";
 
-type EditableProfile = TenantProfileData & {
-  description: string;
-  serviceCoverage: string[];
-};
+type EditableProfile = TenantProfile;
 
 const coverageOptions = ["Grooming", "Boarding", "Training", "Veterinary"];
 
-const initialProfile: EditableProfile = {
-  name: "PawSpot Grooming & Boarding",
-  rating: "4.9",
-  reviews: "38 reviews",
-  category: "Grooming, Boarding",
-  address: "Cebu City",
-  description: "Full-service grooming and short-stay boarding for dogs and cats.",
-  serviceCoverage: ["Grooming", "Boarding", "Training"],
-  coverPhoto: null,
-  verified: true,
-};
-
 export function ProfileView() {
-  const [profile, setProfile] = useState<EditableProfile>(initialProfile);
-  const [draft, setDraft] = useState<EditableProfile>(initialProfile);
-  const [coverageDraft, setCoverageDraft] = useState(initialProfile.serviceCoverage);
+  const profile = useTenantProfile();
+  const [draft, setDraft] = useState<EditableProfile>(profile);
+  const [coverageDraft, setCoverageDraft] = useState(profile.serviceCoverage);
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingCoverage, setEditingCoverage] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewMaximized, setPreviewMaximized] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const startInfoEdit = () => {
@@ -63,7 +54,7 @@ export function ProfileView() {
       return;
     }
 
-    setProfile({
+    updateTenantProfile({
       ...draft,
       name: draft.name.trim(),
       address: draft.address.trim(),
@@ -109,7 +100,7 @@ export function ProfileView() {
       return;
     }
 
-    setProfile((current) => ({ ...current, serviceCoverage: coverageDraft }));
+    updateTenantProfile({ serviceCoverage: coverageDraft });
     setErrors({});
     setEditingCoverage(false);
   };
@@ -355,6 +346,19 @@ export function ProfileView() {
         <SheetContent
           title="Public profile preview"
           onClose={() => setPreviewOpen(false)}
+          className={previewMaximized ? "max-w-none" : ""}
+          headerActions={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setPreviewMaximized((current) => !current)}
+              aria-label={previewMaximized ? "Minimize preview" : "Maximize preview"}
+              title={previewMaximized ? "Minimize preview" : "Maximize preview"}
+            >
+              {previewMaximized ? <Minimize2 /> : <Maximize2 />}
+            </Button>
+          }
         >
           <div className="min-h-full bg-white">
             <BusinessProfile provider={profile} preview />
