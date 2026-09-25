@@ -4,6 +4,12 @@ import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
 import { Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
+import {
+  businessDays,
+  formatBusinessTime,
+  isValidBusinessHours,
+  type BusinessHoursDay,
+} from "@/features/business-profile/business-hours";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +29,9 @@ export function ProfileView() {
   const profile = useTenantProfile();
   const [draft, setDraft] = useState<EditableProfile>(profile);
   const [coverageDraft, setCoverageDraft] = useState(profile.serviceCoverage);
+  const [hoursDraft, setHoursDraft] = useState<BusinessHoursDay[]>(profile.businessHours);
+  const [copySourceDay, setCopySourceDay] = useState(profile.businessHours[0]?.day ?? businessDays[0]);
+  const [copyTargetDays, setCopyTargetDays] = useState<string[]>([]);
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingCoverage, setEditingCoverage] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -31,18 +40,25 @@ export function ProfileView() {
 
   const startInfoEdit = () => {
     setDraft(profile);
+    setHoursDraft(profile.businessHours);
+    setCopyTargetDays([]);
     setErrors({});
     setEditingInfo(true);
   };
 
   const cancelInfoEdit = () => {
     setDraft(profile);
+    setHoursDraft(profile.businessHours);
+    setCopyTargetDays([]);
     setErrors({});
     setEditingInfo(false);
   };
 
   const saveInfo = () => {
     const nextErrors: Record<string, string> = {};
+    if (hoursDraft.some((entry) => !isValidBusinessHours(entry))) {
+      nextErrors.businessHours = "Opening time must be earlier than closing time for every open day.";
+    }
     if (!draft.name.trim()) nextErrors.name = "Business name is required.";
     if (!draft.address.trim()) nextErrors.address = "Address is required.";
     if (!draft.description.trim()) {
@@ -56,12 +72,38 @@ export function ProfileView() {
 
     updateTenantProfile({
       ...draft,
+      businessHours: hoursDraft,
       name: draft.name.trim(),
       address: draft.address.trim(),
       description: draft.description.trim(),
     });
     setErrors({});
     setEditingInfo(false);
+  };
+
+  const updateHours = (day: string, update: Partial<BusinessHoursDay>) => {
+    setHoursDraft((current) =>
+      current.map((entry) => (entry.day === day ? { ...entry, ...update } : entry)),
+    );
+  };
+
+  const toggleCopyTarget = (day: string) => {
+    setCopyTargetDays((current) =>
+      current.includes(day) ? current.filter((item) => item !== day) : [...current, day],
+    );
+  };
+
+  const applyHoursToTargets = () => {
+    const source = hoursDraft.find((entry) => entry.day === copySourceDay);
+    if (!source || !copyTargetDays.length) return;
+    setHoursDraft((current) =>
+      current.map((entry) =>
+        copyTargetDays.includes(entry.day)
+          ? { ...entry, open: source.open, openTime: source.openTime, closeTime: source.closeTime }
+          : entry,
+      ),
+    );
+    setCopyTargetDays([]);
   };
 
   const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -242,9 +284,32 @@ export function ProfileView() {
                 </div>
                 {errors.photo && <p className="mt-1 text-xs text-red-600">{errors.photo}</p>}
               </div>
+              <div className="border-t pt-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold">Business hours</h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Set the hours customers will see on your public profile.
+                    </p>
+                  </div>
+                </div>
+                <BusinessHoursEditor
+                  schedule={hoursDraft}
+                  onChange={updateHours}
+                  copySourceDay={copySourceDay}
+                  onCopySourceChange={setCopySourceDay}
+                  copyTargetDays={copyTargetDays}
+                  onToggleCopyTarget={toggleCopyTarget}
+                  onApplyHours={applyHoursToTargets}
+                />
+                {errors.businessHours && (
+                  <p className="mt-2 text-xs text-red-600">{errors.businessHours}</p>
+                )}
+              </div>
             </div>
           ) : (
-            <dl className="mt-5 grid gap-5 sm:grid-cols-2">
+            <div className="mt-5">
+              <dl className="grid gap-5 sm:grid-cols-2">
               <div>
                 <dt className="text-sm text-slate-400">Business name</dt>
                 <dd className="font-semibold">{profile.name}</dd>
@@ -261,7 +326,14 @@ export function ProfileView() {
                 <dt className="text-sm text-slate-400">Description</dt>
                 <dd className="font-semibold">{profile.description}</dd>
               </div>
-            </dl>
+              </dl>
+              <div className="mt-6 border-t pt-5">
+                <h3 className="font-semibold">Business hours</h3>
+                <div className="mt-3">
+                  <BusinessHoursList schedule={profile.businessHours} />
+                </div>
+              </div>
+            </div>
           )}
         </Card>
 
@@ -366,5 +438,112 @@ export function ProfileView() {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+
+function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
+  return (
+    <div className="max-w-[520px] space-y-2 text-sm">
+      {schedule.map((entry) => (
+        <div key={entry.day} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
+          <span className="font-medium">{entry.day}</span>
+          <span className="text-right text-slate-500">
+            {entry.open ? `${formatBusinessTime(entry.openTime)} – ${formatBusinessTime(entry.closeTime)}` : "Closed"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BusinessHoursEditor({
+  schedule,
+  onChange,
+  copySourceDay,
+  onCopySourceChange,
+  copyTargetDays,
+  onToggleCopyTarget,
+  onApplyHours,
+}: {
+  schedule: BusinessHoursDay[];
+  onChange: (day: string, update: Partial<BusinessHoursDay>) => void;
+  copySourceDay: string;
+  onCopySourceChange: (day: string) => void;
+  copyTargetDays: string[];
+  onToggleCopyTarget: (day: string) => void;
+  onApplyHours: () => void;
+}) {
+  return (
+    <div className="mt-4 space-y-3">
+      {schedule.map((entry) => (
+        <div key={entry.day} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(100px,1fr)_auto_minmax(110px,1fr)_minmax(110px,1fr)] sm:items-center">
+          <span className="font-medium">{entry.day}</span>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={!entry.open}
+              onChange={(event) => onChange(entry.day, { open: !event.target.checked })}
+              className="size-4 accent-[#3c6355]"
+            />
+            Closed
+          </label>
+          <label className="text-sm text-slate-500">
+            <span className="sr-only">{entry.day} opening time</span>
+            <input
+              type="time"
+              value={entry.openTime}
+              disabled={!entry.open}
+              onChange={(event) => onChange(entry.day, { openTime: event.target.value })}
+              className="w-full rounded-md border border-input px-2 py-2 text-sm disabled:bg-slate-100"
+            />
+          </label>
+          <label className="text-sm text-slate-500">
+            <span className="sr-only">{entry.day} closing time</span>
+            <input
+              type="time"
+              value={entry.closeTime}
+              disabled={!entry.open}
+              onChange={(event) => onChange(entry.day, { closeTime: event.target.value })}
+              className="w-full rounded-md border border-input px-2 py-2 text-sm disabled:bg-slate-100"
+            />
+          </label>
+        </div>
+      ))}
+      <div className="rounded-lg border border-dashed p-3">
+        <p className="text-sm font-semibold">Apply hours to multiple days</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,180px)_1fr_auto] sm:items-end">
+          <label className="text-sm text-slate-500">
+            <span className="mb-1 block">Copy from</span>
+            <select
+              value={copySourceDay}
+              onChange={(event) => onCopySourceChange(event.target.value)}
+              className="w-full rounded-md border border-input bg-white px-2 py-2 text-sm"
+            >
+              {schedule.map((entry) => <option key={entry.day} value={entry.day}>{entry.day}</option>)}
+            </select>
+          </label>
+          <div>
+            <span className="mb-1 block text-sm text-slate-500">Apply to</span>
+            <div className="flex flex-wrap gap-2">
+              {schedule.filter((entry) => entry.day !== copySourceDay).map((entry) => (
+                <label key={entry.day} className="inline-flex items-center gap-1 text-xs text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={copyTargetDays.includes(entry.day)}
+                    onChange={() => onToggleCopyTarget(entry.day)}
+                    className="size-3.5 accent-[#3c6355]"
+                  />
+                  {entry.day.slice(0, 3)}
+                </label>
+              ))}
+            </div>
+          </div>
+          <Button type="button" variant="outline" onClick={onApplyHours} disabled={!copyTargetDays.length}>
+            Apply
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
