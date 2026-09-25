@@ -62,3 +62,46 @@ export function isValidBusinessHours(day: BusinessHoursDay) {
     openHour * 60 + openMinute < closeHour * 60 + closeMinute
   );
 }
+
+
+export type BusinessHoursDisplayRow = {
+  label: string;
+  value: string;
+};
+
+function sameHours(left: BusinessHoursDay, right: BusinessHoursDay) {
+  return (
+    left.open === right.open &&
+    left.openTime === right.openTime &&
+    left.closeTime === right.closeTime
+  );
+}
+
+function formatHoursValue(entry: BusinessHoursDay) {
+  return entry.open
+    ? `${formatBusinessTime(entry.openTime)} – ${formatBusinessTime(entry.closeTime)}`
+    : "Closed";
+}
+
+export function getBusinessHoursDisplayRows(
+  schedule: BusinessHoursDay[],
+): BusinessHoursDisplayRow[] {
+  const byDay = new Map(schedule.map((entry) => [entry.day, entry]));
+  const weekdayEntries = businessDays.slice(0, 5).map((day) => byDay.get(day)).filter(Boolean) as BusinessHoursDay[];
+  const weekendEntries = businessDays.slice(5).map((day) => byDay.get(day)).filter(Boolean) as BusinessHoursDay[];
+  const rows: BusinessHoursDisplayRow[] = [];
+
+  if (weekdayEntries.length === 5 && weekdayEntries.every((entry) => sameHours(entry, weekdayEntries[0]))) {
+    rows.push({ label: "Mon – Fri", value: formatHoursValue(weekdayEntries[0]) });
+  } else {
+    rows.push(...weekdayEntries.map((entry) => ({ label: entry.day, value: formatHoursValue(entry) })));
+  }
+
+  if (weekendEntries.length === 2 && weekendEntries.every((entry) => sameHours(entry, weekendEntries[0]))) {
+    rows.push({ label: "Sat – Sun", value: formatHoursValue(weekendEntries[0]) });
+  } else {
+    rows.push(...weekendEntries.map((entry) => ({ label: entry.day, value: formatHoursValue(entry) })));
+  }
+
+  return rows;
+}
