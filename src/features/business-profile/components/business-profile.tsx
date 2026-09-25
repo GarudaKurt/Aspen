@@ -21,6 +21,12 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  formatBusinessTime,
+  getBusinessHoursStatus,
+  initialBusinessHours,
+  type BusinessHoursDay,
+} from "../business-hours";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -40,6 +46,7 @@ export type TenantProfileData = {
   description?: string;
   serviceCoverage?: string[];
   coverPhoto?: string | null;
+  businessHours?: BusinessHoursDay[];
   verified?: boolean;
 };
 
@@ -67,11 +74,7 @@ const amenities = [
   { label: "24/7 Emergency hotline", icon: Phone },
 ];
 
-const hours = [
-  ["Mon – Fri", "8 AM – 8 PM"],
-  ["Saturday", "9 AM – 6 PM"],
-  ["Sunday", "8 AM – 12 PM"],
-];
+
 
 type ServiceItem = {
   title: string;
@@ -151,6 +154,8 @@ export function BusinessProfile({
   const [activeTab, setActiveTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(provider.coverPhoto ?? null);
+  const schedule = provider.businessHours ?? initialBusinessHours;
+  const businessStatus = getBusinessHoursStatus(schedule);
 
   const handleImageUpload = (
     event: ChangeEvent<HTMLInputElement>,
@@ -269,7 +274,7 @@ export function BusinessProfile({
         </section>
 
         <Card className="mt-14 grid overflow-hidden rounded-2xl border-[#d8d8d5] bg-white shadow-none sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
-          <Stat label="Status" value="OPEN - Closes 8 PM" />
+          <Stat label="Status" value={businessStatus.label} />
           <Stat label="Price tier" value="Start at 1500 - Premium" />
           <Stat label="Response time" value="Usually within 1 hr" />
           <Stat label="Since" value="Member since 2024" />
@@ -328,18 +333,8 @@ export function BusinessProfile({
                   </div>
                 </ProfileSection>
 
-                <ProfileSection title="Hours">
-                  <div className="max-w-[320px] space-y-3 text-xs font-semibold text-[#3c6355]">
-                    {hours.map(([day, time]) => (
-                      <div
-                        key={day}
-                        className="flex justify-between border-b border-[#bfc3c0] pb-2"
-                      >
-                        <span>{day}</span>
-                        <span>{time}</span>
-                      </div>
-                    ))}
-                  </div>
+                <ProfileSection title="Business hours">
+                  <BusinessHoursList schedule={schedule} />
                 </ProfileSection>
 
                 <ProfileSection title="Location">
@@ -362,7 +357,7 @@ export function BusinessProfile({
             )}
           </div>
 
-          <ScheduleCard />
+          <ScheduleCard schedule={schedule} />
         </div>
       </div>
     </main>
@@ -565,17 +560,34 @@ function PhotoGallery({ providerName }: { providerName: string }) {
   );
 }
 
-function ScheduleCard() {
+function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
+  return (
+    <div className="max-w-[420px] space-y-3 text-xs font-semibold text-[#3c6355]">
+      {schedule.map((entry) => (
+        <div key={entry.day} className="flex justify-between gap-4 border-b border-[#bfc3c0] pb-2">
+          <span>{entry.day}</span>
+          <span className="text-right">
+            {entry.open ? `${formatBusinessTime(entry.openTime)} – ${formatBusinessTime(entry.closeTime)}` : "Closed"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ScheduleCard({ schedule }: { schedule: BusinessHoursDay[] }) {
+  const businessStatus = getBusinessHoursStatus(schedule);
+
   return (
     <Card className="h-fit rounded-xl border-[#d8d8d5] bg-white p-5 shadow-none">
-      <h2 className="text-lg font-bold text-[#3c6355]">This week</h2>
-      <div className="mt-5 space-y-3 text-xs font-semibold text-[#3c6355]">
-        {hours.map(([day, time]) => (
-          <div key={day} className="flex justify-between border-b border-[#bfc3c0] pb-2">
-            <span>{day}</span>
-            <span>{time}</span>
-          </div>
-        ))}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-[#3c6355]">This week</h2>
+        <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${businessStatus.open ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+          {businessStatus.label}
+        </span>
+      </div>
+      <div className="mt-5">
+        <BusinessHoursList schedule={schedule} />
       </div>
       <Link
         href="/request-appointment"
