@@ -308,6 +308,23 @@ export function ProfileView() {
             </div>
           ) : (
             <dl className="mt-5 grid gap-5 sm:grid-cols-2">
+              <div>
+                <dt className="text-sm text-slate-400">Business name</dt>
+                <dd className="font-semibold">{profile.name}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-slate-400">Provider type</dt>
+                <dd className="font-semibold">Registered Business</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-slate-400">Address</dt>
+                <dd className="font-semibold">{profile.address}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-sm text-slate-400">Description</dt>
+                <dd className="font-semibold">{profile.description}</dd>
+              </div>
+            </dl>
           )}
         </Card>
 
