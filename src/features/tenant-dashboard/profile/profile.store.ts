@@ -1,9 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { TenantProfileData } from "@/features/business-profile/components/business-profile";
 import { initialBusinessHours, type BusinessHoursDay } from "@/features/business-profile/business-hours";
 import { type BusinessAmenity } from "@/features/business-profile/amenities";
+import { tenantProfileSchema } from "./profile.schema";
 
 export type TenantProfile = TenantProfileData & {
   description: string;
@@ -33,40 +35,43 @@ export const initialTenantProfile: TenantProfile = {
   verified: true,
 };
 
-const storageKey = "aspen-tenant-profile";
-let profile = initialTenantProfile;
-const listeners = new Set<() => void>();
+type TenantProfileStore = {
+  profile: TenantProfile;
+  updateTenantProfile: (update: Partial<TenantProfile>) => void;
+};
 
-if (typeof window !== "undefined") {
-  try {
-    const stored = window.localStorage.getItem(storageKey);
-    if (stored) profile = { ...initialTenantProfile, ...JSON.parse(stored) };
-  } catch {
-    profile = initialTenantProfile;
-  }
-}
+export const useTenantProfileStore = create<TenantProfileStore>()(
+  persist(
+    (set) => ({
+      profile: initialTenantProfile,
+      updateTenantProfile: (update) =>
+        set((state) => ({
+          profile: { ...state.profile, ...update },
+        })),
+    }),
+    {
+      name: "aspen-tenant-profile",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ profile: state.profile }),
+      merge: (persisted, current) => {
+        const parsed = tenantProfileSchema.partial().safeParse(
+          typeof persisted === "object" && persisted !== null && "profile" in persisted
+            ? persisted.profile
+            : persisted,
+        );
 
-function notify() {
-  listeners.forEach((listener) => listener());
-}
+        return parsed.success
+          ? { ...current, profile: { ...current.profile, ...parsed.data } }
+          : current;
+      },
+    },
+  ),
+);
 
 export function useTenantProfile() {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => profile,
-    () => initialTenantProfile,
-  );
+  return useTenantProfileStore((state) => state.profile);
 }
 
 export function updateTenantProfile(update: Partial<TenantProfile>) {
-  profile = { ...profile, ...update };
-
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(storageKey, JSON.stringify(profile));
-  }
-
-  notify();
+  useTenantProfileStore.getState().updateTenantProfile(update);
 }
