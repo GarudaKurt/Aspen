@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MobileDashboardNav } from "./dashboard-shell";
 import {
@@ -33,6 +34,7 @@ export function ProfileView() {
   const [copySourceDay, setCopySourceDay] = useState(profile.businessHours[0]?.day ?? businessDays[0]);
   const [copyTargetDays, setCopyTargetDays] = useState<string[]>([]);
   const [editingInfo, setEditingInfo] = useState(false);
+  const [editingHours, setEditingHours] = useState(false);
   const [editingCoverage, setEditingCoverage] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMaximized, setPreviewMaximized] = useState(false);
@@ -40,25 +42,18 @@ export function ProfileView() {
 
   const startInfoEdit = () => {
     setDraft(profile);
-    setHoursDraft(profile.businessHours);
-    setCopyTargetDays([]);
     setErrors({});
     setEditingInfo(true);
   };
 
   const cancelInfoEdit = () => {
     setDraft(profile);
-    setHoursDraft(profile.businessHours);
-    setCopyTargetDays([]);
     setErrors({});
     setEditingInfo(false);
   };
 
   const saveInfo = () => {
     const nextErrors: Record<string, string> = {};
-    if (hoursDraft.some((entry) => !isValidBusinessHours(entry))) {
-      nextErrors.businessHours = "Opening time must be earlier than closing time for every open day.";
-    }
     if (!draft.name.trim()) nextErrors.name = "Business name is required.";
     if (!draft.address.trim()) nextErrors.address = "Address is required.";
     if (!draft.description.trim()) {
@@ -72,13 +67,39 @@ export function ProfileView() {
 
     updateTenantProfile({
       ...draft,
-      businessHours: hoursDraft,
       name: draft.name.trim(),
       address: draft.address.trim(),
       description: draft.description.trim(),
     });
     setErrors({});
     setEditingInfo(false);
+  };
+
+  const startHoursEdit = () => {
+    setHoursDraft(profile.businessHours);
+    setCopyTargetDays([]);
+    setErrors({});
+    setEditingHours(true);
+  };
+
+  const cancelHoursEdit = () => {
+    setHoursDraft(profile.businessHours);
+    setCopyTargetDays([]);
+    setErrors({});
+    setEditingHours(false);
+  };
+
+  const saveHours = () => {
+    if (hoursDraft.some((entry) => !isValidBusinessHours(entry))) {
+      setErrors({
+        businessHours: "Opening time must be earlier than closing time for every open day.",
+      });
+      return;
+    }
+
+    updateTenantProfile({ businessHours: hoursDraft });
+    setErrors({});
+    setEditingHours(false);
   };
 
   const updateHours = (day: string, update: Partial<BusinessHoursDay>) => {
@@ -284,56 +305,9 @@ export function ProfileView() {
                 </div>
                 {errors.photo && <p className="mt-1 text-xs text-red-600">{errors.photo}</p>}
               </div>
-              <div className="border-t pt-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold">Business hours</h3>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Set the hours customers will see on your public profile.
-                    </p>
-                  </div>
-                </div>
-                <BusinessHoursEditor
-                  schedule={hoursDraft}
-                  onChange={updateHours}
-                  copySourceDay={copySourceDay}
-                  onCopySourceChange={setCopySourceDay}
-                  copyTargetDays={copyTargetDays}
-                  onToggleCopyTarget={toggleCopyTarget}
-                  onApplyHours={applyHoursToTargets}
-                />
-                {errors.businessHours && (
-                  <p className="mt-2 text-xs text-red-600">{errors.businessHours}</p>
-                )}
-              </div>
             </div>
           ) : (
-            <div className="mt-5">
-              <dl className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm text-slate-400">Business name</dt>
-                <dd className="font-semibold">{profile.name}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-slate-400">Provider type</dt>
-                <dd className="font-semibold">Registered Business</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-slate-400">Address</dt>
-                <dd className="font-semibold">{profile.address}</dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-sm text-slate-400">Description</dt>
-                <dd className="font-semibold">{profile.description}</dd>
-              </div>
-              </dl>
-              <div className="mt-6 border-t pt-5">
-                <h3 className="font-semibold">Business hours</h3>
-                <div className="mt-3">
-                  <BusinessHoursList schedule={profile.businessHours} />
-                </div>
-              </div>
-            </div>
+            <dl className="mt-5 grid gap-5 sm:grid-cols-2">
           )}
         </Card>
 
@@ -357,6 +331,53 @@ export function ProfileView() {
           <p className="mt-4 text-[#c5714e]">★ {profile.rating} ({profile.reviews})</p>
         </Card>
       </div>
+
+      <Card className="mt-5 bg-white p-6 shadow-none">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold">Business Hours</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Set the weekly schedule customers will see on your public profile.
+            </p>
+          </div>
+          {!editingHours ? (
+            <Button type="button" variant="ghost" onClick={startHoursEdit}>
+              <Pencil className="mr-2 size-4" /> Edit
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" onClick={cancelHoursEdit}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                onClick={saveHours}
+              >
+                Save
+              </Button>
+            </div>
+          )}
+        </div>
+        {editingHours ? (
+          <BusinessHoursEditor
+            schedule={hoursDraft}
+            onChange={updateHours}
+            copySourceDay={copySourceDay}
+            onCopySourceChange={setCopySourceDay}
+            copyTargetDays={copyTargetDays}
+            onToggleCopyTarget={toggleCopyTarget}
+            onApplyHours={applyHoursToTargets}
+          />
+        ) : (
+          <div className="mt-5">
+            <BusinessHoursList schedule={profile.businessHours} />
+          </div>
+        )}
+        {errors.businessHours && (
+          <p className="mt-2 text-xs text-red-600">{errors.businessHours}</p>
+        )}
+      </Card>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
         <div className="flex items-center justify-between gap-3">
@@ -490,22 +511,20 @@ function BusinessHoursEditor({
           </label>
           <label className="text-sm text-slate-500">
             <span className="sr-only">{entry.day} opening time</span>
-            <input
-              type="time"
+            <TimePicker
               value={entry.openTime}
               disabled={!entry.open}
-              onChange={(event) => onChange(entry.day, { openTime: event.target.value })}
-              className="w-full rounded-md border border-input px-2 py-2 text-sm disabled:bg-slate-100"
+              onValueChange={(value) => onChange(entry.day, { openTime: value })}
+              aria-label={`${entry.day} opening time`}
             />
           </label>
           <label className="text-sm text-slate-500">
             <span className="sr-only">{entry.day} closing time</span>
-            <input
-              type="time"
+            <TimePicker
               value={entry.closeTime}
               disabled={!entry.open}
-              onChange={(event) => onChange(entry.day, { closeTime: event.target.value })}
-              className="w-full rounded-md border border-input px-2 py-2 text-sm disabled:bg-slate-100"
+              onValueChange={(value) => onChange(entry.day, { closeTime: value })}
+              aria-label={`${entry.day} closing time`}
             />
           </label>
         </div>
