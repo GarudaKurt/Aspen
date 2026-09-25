@@ -186,8 +186,9 @@ function MessageBubble({
   onToggleActions: () => void;
   onEdit: (messageId: string, body: string) => void;
   onDelete: (messageId: string) => void;
+  currentUser: Message["from"];
 }) {
-  const sent = message.from === "provider";
+  const sent = message.from === currentUser;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.body);
   const [dragX, setDragX] = useState(0);
