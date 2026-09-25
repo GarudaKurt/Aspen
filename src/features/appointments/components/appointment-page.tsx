@@ -60,18 +60,21 @@ export function AppointmentPage({
     ? `/business-profile/${businessSlug}/request-appointment`
     : "/request-appointment";
   const steps = createSteps(basePath);
+  const draftStorageKey = businessSlug
+    ? `aspen-appointment-draft:${businessSlug}`
+    : "aspen-appointment-draft";
   const isConfirmation = pathname === `${basePath}/confirmation`;
   const activeIndex = Math.max(0, steps.findIndex((step) => step.path === pathname));
   const [draft, setDraft] = useState<AppointmentDraft>(initialDraft);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const saved = window.sessionStorage.getItem("aspen-appointment-draft");
+    const saved = window.sessionStorage.getItem(draftStorageKey);
     if (saved) setDraft({ ...initialDraft, ...JSON.parse(saved) });
-  }, []);
+  }, [draftStorageKey]);
   useEffect(() => {
-    window.sessionStorage.setItem("aspen-appointment-draft", JSON.stringify(draft));
-  }, [draft]);
+    window.sessionStorage.setItem(draftStorageKey, JSON.stringify(draft));
+  }, [draft, draftStorageKey]);
 
   const update = <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const toggleService = (id: string) => update("serviceIds", draft.serviceIds.includes(id) ? draft.serviceIds.filter((item) => item !== id) : [...draft.serviceIds, id]);
