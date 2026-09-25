@@ -37,11 +37,15 @@ export type TenantProfileData = {
   reviews: string;
   category: string;
   address: string;
+  description?: string;
+  serviceCoverage?: string[];
+  coverPhoto?: string | null;
   verified?: boolean;
 };
 
 type TenantProfileProps = {
   provider?: TenantProfileData;
+  preview?: boolean;
 };
 
 const defaultProvider: TenantProfileData = {
@@ -140,10 +144,13 @@ const serviceCategories: ServiceCategory[] = [
   },
 ];
 
-export function BusinessProfile({ provider = defaultProvider }: TenantProfileProps) {
+export function BusinessProfile({
+  provider = defaultProvider,
+  preview = false,
+}: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
-  const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(provider.coverPhoto ?? null);
 
   const handleImageUpload = (
     event: ChangeEvent<HTMLInputElement>,
@@ -189,16 +196,20 @@ export function BusinessProfile({ provider = defaultProvider }: TenantProfilePro
                 className="object-cover"
               />
             )}
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(event) => handleImageUpload(event, setCoverPhoto)}
-            />
-            <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm">
-              <Pencil size={16} />
-              <span className="sr-only">Upload or edit cover photo</span>
-            </span>
+            {!preview && (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(event) => handleImageUpload(event, setCoverPhoto)}
+                />
+                <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm">
+                  <Pencil size={16} />
+                  <span className="sr-only">Upload or edit cover photo</span>
+                </span>
+              </>
+            )}
           </label>
           <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
@@ -285,10 +296,8 @@ export function BusinessProfile({ provider = defaultProvider }: TenantProfilePro
               <>
                 <ProfileSection title="About">
                   <p className="max-w-[650px] text-sm font-semibold leading-5 text-[#929492] sm:text-base">
-                    Full-service animal hospital offering general checkups, vaccinations,
-                    surgery, and 24/7 emergency care. Our team of licensed veterinarians
-                    has cared for pets in Quezon City since 2024, with a focus on gentle
-                    handling and clear communication with owners.
+                    {provider.description ??
+                      "Full-service animal hospital offering general checkups, vaccinations, surgery, and 24/7 emergency care. Our team of licensed veterinarians has cared for pets in Quezon City since 2024, with a focus on gentle handling and clear communication with owners."}
                   </p>
                 </ProfileSection>
 
@@ -301,6 +310,19 @@ export function BusinessProfile({ provider = defaultProvider }: TenantProfilePro
                       >
                         <Icon size={14} className="text-[#3c6355]" />
                         {label}
+                      </span>
+                    ))}
+                  </div>
+                </ProfileSection>
+
+                <ProfileSection title="Service coverage">
+                  <div className="flex max-w-[700px] flex-wrap gap-3">
+                    {(provider.serviceCoverage ?? ["Grooming", "Boarding", "Training"]).map((coverage) => (
+                      <span
+                        key={coverage}
+                        className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-600"
+                      >
+                        {coverage}
                       </span>
                     ))}
                   </div>
@@ -332,7 +354,7 @@ export function BusinessProfile({ provider = defaultProvider }: TenantProfilePro
             ) : activeTab === "Services" ? (
               <ServicesPanel />
             ) : activeTab === "Reviews" ? (
-              <ReviewsPanel />
+              <ReviewsPanel provider={provider} />
             ) : (
               <div className="rounded-xl border border-dashed border-[#d8d8d5] p-8 text-sm text-[#777b78]">
                 {activeTab} for {provider.name} will appear here.
@@ -371,20 +393,20 @@ function ProfileSection({
   );
 }
 
-function ReviewsPanel() {
+function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
   return (
     <div className="rounded-2xl border border-[#d8d8d5] bg-white p-4 shadow-sm sm:p-6">
       <div className="flex items-start gap-5 border-b border-[#e5e6e4] pb-5">
         <div>
-          <p className="text-4xl font-bold text-[#3c6355]">4.9</p>
-          <div className="mt-1 flex gap-0.5 text-[#ffd000]" aria-label="Average rating: 4.9 out of 5">
+          <p className="text-4xl font-bold text-[#3c6355]">{provider.rating}</p>
+          <div className="mt-1 flex gap-0.5 text-[#ffd000]" aria-label={`Average rating: ${provider.rating} out of 5`}>
             {Array.from({ length: 5 }, (_, index) => (
               <Star key={index} size={14} fill="currentColor" strokeWidth={0} />
             ))}
           </div>
         </div>
         <p className="max-w-[180px] pt-1 text-xs leading-4 text-[#929492]">
-          Based on 222 reviews
+          Based on {provider.reviews}
           <br />
           from verified visits
         </p>
