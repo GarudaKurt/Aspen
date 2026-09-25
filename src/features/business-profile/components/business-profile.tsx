@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   formatBusinessTime,
+  getBusinessHoursDisplayRows,
   getBusinessHoursStatus,
   initialBusinessHours,
   type BusinessHoursDay,
@@ -563,12 +564,10 @@ function PhotoGallery({ providerName }: { providerName: string }) {
 function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
   return (
     <div className="max-w-[420px] space-y-3 text-xs font-semibold text-[#3c6355]">
-      {schedule.map((entry) => (
-        <div key={entry.day} className="flex justify-between gap-4 border-b border-[#bfc3c0] pb-2">
-          <span>{entry.day}</span>
-          <span className="text-right">
-            {entry.open ? `${formatBusinessTime(entry.openTime)} – ${formatBusinessTime(entry.closeTime)}` : "Closed"}
-          </span>
+      {getBusinessHoursDisplayRows(schedule).map((row) => (
+        <div key={row.label} className="flex justify-between gap-4 border-b border-[#bfc3c0] pb-2">
+          <span>{row.label}</span>
+          <span className="text-right">{row.value}</span>
         </div>
       ))}
     </div>
