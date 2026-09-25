@@ -45,7 +45,7 @@ export const useFavoritesStore = create<FavoritesStore>()(
     }),
     {
       name: "aspen-favorites",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({ favoriteIds: normalizeIds(state.favoriteIds) }),
       merge: (persisted, current) => {
         const parsed = favoritesStateSchema.safeParse(persisted);
