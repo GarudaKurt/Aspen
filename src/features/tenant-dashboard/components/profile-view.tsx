@@ -39,6 +39,7 @@ export function ProfileView() {
   const [customAmenity, setCustomAmenity] = useState("");
   const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
   const [editingAmenityName, setEditingAmenityName] = useState("");
+  const [amenityNotice, setAmenityNotice] = useState("");
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingHours, setEditingHours] = useState(false);
   const [editingAmenities, setEditingAmenities] = useState(false);
@@ -158,6 +159,7 @@ export function ProfileView() {
     setEditingAmenityId(null);
     setEditingAmenityName("");
     setErrors({});
+    setAmenityNotice("");
     setEditingAmenities(true);
   };
 
@@ -167,6 +169,7 @@ export function ProfileView() {
     setEditingAmenityId(null);
     setEditingAmenityName("");
     setErrors({});
+    setAmenityNotice("");
     setEditingAmenities(false);
   };
 
@@ -208,12 +211,12 @@ export function ProfileView() {
 
   const toggleAmenity = (amenity: BusinessAmenity) => {
     const selected = amenitiesDraft.some((item) => item.id === amenity.id);
-    if (selected && !window.confirm(`Remove ${amenity.label} from your amenities?`)) return;
     setAmenitiesDraft((current) =>
       selected
         ? current.filter((item) => item.id !== amenity.id)
         : [...current, amenity],
     );
+    setAmenityNotice(selected ? amenity.label + " removed." : "");
   };
 
   const addCustomAmenity = () => {
@@ -231,13 +234,15 @@ export function ProfileView() {
       { id: `custom-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, label, custom: true },
     ]);
     setCustomAmenity("");
+    setAmenityNotice("");
     setErrors((current) => ({ ...current, amenities: "" }));
   };
 
   const removeAmenity = (id: string) => {
     const amenity = amenitiesDraft.find((item) => item.id === id);
-    if (!amenity || !window.confirm(`Remove ${amenity.label} from your amenities?`)) return;
+    if (!amenity) return;
     setAmenitiesDraft((current) => current.filter((item) => item.id !== id));
+    setAmenityNotice(amenity.label + " removed.");
     if (editingAmenityId === id) cancelCustomAmenityEdit();
   };
 
@@ -550,6 +555,11 @@ export function ProfileView() {
           </div>
         )}
         {errors.amenities && <p className="mt-2 text-xs text-red-600">{errors.amenities}</p>}
+        {amenityNotice && (
+          <p role="status" className="mt-2 text-xs text-emerald-600">
+            {amenityNotice}
+          </p>
+        )}
       </Card>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
