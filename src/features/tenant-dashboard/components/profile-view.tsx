@@ -235,7 +235,10 @@ export function ProfileView() {
   };
 
   const removeAmenity = (id: string) => {
-    setAmenitiesDraft((current) => current.filter((amenity) => amenity.id !== id));
+    const amenity = amenitiesDraft.find((item) => item.id === id);
+    if (!amenity || !window.confirm(`Remove ${amenity.label} from your amenities?`)) return;
+    setAmenitiesDraft((current) => current.filter((item) => item.id !== id));
+    if (editingAmenityId === id) cancelCustomAmenityEdit();
   };
 
   const startCoverageEdit = () => {
