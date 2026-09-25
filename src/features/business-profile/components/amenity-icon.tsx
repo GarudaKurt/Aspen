@@ -1,5 +1,6 @@
 import {
   Accessibility,
+  Check,
   Armchair,
   Car,
   PawPrint,
@@ -19,6 +20,6 @@ const amenityIcons: Record<string, LucideIcon> = {
 };
 
 export function AmenityIcon({ amenity, size = 14 }: { amenity: BusinessAmenity; size?: number }) {
-  const Icon = amenityIcons[amenity.id] ?? PawPrint;
+  const Icon = amenity.custom ? Check : amenityIcons[amenity.id] ?? PawPrint;
   return <Icon size={size} aria-hidden="true" />;
 }
