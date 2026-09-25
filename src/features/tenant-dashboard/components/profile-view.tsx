@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
 import { Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
-import { BusinessProfile, type TenantProfileData } from "@/features/business-profile/components/business-profile";
+import { BusinessProfile } from "@/features/business-profile/components/business-profile";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
