@@ -4,20 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, type ChangeEvent, type ReactNode } from "react";
 import {
-  Accessibility,
   ArrowLeft,
   Check,
-  CreditCard,
   Heart,
   ImagePlus,
   MapPin,
   Menu,
   MessageCircle,
   Pencil,
-  Phone,
   Share2,
   Star,
-  Truck,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
