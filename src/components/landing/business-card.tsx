@@ -23,6 +23,7 @@ export interface BusinessCardProps {
   rating: string;
   services: string;
   priceStarts: string;
+  slug?: string;
   images?: BusinessCardImage[];
   href?: string;
   isLoading?: boolean;
@@ -190,7 +191,7 @@ export function BusinessCard({
           <span className="text-[#d9d9d7]">•</span>
           <span>{services}</span>
           <Link
-            href={href}
+            href={slug ? `/business-profile/${slug}` : href}
             aria-label={`View ${businessName} details`}
             className="ml-auto flex shrink-0 items-center justify-center rounded-full text-[#ff8b2c] transition-colors hover:text-[#e67a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8b2c]/50"
           >
