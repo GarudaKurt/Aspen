@@ -261,7 +261,6 @@ export function ProfileView() {
       { id: `custom-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, label, custom: true },
     ]);
     setCustomAmenity("");
-    setAmenityNotice("");
     setErrors((current) => ({ ...current, amenities: "" }));
   };
 
