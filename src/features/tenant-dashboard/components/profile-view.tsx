@@ -170,7 +170,6 @@ export function ProfileView() {
     setEditingAmenityId(null);
     setEditingAmenityName("");
     setErrors({});
-    setAmenityNotice("");
     setEditingAmenities(false);
   };
 
