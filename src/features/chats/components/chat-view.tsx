@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { conversations as initialConversations } from "../mock-data";
 import type { Conversation } from "../types";
-import { MobileDashboardNav } from "@/features/tenant-dashboard/components/dashboard-shell";
 import { ChatHeader, ConversationList, MessageComposer, MessageList } from "./chat-components";
 
-export function ChatView() {
+export function ChatView({ navigation }: { navigation?: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);
   const [mobileListOpen, setMobileListOpen] = useState(false);
@@ -74,7 +73,7 @@ export function ChatView() {
   };
 
   return <>
-    <MobileDashboardNav />
+    {navigation}
     <h1 className="text-3xl font-bold">Chat</h1>
     <p className="mt-1 text-slate-500">Messages from customers about bookings and questions.</p>
     <Card className="mt-7 grid min-h-[560px] overflow-x-clip overflow-y-visible bg-white p-0 shadow-none lg:grid-cols-[280px_minmax(0,1fr)]">
