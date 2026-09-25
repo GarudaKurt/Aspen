@@ -1,5 +1,4 @@
 import type { BusinessCardProps } from "./business-card";
-import type { BusinessService } from "@/domain/business";
 
 export const mockBusinesses: BusinessCardProps[] = [
   {
