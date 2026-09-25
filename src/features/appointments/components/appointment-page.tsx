@@ -27,19 +27,40 @@ type AppointmentDraft = {
 };
 
 type Step = { label: string; path: string; icon: LucideIcon };
-const steps: Step[] = [
-  { label: "Service", path: "/request-appointment", icon: PawPrint },
-  { label: "Date and Time", path: "/request-appointment/date-time", icon: CalendarDays },
-  { label: "Pet", path: "/request-appointment/pet", icon: PawPrint },
-  { label: "Your details", path: "/request-appointment/details", icon: UserRound },
-];
+
+function createSteps(basePath: string): Step[] {
+  return [
+    { label: "Service", path: basePath, icon: PawPrint },
+    { label: "Date and Time", path: `${basePath}/date-time`, icon: CalendarDays },
+    { label: "Pet", path: `${basePath}/pet`, icon: PawPrint },
+    { label: "Your details", path: `${basePath}/details`, icon: UserRound },
+  ];
+}
+
+type AppointmentPageProps = {
+  businessSlug?: string;
+  businessName?: string;
+  businessLocation?: string;
+  businessCategory?: string;
+  businessRating?: string;
+};
 const timeSlots: Record<Period, string[]> = { Morning: ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"], Afternoon: ["12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"], Evening: ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"] };
 const initialDraft: AppointmentDraft = { serviceIds: [], date: "", period: "Morning", time: "", petName: "", petType: "", reason: "", fullName: "", phone: "", email: "" };
 
-export function AppointmentPage() {
+export function AppointmentPage({
+  businessSlug,
+  businessName = "Kalinga Animal Hospital",
+  businessLocation = "Kalayaan Ave, QC",
+  businessCategory = "Vet Clinic",
+  businessRating = "4.9",
+}: AppointmentPageProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
-  const isConfirmation = pathname === "/request-appointment/confirmation";
+  const basePath = businessSlug
+    ? `/business-profile/${businessSlug}/request-appointment`
+    : "/request-appointment";
+  const steps = createSteps(basePath);
+  const isConfirmation = pathname === `${basePath}/confirmation`;
   const activeIndex = Math.max(0, steps.findIndex((step) => step.path === pathname));
   const [draft, setDraft] = useState<AppointmentDraft>(initialDraft);
   const [error, setError] = useState("");
@@ -61,11 +82,11 @@ export function AppointmentPage() {
     if (activeIndex === 2 && (!draft.petName || !draft.petType || !draft.reason)) return setError("Complete your pet's details to continue.");
     if (activeIndex === 3 && (!draft.fullName || !draft.phone || !draft.email)) return setError("Complete your contact details to send the request.");
     setError("");
-    router.push(activeIndex === steps.length - 1 ? "/request-appointment/confirmation" : steps[activeIndex + 1].path);
+    router.push(activeIndex === steps.length - 1 ? `${basePath}/confirmation` : steps[activeIndex + 1].path);
   };
-  const back = () => router.push(activeIndex === 0 ? "/#browse" : steps[activeIndex - 1].path);
+  const back = () => router.push(activeIndex === 0 ? (businessSlug ? `/business-profile/${businessSlug}` : "/#browse") : steps[activeIndex - 1].path);
 
-  if (isConfirmation) return <ConfirmationPage draft={draft} />;
+  if (isConfirmation) return <ConfirmationPage draft={draft} businessSlug={businessSlug} businessName={businessName} />;
 
   return <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
     <div className="mx-auto max-w-[1040px]">
@@ -75,25 +96,35 @@ export function AppointmentPage() {
       </header>
       <div className="py-8 sm:py-10"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#c5714e]">Customer appointment</p><h1 className="mt-2 text-2xl font-bold sm:text-3xl">Request an appointment</h1><p className="mt-2 max-w-[560px] text-sm leading-5 text-[#777b78]">Tell us what your pet needs and pick a time that works. The provider will confirm within the hour.</p><p className="mt-3 text-sm font-semibold">Step {activeIndex + 1} of {steps.length}</p></div>
       <div className="grid gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:items-start">
-        <div><ProviderCard /><AppointmentStepper activeIndex={activeIndex} /></div>
+        <div><ProviderCard name={businessName} location={businessLocation} category={businessCategory} rating={businessRating} /><AppointmentStepper activeIndex={activeIndex} steps={steps} /></div>
         <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
           {activeIndex === 0 && <ServiceStep selected={draft.serviceIds} onToggle={toggleService} />}
           {activeIndex === 1 && <DateStep date={draft.date} period={draft.period} time={draft.time} onDate={(value) => update("date", value)} onPeriod={(value) => { update("period", value); if (!timeSlots[value].includes(draft.time)) update("time", ""); }} onTime={(value) => update("time", value)} />}
           {activeIndex === 2 && <PetStep draft={draft} update={update} />}
           {activeIndex === 3 && <DetailsStep draft={draft} update={update} />}
           {error && <p role="alert" className="mt-5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between"><Button variant="ghost" type="button" onClick={back} className="justify-start px-0 hover:bg-transparent hover:text-[#3c6355]"><ChevronLeft size={16} />{activeIndex === 0 ? "Back to search" : "Back"}</Button><div className="flex flex-col gap-3 sm:flex-row"><Button type="button" variant="outline" onClick={() => router.push("/")}>Save and exit</Button><Button type="button" onClick={next} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">{activeIndex === steps.length - 1 ? "Request appointment" : "Save and continue"}</Button></div></div>
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between"><Button variant="ghost" type="button" onClick={back} className="justify-start px-0 hover:bg-transparent hover:text-[#3c6355]"><ChevronLeft size={16} />{activeIndex === 0 ? "Back to search" : "Back"}</Button><div className="flex flex-col gap-3 sm:flex-row"><Button type="button" variant="outline" onClick={() => router.push(businessSlug ? `/business-profile/${businessSlug}` : "/")>Save and exit</Button><Button type="button" onClick={next} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">{activeIndex === steps.length - 1 ? "Request appointment" : "Save and continue"}</Button></div></div>
         </Card>
       </div>
     </div>
   </main>;
 }
 
-function ProviderCard() {
-  return <Card className="mb-6 border-0 bg-[#f1f2f8] p-4 shadow-none"><div className="grid size-11 place-items-center rounded-lg bg-[#3c6355] text-white">＋</div><h2 className="mt-3 text-sm font-bold">Kalinga Animal Hospital</h2><p className="text-[10px] text-slate-500">Vet Clinic · Kalayaan Ave, QC</p><p className="mt-1 text-xs font-semibold text-slate-700">⭐ 4.9 Ratings</p></Card>;
+function ProviderCard({
+  name,
+  location,
+  category,
+  rating,
+}: {
+  name: string;
+  location: string;
+  category: string;
+  rating: string;
+}) {
+  return <Card className="mb-6 border-0 bg-[#f1f2f8] p-4 shadow-none"><div className="grid size-11 place-items-center rounded-lg bg-[#3c6355] text-white">＋</div><h2 className="mt-3 text-sm font-bold">{name}</h2><p className="text-[10px] text-slate-500">{category} · {location}</p><p className="mt-1 text-xs font-semibold text-slate-700">⭐ {rating} Ratings</p></Card>;
 }
 
-function AppointmentStepper({ activeIndex }: { activeIndex: number }) {
+function AppointmentStepper({ activeIndex, steps }: { activeIndex: number; steps: Step[] }) {
   return <nav aria-label="Appointment progress" className="pb-2">
     <ol className="grid grid-cols-4 gap-1 lg:block">
       {steps.map(({ label, icon: Icon }, index) => {
@@ -130,12 +161,12 @@ function PetStep({ draft, update }: { draft: AppointmentDraft; update: <K extend
   return <FormSection title="About your pet" description="Help the provider prepare for your visit."><div className="grid gap-4 sm:grid-cols-2"><Field label="Pet's name"><Input value={draft.petName} onChange={(event) => update("petName", event.target.value)} placeholder="e.g. Mel-mel" /></Field><Field label="Pet's type"><select value={draft.petType} onChange={(event) => update("petType", event.target.value)} className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"><option value="">Select type</option><option>Dog</option><option>Cat</option><option>Other</option></select></Field></div><Field label="Reason's for visit"><textarea value={draft.reason} onChange={(event) => update("reason", event.target.value)} className="min-h-28 w-full rounded-md border border-input px-3 py-2 text-sm" placeholder="Tell us what your pet needs." /></Field></FormSection>;
 }
 
-function DetailsStep({ draft, update }: { draft: AppointmentDraft; update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void }) {
-  return <FormSection title="Your contact details" description="We will use these details to confirm your appointment."><Field label="Full name"><Input value={draft.fullName} onChange={(event) => update("fullName", event.target.value)} placeholder="Your full name" /></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Phone number"><Input value={draft.phone} onChange={(event) => update("phone", event.target.value)} placeholder="+63 900 000 0000" /></Field><Field label="Email"><Input type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} placeholder="you@example.com" /></Field></div><p className="text-xs text-slate-400">Kalinga Animal Hospital usually responds within 1 hour.</p></FormSection>;
+function DetailsStep({ draft, update, businessName }: { draft: AppointmentDraft; update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void }) {
+  return <FormSection title="Your contact details" description="We will use these details to confirm your appointment."><Field label="Full name"><Input value={draft.fullName} onChange={(event) => update("fullName", event.target.value)} placeholder="Your full name" /></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Phone number"><Input value={draft.phone} onChange={(event) => update("phone", event.target.value)} placeholder="+63 900 000 0000" /></Field><Field label="Email"><Input type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} placeholder="you@example.com" /></Field></div><p className="text-xs text-slate-400">{businessName} usually responds within 1 hour.</p></FormSection>;
 }
 
-function ConfirmationPage({ draft }: { draft: AppointmentDraft }) {
-  return <main className="min-h-screen bg-[#fafaf9] px-4 py-10 text-[#171817] sm:px-8"><div className="mx-auto max-w-[760px]"><Link href="/" className="text-sm hover:text-[#3c6355]"><ChevronLeft className="mr-1 inline size-4" />Back</Link><Card className="mt-6 bg-white p-8 text-center shadow-none sm:p-12"><div className="mx-auto grid size-28 place-items-center rounded-full bg-[#3c6355] text-white"><Check size={64} /></div><h1 className="mt-6 text-3xl font-bold">Request sent</h1><p className="mt-2 text-sm text-slate-500">You'll get a message here and by email once Kalinga Animal Hospital confirms your time.</p><div className="mx-auto mt-6 max-w-md rounded-xl border p-5 text-left text-sm"><p><span className="text-slate-500">Services</span><span className="float-right">{draft.serviceIds.length} selected</span></p><p className="mt-2"><span className="text-slate-500">Date</span><span className="float-right">{draft.date || "Not selected"}</span></p><p className="mt-2"><span className="text-slate-500">Time</span><span className="float-right">{draft.time || "Not selected"}</span></p><p className="mt-2"><span className="text-slate-500">Pet</span><span className="float-right">{draft.petName || "Not provided"}</span></p><p className="mt-2"><span className="text-slate-500">Booking #</span><span className="float-right">123456</span></p></div><Button type="button" className="mt-6 w-full max-w-md bg-[#3c6355] text-white hover:bg-[#2f5044]" onClick={() => window.print()}>Download</Button></Card></div></main>;
+function ConfirmationPage({ draft, businessSlug, businessName }: { draft: AppointmentDraft; businessSlug?: string; businessName: string }) {
+  return <main className="min-h-screen bg-[#fafaf9] px-4 py-10 text-[#171817] sm:px-8"><div className="mx-auto max-w-[760px]"><Link href={businessSlug ? `/business-profile/${businessSlug}` : "/"} className="text-sm hover:text-[#3c6355]"><ChevronLeft className="mr-1 inline size-4" />Back</Link><Card className="mt-6 bg-white p-8 text-center shadow-none sm:p-12"><div className="mx-auto grid size-28 place-items-center rounded-full bg-[#3c6355] text-white"><Check size={64} /></div><h1 className="mt-6 text-3xl font-bold">Request sent</h1><p className="mt-2 text-sm text-slate-500">You'll get a message here and by email once {businessName} confirms your time.</p><div className="mx-auto mt-6 max-w-md rounded-xl border p-5 text-left text-sm"><p><span className="text-slate-500">Services</span><span className="float-right">{draft.serviceIds.length} selected</span></p><p className="mt-2"><span className="text-slate-500">Date</span><span className="float-right">{draft.date || "Not selected"}</span></p><p className="mt-2"><span className="text-slate-500">Time</span><span className="float-right">{draft.time || "Not selected"}</span></p><p className="mt-2"><span className="text-slate-500">Pet</span><span className="float-right">{draft.petName || "Not provided"}</span></p><p className="mt-2"><span className="text-slate-500">Booking #</span><span className="float-right">123456</span></p></div><Button type="button" className="mt-6 w-full max-w-md bg-[#3c6355] text-white hover:bg-[#2f5044]" onClick={() => window.print()}>Download</Button></Card></div></main>;
 }
 
 function FormSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
