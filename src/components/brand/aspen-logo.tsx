@@ -1,4 +1,4 @@
-"use client";
+import Image from "next/image";
 
 type AspenLogoProps = {
   size?: number;
@@ -12,7 +12,7 @@ export function AspenLogo({
   decorative = false,
 }: AspenLogoProps) {
   return (
-    <img
+    <Image
       src="/img/logo/logo.svg"
       alt={decorative ? "" : "Aspen"}
       width={size}
