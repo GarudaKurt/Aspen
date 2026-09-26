@@ -239,7 +239,7 @@ export function ServicesView({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search listings"
-              className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/20"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
             />
           </label>
         </div>
