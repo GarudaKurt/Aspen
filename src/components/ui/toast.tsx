@@ -13,6 +13,7 @@ export type ToastItem = {
 
 let nextId = 0;
 let items: ToastItem[] = [];
+const emptyItems: ToastItem[] = [];
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -44,6 +45,6 @@ export function useToastItems() {
       return () => listeners.delete(listener);
     },
     () => items,
-    () => [],
+    () => emptyItems,
   );
 }
