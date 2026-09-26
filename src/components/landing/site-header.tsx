@@ -11,7 +11,7 @@ import {
   MessageCircle,
   Store,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -50,8 +50,15 @@ function isActiveRoute(pathname: string, href: string) {
 export function SiteHeader() {
   const pathname = usePathname();
   const favoriteCount = useFavoritesStore((state) => state.favoriteIds.length);
+  const [hydrated, setHydrated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const savedCount = hydrated ? favoriteCount : 0;
 
   const closeMenus = () => {
     setMobileOpen(false);
@@ -102,13 +109,13 @@ export function SiteHeader() {
 
             <Link
               href="/#browse"
-              aria-label={`Saved businesses${favoriteCount ? ` (${favoriteCount})` : ""}`}
+              aria-label={`Saved businesses${savedCount ? ` (${savedCount})` : ""}`}
               className="relative hidden size-9 items-center justify-center rounded-lg text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 sm:inline-flex"
             >
               <Heart size={18} aria-hidden="true" />
-              {favoriteCount > 0 && (
+              {savedCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex min-w-4 items-center justify-center rounded-full bg-[#c5714e] px-1 text-[10px] font-bold leading-4 text-white">
-                  {favoriteCount}
+                  {savedCount}
                 </span>
               )}
             </Link>
@@ -160,7 +167,7 @@ export function SiteHeader() {
                     );
                   })}
                   <div className="mt-1 border-t border-[#ececea] px-3 py-2 text-xs text-[#8d918f]">
-                    Saved businesses: {favoriteCount}
+                    Saved businesses: {savedCount}
                   </div>
                 </div>
               )}
@@ -216,9 +223,9 @@ export function SiteHeader() {
                   <Heart size={18} className="text-[#3c6355]" aria-hidden="true" />
                   Saved businesses
                 </span>
-                {favoriteCount > 0 && (
+                {savedCount > 0 && (
                   <span className="rounded-full bg-[#eaf0ed] px-2 py-0.5 text-xs text-[#3c6355]">
-                    {favoriteCount}
+                    {savedCount}
                   </span>
                 )}
               </Link>
