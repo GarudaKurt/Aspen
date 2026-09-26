@@ -1,5 +1,6 @@
 "use client";
 
+import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -254,8 +255,9 @@ export function AppointmentPage({
               <ChevronLeft size={16} />
               Back
             </button>
-            <Link href="/" className="text-base font-medium tracking-wide">
-              Logo here
+            <Link href="/" className="inline-flex items-center gap-2 text-base font-medium tracking-wide">
+              <AspenLogo size={28} decorative />
+              <span>Aspen</span>
             </Link>
             <span className="w-16" aria-hidden="true" />
           </header>
