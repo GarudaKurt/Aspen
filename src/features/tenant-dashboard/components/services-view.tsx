@@ -38,7 +38,7 @@ function Metric({
   label,
   value,
 }: {
-  icon: typeof Eye;
+  icon: LucideIcon;
   label: string;
   value: number;
 }) {
@@ -61,7 +61,7 @@ function SummaryCard({
   value,
   detail,
 }: {
-  icon: typeof BarChart3;
+  icon: LucideIcon;
   label: string;
   value: number;
   detail: string;
