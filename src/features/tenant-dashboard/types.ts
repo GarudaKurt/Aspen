@@ -14,6 +14,13 @@ export type CalendarEvent = {
   customer: string;
 };
 
+export type ServiceAnalytics = {
+  views: number;
+  favorites: number;
+  inquiries: number;
+  bookings: number;
+};
+
 export type {
   BusinessService as ServiceItem,
   BusinessServiceStatus as ServiceStatus,
