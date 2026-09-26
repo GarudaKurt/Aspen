@@ -6,3 +6,4 @@ export type {
   AppointmentStatus,
   AppointmentStatusFilter,
 } from "./types";
+export { mockAppointmentRequests, tenantBusinessId } from "./mock-data";
