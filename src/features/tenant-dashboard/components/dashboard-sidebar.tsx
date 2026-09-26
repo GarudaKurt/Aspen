@@ -10,6 +10,7 @@ import {
   Bell,
   UserRound,
   ShoppingCart,
+  ClipboardList,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,12 @@ const navItems: DashboardNavItem[] = [
     label: "Services",
     href: "/tenant-dashboard/services",
     icon: "services",
+    group: "main",
+  },
+  {
+    label: "Appointments",
+    href: "/tenant-dashboard/appointments",
+    icon: "appointments",
     group: "main",
   },
   {
@@ -68,6 +75,7 @@ const icons = {
   dashboard: LayoutDashboard,
   profile: UserRound,
   services: ShoppingCart,
+  appointments: ClipboardList,
   chat: MessageCircle,
   notifications: Bell,
   calendar: CalendarDays,
