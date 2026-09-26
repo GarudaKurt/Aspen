@@ -1,5 +1,6 @@
 "use client";
 
+import { AspenLogo } from "@/components/brand/aspen-logo";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type ChangeEvent, type ReactNode } from "react";
@@ -219,8 +220,9 @@ export function BusinessProfile({
             <ArrowLeft size={16} />
             Back to search
           </Link>
-          <Link href="/" className="text-base font-medium tracking-wide">
-            Logo here
+          <Link href="/" className="inline-flex items-center gap-2 text-base font-medium tracking-wide">
+            <AspenLogo size={28} decorative />
+            <span>Aspen</span>
           </Link>
           <Button
             variant="outline"
