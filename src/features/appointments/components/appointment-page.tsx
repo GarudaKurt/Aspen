@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { emailSchema, getEmailSuggestion, philippinePhoneSchema, type EmailSuggestion } from "@/shared/schemas/contact.schema";
 import type { BusinessService } from "@/domain/business";
 
 type Period = "Morning" | "Afternoon" | "Evening";
@@ -69,6 +71,9 @@ export function AppointmentPage({
   const activeIndex = Math.max(0, steps.findIndex((step) => step.path === pathname));
   const [draft, setDraft] = useState<AppointmentDraft>(initialDraft);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [emailSuggestion, setEmailSuggestion] = useState<EmailSuggestion | null>(null);
+  const [phoneValidationOpen, setPhoneValidationOpen] = useState(false);
 
   useEffect(() => {
     const saved = window.sessionStorage.getItem(draftStorageKey);
@@ -81,6 +86,36 @@ export function AppointmentPage({
   const update = <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const toggleService = (id: string) => update("serviceIds", draft.serviceIds.includes(id) ? draft.serviceIds.filter((item) => item !== id) : [...draft.serviceIds, id]);
 
+  const goForward = () => {
+    router.push(activeIndex === steps.length - 1 ? `${basePath}/confirmation` : steps[activeIndex + 1].path);
+  };
+
+  const validateContactDetails = () => {
+    const nextErrors: Record<string, string> = {};
+    const phoneResult = philippinePhoneSchema.safeParse(draft.phone);
+    const emailResult = emailSchema.safeParse(draft.email);
+
+    if (!draft.fullName.trim()) nextErrors.fullName = "Full name is required.";
+    if (!phoneResult.success) nextErrors.phone = phoneResult.error.issues[0]?.message ?? "Enter a valid Philippine mobile number.";
+    if (!emailResult.success) nextErrors.email = emailResult.error.issues[0]?.message ?? "Enter a valid email address.";
+
+    setFieldErrors(nextErrors);
+    if (!phoneResult.success) {
+      setPhoneValidationOpen(true);
+      return false;
+    }
+    if (!emailResult.success) return false;
+
+    if (phoneResult.data !== draft.phone) update("phone", phoneResult.data);
+    const suggestion = getEmailSuggestion(emailResult.data);
+    if (suggestion) {
+      setEmailSuggestion(suggestion);
+      return false;
+    }
+
+    return true;
+  };
+
   const next = () => {
     const availableServices = services.filter((service) => service.status === "Active");
     if (activeIndex === 0 && !availableServices.length) {
@@ -92,9 +127,9 @@ export function AppointmentPage({
     }
     if (activeIndex === 1 && (!draft.date || !draft.time)) return setError("Choose a date and time to continue.");
     if (activeIndex === 2 && (!draft.petName || !draft.petType || !draft.reason)) return setError("Complete your pet's details to continue.");
-    if (activeIndex === 3 && (!draft.fullName || !draft.phone || !draft.email)) return setError("Complete your contact details to send the request.");
+    if (activeIndex === 3 && !validateContactDetails()) return;
     setError("");
-    router.push(activeIndex === steps.length - 1 ? `${basePath}/confirmation` : steps[activeIndex + 1].path);
+    goForward();
   };
   const back = () => router.push(activeIndex === 0 ? (businessSlug ? `/business-profile/${businessSlug}` : "/#browse") : steps[activeIndex - 1].path);
 
@@ -113,13 +148,37 @@ export function AppointmentPage({
           {activeIndex === 0 && <ServiceStep services={services} selected={draft.serviceIds} onToggle={toggleService} />}
           {activeIndex === 1 && <DateStep date={draft.date} period={draft.period} time={draft.time} onDate={(value) => update("date", value)} onPeriod={(value) => { update("period", value); if (!timeSlots[value].includes(draft.time)) update("time", ""); }} onTime={(value) => update("time", value)} />}
           {activeIndex === 2 && <PetStep draft={draft} update={update} />}
-          {activeIndex === 3 && <DetailsStep draft={draft} update={update} businessName={businessName} />}
+          {activeIndex === 3 && <DetailsStep draft={draft} update={update} businessName={businessName} errors={fieldErrors} onChange={(field) => setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; })} />}
           {error && <p role="alert" className="mt-5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between"><Button variant="ghost" type="button" onClick={back} className="justify-start px-0 hover:bg-transparent hover:text-[#3c6355]"><ChevronLeft size={16} />{activeIndex === 0 ? "Back to search" : "Back"}</Button><div className="flex flex-col gap-3 sm:flex-row"><Button type="button" variant="outline" onClick={() => router.push(businessSlug ? `/business-profile/${businessSlug}` : "/")}>Save and exit</Button><Button type="button" onClick={next} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">{activeIndex === steps.length - 1 ? "Request appointment" : "Save and continue"}</Button></div></div>
         </Card>
       </div>
     </div>
-  </main>;
+    <AlertDialog open={Boolean(emailSuggestion)} onOpenChange={(open) => !open && setEmailSuggestion(null)}>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Possible email typo</AlertDialogTitle>
+        <AlertDialogDescription>
+          You entered <strong>{emailSuggestion?.entered}</strong>. Did you mean <strong>{emailSuggestion?.suggested}</strong>?
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel onClick={() => { setEmailSuggestion(null); goForward(); }}>Keep Anyway</AlertDialogCancel>
+        <AlertDialogAction onClick={() => { if (emailSuggestion) update("email", emailSuggestion.suggested); setEmailSuggestion(null); goForward(); }}>Use Suggested Email</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialog>
+    <AlertDialog open={phoneValidationOpen} onOpenChange={setPhoneValidationOpen}>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Invalid phone number</AlertDialogTitle>
+        <AlertDialogDescription>
+          Please enter a valid Philippine mobile number, such as 09171234567 or +639171234567.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogAction onClick={() => setPhoneValidationOpen(false)}>Edit Number</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialog>
+  </main>
+  </>
 }
 
 function ProviderCard({
@@ -177,8 +236,61 @@ function PetStep({ draft, update }: { draft: AppointmentDraft; update: <K extend
   return <FormSection title="About your pet" description="Help the provider prepare for your visit."><div className="grid gap-4 sm:grid-cols-2"><Field label="Pet's name"><Input value={draft.petName} onChange={(event) => update("petName", event.target.value)} placeholder="e.g. Mel-mel" /></Field><Field label="Pet's type"><select value={draft.petType} onChange={(event) => update("petType", event.target.value)} className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"><option value="">Select type</option><option>Dog</option><option>Cat</option><option>Other</option></select></Field></div><Field label="Reason's for visit"><textarea value={draft.reason} onChange={(event) => update("reason", event.target.value)} className="min-h-28 w-full rounded-md border border-input px-3 py-2 text-sm" placeholder="Tell us what your pet needs." /></Field></FormSection>;
 }
 
-function DetailsStep({ draft, update, businessName }: { draft: AppointmentDraft; update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void; businessName: string }) {
-  return <FormSection title="Your contact details" description="We will use these details to confirm your appointment."><Field label="Full name"><Input value={draft.fullName} onChange={(event) => update("fullName", event.target.value)} placeholder="Your full name" /></Field><div className="grid gap-4 sm:grid-cols-2"><Field label="Phone number"><Input value={draft.phone} onChange={(event) => update("phone", event.target.value)} placeholder="+63 900 000 0000" /></Field><Field label="Email"><Input type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} placeholder="you@example.com" /></Field></div><p className="text-xs text-slate-400">{businessName} usually responds within 1 hour.</p></FormSection>;
+function DetailsStep({
+  draft,
+  update,
+  businessName,
+  errors,
+  onChange,
+}: {
+  draft: AppointmentDraft;
+  update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void;
+  businessName: string;
+  errors: Record<string, string>;
+  onChange: (field: string) => void;
+}) {
+  return (
+    <FormSection title="Your contact details" description="We will use these details to confirm your appointment.">
+      <Field label="Full name" error={errors.fullName}>
+        <Input
+          value={draft.fullName}
+          onChange={(event) => {
+            onChange("fullName");
+            update("fullName", event.target.value);
+          }}
+          placeholder="Your full name"
+          aria-invalid={Boolean(errors.fullName)}
+        />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Phone number" error={errors.phone}>
+          <Input
+            value={draft.phone}
+            onChange={(event) => {
+              onChange("phone");
+              update("phone", event.target.value);
+            }}
+            placeholder="09171234567 or +639171234567"
+            inputMode="tel"
+            aria-invalid={Boolean(errors.phone)}
+          />
+        </Field>
+        <Field label="Email" error={errors.email}>
+          <Input
+            type="email"
+            value={draft.email}
+            onChange={(event) => {
+              onChange("email");
+              update("email", event.target.value);
+            }}
+            placeholder="you@example.com"
+            aria-invalid={Boolean(errors.email)}
+          />
+        </Field>
+      </div>
+      <p className="text-xs text-slate-400">{businessName} usually responds within 1 hour.</p>
+    </FormSection>
+  );
 }
 
 function ConfirmationPage({ draft, businessSlug, businessName }: { draft: AppointmentDraft; businessSlug?: string; businessName: string }) {
@@ -188,6 +300,12 @@ function ConfirmationPage({ draft, businessSlug, businessName }: { draft: Appoin
 function FormSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return <section className="space-y-5"><div><h2 className="text-lg font-bold">{title}</h2><p className="mt-1 text-sm leading-5 text-[#777b78]">{description}</p></div>{children}</section>;
 }
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="block space-y-2 text-sm font-semibold">{label}{children}</label>;
+function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+  return (
+    <label className="block space-y-2 text-sm font-semibold">
+      {label}
+      {children}
+      {error && <span className="block text-xs font-normal text-red-600">{error}</span>}
+    </label>
+  );
 }
