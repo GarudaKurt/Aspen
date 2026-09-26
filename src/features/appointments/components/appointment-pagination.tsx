@@ -31,21 +31,20 @@ export function AppointmentPagination({
             onClick={() => onPageChange(Math.max(1, page - 1))}
           />
         </PaginationItem>
-        <div className="flex items-center gap-1">
+        <PaginationItem className="flex items-center gap-1">
           {Array.from({ length: pageCount }, (_, index) => index + 1).map(
             (pageNumber) => (
-              <PaginationItem key={pageNumber}>
-                <PaginationLink
-                  aria-label={`Go to page ${pageNumber}`}
-                  isActive={pageNumber === page}
-                  onClick={() => onPageChange(pageNumber)}
-                >
-                  {pageNumber}
-                </PaginationLink>
-              </PaginationItem>
+              <PaginationLink
+                key={pageNumber}
+                aria-label={`Go to page ${pageNumber}`}
+                isActive={pageNumber === page}
+                onClick={() => onPageChange(pageNumber)}
+              >
+                {pageNumber}
+              </PaginationLink>
             ),
           )}
-        </div>
+        </PaginationItem>
         <PaginationItem>
           <PaginationNext
             aria-label="Go to next page"
