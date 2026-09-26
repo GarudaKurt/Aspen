@@ -135,7 +135,8 @@ export function AppointmentPage({
 
   if (isConfirmation) return <ConfirmationPage draft={draft} businessSlug={businessSlug} businessName={businessName} />;
 
-  return <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
+  return <>
+  <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
     <div className="mx-auto max-w-[1040px]">
       <header className="flex items-center justify-between border-b border-[#dededb] pb-5">
         <button type="button" onClick={back} className="inline-flex items-center gap-2 text-sm font-medium hover:text-[#3c6355]"><ChevronLeft size={16} />Back</button>
