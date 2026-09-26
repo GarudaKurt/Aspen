@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { Eye, Pencil, Plus, Power, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  BarChart3,
+  CalendarCheck,
+  Eye,
+  Heart,
+  MessageCircle,
+  Pencil,
+  Plus,
+  Power,
+  Search,
+  Trash2,
+} from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ServiceFormSheet } from "./service-form-sheet";
 import { ServicePreviewSheet } from "./service-preview-sheet";
-import type { ServiceItem } from "../types";
+import type { ServiceAnalytics, ServiceItem } from "../types";
 
 type ServiceDraft = Omit<ServiceItem, "id">;
+type StatusFilter = "All" | ServiceItem["status"];
+const emptyAnalytics: ServiceAnalytics = { views: 0, favorites: 0, inquiries: 0, bookings: 0 };
 
 function statusClass(status: ServiceItem["status"]) {
   return status === "Active"
@@ -18,42 +32,148 @@ function statusClass(status: ServiceItem["status"]) {
       : "bg-orange-50 text-orange-700";
 }
 
+function Metric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Eye;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <Icon className="size-4 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
+      <div className="min-w-0">
+        <strong className="block text-sm leading-5">{value}</strong>
+        <span className="block truncate text-[10px] uppercase tracking-wide text-slate-500">
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SummaryCard({
+  icon: Icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: typeof BarChart3;
+  label: string;
+  value: number;
+  detail: string;
+}) {
+  return (
+    <Card className="bg-white p-5 shadow-none">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-slate-500">{label}</p>
+          <strong className="mt-2 block text-3xl">{value}</strong>
+        </div>
+        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#f1eaff] text-[#8b5cf6]">
+          <Icon className="size-6" aria-hidden="true" />
+        </span>
+      </div>
+      <p className="mt-6 text-sm text-slate-500">{detail}</p>
+    </Card>
+  );
+}
+
 export function ServicesView({
   initialServices,
+  initialAnalytics = {},
 }: {
   initialServices: ServiceItem[];
+  initialAnalytics?: Record<string, ServiceAnalytics>;
 }) {
   const [items, setItems] = useState(initialServices);
+  const [analytics, setAnalytics] = useState(initialAnalytics);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ServiceItem | null>(null);
   const [previewing, setPreviewing] = useState<ServiceItem | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ServiceItem | null>(null);
+  const [filter, setFilter] = useState<StatusFilter>("All");
+  const [query, setQuery] = useState("");
+
+  const counts = useMemo(
+    () => ({
+      All: items.length,
+      Active: items.filter((service) => service.status === "Active").length,
+      Draft: items.filter((service) => service.status === "Draft").length,
+      Paused: items.filter((service) => service.status === "Paused").length,
+    }),
+    [items],
+  );
+
+  const totals = useMemo(
+    () =>
+      items.reduce(
+        (result, service) => {
+          const metrics = analytics[service.id] ?? emptyAnalytics;
+          return {
+            views: result.views + metrics.views,
+            favorites: result.favorites + metrics.favorites,
+            inquiries: result.inquiries + metrics.inquiries,
+            bookings: result.bookings + metrics.bookings,
+          };
+        },
+        { ...emptyAnalytics },
+      ),
+    [analytics, items],
+  );
+
+  const visibleItems = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return items.filter((service) => {
+      const matchesFilter = filter === "All" || service.status === filter;
+      const matchesQuery =
+        !normalizedQuery ||
+        [service.title, service.category, service.description].some((value) =>
+          value.toLowerCase().includes(normalizedQuery),
+        );
+      return matchesFilter && matchesQuery;
+    });
+  }, [filter, items, query]);
 
   const openCreate = () => {
     setEditing(null);
     setFormOpen(true);
   };
+
   const openEdit = (service: ServiceItem) => {
     setEditing(service);
     setFormOpen(true);
   };
+
   const save = (draft: ServiceDraft) => {
-    if (editing)
+    if (editing) {
       setItems((current) =>
         current.map((service) =>
           service.id === editing.id ? { ...draft, id: editing.id } : service,
         ),
       );
-    else
-      setItems((current) => [
-        ...current,
-        { ...draft, id: crypto.randomUUID() },
-      ]);
+    } else {
+      const id = crypto.randomUUID();
+      setItems((current) => [...current, { ...draft, id }]);
+      setAnalytics((current) => ({ ...current, [id]: emptyAnalytics }));
+    }
     setFormOpen(false);
   };
-  const remove = (id: string) => {
-    if (window.confirm("Delete this service?"))
-      setItems((current) => current.filter((service) => service.id !== id));
+
+  const remove = () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
+    setItems((current) => current.filter((service) => service.id !== id));
+    setAnalytics((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+    setPendingDelete(null);
   };
+
   const toggle = (id: string) =>
     setItems((current) =>
       current.map((service) =>
@@ -67,134 +187,144 @@ export function ServicesView({
     );
 
   return (
-    <div>
+    <div className="space-y-7">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Services</h1>
-          <p className="mt-1 text-slate-500">
-            Manage what you offer and how it appears to customers.
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8b5cf6]">
+            Service management
+          </p>
+          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Your listings</h1>
+          <p className="mt-2 text-slate-500">
+            Create and manage services owned only by this provider account.
           </p>
         </div>
         <Button
           type="button"
           onClick={openCreate}
-          className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+          className="bg-[#8b5cf6] text-white hover:bg-[#7c4fe0]"
         >
           <Plus className="mr-2 size-4" />
-          Add service
+          Add new listing
         </Button>
       </div>
-      {items.length ? (
-        <div className="mt-7 grid gap-4 md:grid-cols-2">
-          {items.map((service) => (
-            <Card key={service.id} className="bg-white p-5 shadow-none">
-              <div className="min-w-0">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#3c6355]">
-                      {service.category}
-                    </p>
-                    <h2 className="truncate text-lg font-semibold">
-                      {service.title}
-                    </h2>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusClass(service.status)}`}
-                  >
-                    {service.status}
-                  </span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-slate-500">
-                  {service.description}
-                </p>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
-                  <div>
-                    <strong>{service.price}</strong>
-                    <span className="ml-2 text-sm text-slate-400">
-                      {service.duration}
-                    </span>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Preview service"
-                      aria-label="Preview service"
-                      onClick={() => setPreviewing(service)}
-                    >
-                      <Eye />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Edit service"
-                      aria-label="Edit service"
-                      onClick={() => openEdit(service)}
-                    >
-                      <Pencil />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title={
-                        service.status === "Active"
-                          ? "Pause service"
-                          : "Publish service"
-                      }
-                      aria-label={
-                        service.status === "Active"
-                          ? "Pause service"
-                          : "Publish service"
-                      }
-                      onClick={() => toggle(service.id)}
-                    >
-                      <Power />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="text-red-600 hover:text-red-700"
-                      title="Delete service"
-                      aria-label="Delete service"
-                      onClick={() => remove(service.id)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard icon={BarChart3} label="Total listings" value={counts.All} detail={`${counts.Active} currently active`} />
+        <SummaryCard icon={Eye} label="Total views" value={totals.views} detail="Across your listings" />
+        <SummaryCard icon={MessageCircle} label="Inquiries" value={totals.inquiries} detail="Account-owned inquiries" />
+        <SummaryCard icon={CalendarCheck} label="Bookings" value={totals.bookings} detail="Across your listings" />
+      </div>
+
+      <Card className="overflow-hidden bg-white p-0 shadow-none">
+        <div className="flex flex-col gap-4 border-b border-slate-200 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2 rounded-xl bg-[#f6f3f9] p-1">
+            {(["All", "Active", "Draft", "Paused"] as StatusFilter[]).map((item) => (
+              <Button
+                key={item}
+                type="button"
+                variant="ghost"
+                onClick={() => setFilter(item)}
+                className={`h-9 rounded-lg px-3 text-sm ${filter === item ? "bg-white text-[#8b5cf6] shadow-sm" : "text-slate-500 hover:bg-white/70"}`}
+              >
+                {item}
+                <span className="ml-1 text-xs">{counts[item]}</span>
+              </Button>
+            ))}
+          </div>
+          <label className="relative block w-full lg:max-w-sm">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
+            <span className="sr-only">Search listings</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search listings"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/20"
+            />
+          </label>
         </div>
-      ) : (
-        <Card className="mt-7 bg-white p-10 text-center shadow-none">
-          <h2 className="font-semibold">No services yet</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Add your first service so customers know what you offer.
-          </p>
-          <Button
-            type="button"
-            onClick={openCreate}
-            className="mt-4 bg-[#3c6355] text-white hover:bg-[#2f5044]"
-          >
-            Add service
-          </Button>
-        </Card>
-      )}
-      <ServiceFormSheet
-        open={formOpen}
-        service={editing}
-        onClose={() => setFormOpen(false)}
-        onSave={save}
-      />
-      <ServicePreviewSheet
-        service={previewing}
-        onClose={() => setPreviewing(null)}
-      />
+
+        <div className="divide-y divide-slate-200">
+          {visibleItems.length ? (
+            visibleItems.map((service) => {
+              const metrics = analytics[service.id] ?? emptyAnalytics;
+              return (
+                <article key={service.id} className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(250px,.8fr)_auto] lg:items-center">
+                  <div className="flex min-w-0 gap-4">
+                    <div className="size-28 shrink-0 overflow-hidden rounded-xl bg-[#eef5f1]">
+                      {service.photos?.[0] ? (
+                        <img src={service.photos[0]} alt="" className="size-full object-cover" />
+                      ) : (
+                        <div className="grid size-full place-items-center text-3xl font-bold text-[#3c6355]">
+                          {service.title.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass(service.status)}`}>
+                        {service.status}
+                      </span>
+                      <p className="mt-2 text-sm text-[#8b5cf6]">{service.category}</p>
+                      <h2 className="truncate text-xl font-bold">{service.title}</h2>
+                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{service.description}</p>
+                      <p className="mt-3 font-bold text-[#8b5cf6]">{service.price}<span className="ml-2 text-sm font-normal text-slate-400">{service.duration}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-5 gap-y-4 rounded-xl bg-[#f8f5fb] p-4 sm:grid-cols-4 lg:grid-cols-2">
+                    <Metric icon={Eye} label="Views" value={metrics.views} />
+                    <Metric icon={Heart} label="Favorites" value={metrics.favorites} />
+                    <Metric icon={MessageCircle} label="Inquiries" value={metrics.inquiries} />
+                    <Metric icon={CalendarCheck} label="Bookings" value={metrics.bookings} />
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 lg:flex-col">
+                    <Button type="button" variant="outline" onClick={() => setPreviewing(service)} className="flex-1 lg:flex-none">
+                      <Eye className="mr-2 size-4" />Preview
+                    </Button>
+                    <Button type="button" onClick={() => openEdit(service)} className="flex-1 bg-[#8b5cf6] text-white hover:bg-[#7c4fe0] lg:flex-none">
+                      <Pencil className="mr-2 size-4" />Edit
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => toggle(service.id)} className="flex-1 lg:flex-none">
+                      <Power className="mr-2 size-4" />{service.status === "Active" ? "Pause" : "Publish"}
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => setPendingDelete(service)} className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700 lg:flex-none">
+                      <Trash2 className="mr-2 size-4" />Delete
+                    </Button>
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div className="p-10 text-center">
+              <h2 className="font-semibold">{items.length ? "No matching listings" : "No services yet"}</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {items.length ? "Try another search or filter." : "Add your first service so customers know what you offer."}
+              </p>
+              {!items.length && (
+                <Button type="button" onClick={openCreate} className="mt-4 bg-[#8b5cf6] text-white hover:bg-[#7c4fe0]">
+                  Add service
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <ServiceFormSheet open={formOpen} service={editing} onClose={() => setFormOpen(false)} onSave={save} />
+      <ServicePreviewSheet service={previewing} onClose={() => setPreviewing(null)} />
+
+      <AlertDialog open={Boolean(pendingDelete)} onOpenChange={(open) => !open && setPendingDelete(null)}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete service?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently remove <strong>{pendingDelete?.title}</strong> from your listings. Customers will no longer see it.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setPendingDelete(null)}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={remove}>Delete service</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialog>
     </div>
   );
 }
