@@ -1,4 +1,4 @@
-import type { CalendarEvent, ServiceItem } from "./types";
+import type { CalendarEvent, ServiceAnalytics, ServiceItem } from "./types";
 
 export function getCalendarEvents(referenceDate = new Date()): CalendarEvent[] {
   const year = referenceDate.getFullYear();
@@ -88,3 +88,11 @@ export const services: ServiceItem[] = [
     status: "Paused",
   },
 ];
+
+
+export const serviceAnalytics: Record<string, ServiceAnalytics> = {
+  s1: { views: 184, favorites: 42, inquiries: 18, bookings: 12 },
+  s2: { views: 96, favorites: 21, inquiries: 9, bookings: 7 },
+  s3: { views: 34, favorites: 5, inquiries: 2, bookings: 0 },
+  s4: { views: 17, favorites: 3, inquiries: 1, bookings: 0 },
+};
