@@ -7,13 +7,13 @@ import {
   CheckCircle2,
   Clock3,
   Mail,
-  MessageSquareText,
   PawPrint,
   Phone,
   Search,
   UserRound,
   X,
   XCircle,
+  type LucideIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -80,7 +80,7 @@ function SummaryCard({
 }: {
   label: string;
   value: number;
-  icon: typeof CalendarDays;
+  icon: LucideIcon;
   tone: string;
 }) {
   return (
