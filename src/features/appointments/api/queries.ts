@@ -5,8 +5,11 @@ export function getTenantAppointments(
   requests: AppointmentRequest[],
   businessId: string,
 ): AppointmentRequest[] {
-  return requests
-    .map((request) => appointmentRequestSchema.safeParse(request))
-    .filter((result) => result.success && result.data.businessId === businessId)
-    .map((result) => result.data);
+  return requests.reduce<AppointmentRequest[]>((validRequests, request) => {
+    const parsed = appointmentRequestSchema.safeParse(request);
+    if (parsed.success && parsed.data.businessId === businessId) {
+      validRequests.push(parsed.data);
+    }
+    return validRequests;
+  }, []);
 }
