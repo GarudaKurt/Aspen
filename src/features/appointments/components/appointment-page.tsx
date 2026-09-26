@@ -4,13 +4,32 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { CalendarDays, Check, ChevronLeft, PawPrint, UserRound } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  PawPrint,
+  UserRound,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { emailSchema, getEmailSuggestion, philippinePhoneSchema, type EmailSuggestion } from "@/shared/schemas/contact.schema";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  emailSchema,
+  getEmailSuggestion,
+  philippinePhoneSchema,
+  type EmailSuggestion,
+} from "@/shared/schemas/contact.schema";
 import type { BusinessService } from "@/domain/business";
 
 type Period = "Morning" | "Afternoon" | "Evening";
@@ -33,7 +52,11 @@ type Step = { label: string; path: string; icon: LucideIcon };
 function createSteps(basePath: string): Step[] {
   return [
     { label: "Service", path: basePath, icon: PawPrint },
-    { label: "Date and Time", path: `${basePath}/date-time`, icon: CalendarDays },
+    {
+      label: "Date and Time",
+      path: `${basePath}/date-time`,
+      icon: CalendarDays,
+    },
     { label: "Pet", path: `${basePath}/pet`, icon: PawPrint },
     { label: "Your details", path: `${basePath}/details`, icon: UserRound },
   ];
@@ -47,8 +70,42 @@ type AppointmentPageProps = {
   businessRating?: string;
   services?: BusinessService[];
 };
-const timeSlots: Record<Period, string[]> = { Morning: ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"], Afternoon: ["12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"], Evening: ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"] };
-const initialDraft: AppointmentDraft = { serviceIds: [], date: "", period: "Morning", time: "", petName: "", petType: "", reason: "", fullName: "", phone: "", email: "" };
+const timeSlots: Record<Period, string[]> = {
+  Morning: [
+    "8:00 AM",
+    "8:30 AM",
+    "9:00 AM",
+    "9:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "11:30 AM",
+  ],
+  Afternoon: [
+    "12:00 PM",
+    "12:30 PM",
+    "1:00 PM",
+    "1:30 PM",
+    "2:00 PM",
+    "2:30 PM",
+    "3:00 PM",
+    "3:30 PM",
+    "4:00 PM",
+  ],
+  Evening: ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"],
+};
+const initialDraft: AppointmentDraft = {
+  serviceIds: [],
+  date: "",
+  period: "Morning",
+  time: "",
+  petName: "",
+  petType: "",
+  reason: "",
+  fullName: "",
+  phone: "",
+  email: "",
+};
 
 export function AppointmentPage({
   businessSlug,
@@ -68,11 +125,15 @@ export function AppointmentPage({
     ? `aspen-appointment-draft:${businessSlug}`
     : "aspen-appointment-draft";
   const isConfirmation = pathname === `${basePath}/confirmation`;
-  const activeIndex = Math.max(0, steps.findIndex((step) => step.path === pathname));
+  const activeIndex = Math.max(
+    0,
+    steps.findIndex((step) => step.path === pathname),
+  );
   const [draft, setDraft] = useState<AppointmentDraft>(initialDraft);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [emailSuggestion, setEmailSuggestion] = useState<EmailSuggestion | null>(null);
+  const [emailSuggestion, setEmailSuggestion] =
+    useState<EmailSuggestion | null>(null);
   const [phoneValidationOpen, setPhoneValidationOpen] = useState(false);
 
   useEffect(() => {
@@ -83,11 +144,24 @@ export function AppointmentPage({
     window.sessionStorage.setItem(draftStorageKey, JSON.stringify(draft));
   }, [draft, draftStorageKey]);
 
-  const update = <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => setDraft((current) => ({ ...current, [key]: value }));
-  const toggleService = (id: string) => update("serviceIds", draft.serviceIds.includes(id) ? draft.serviceIds.filter((item) => item !== id) : [...draft.serviceIds, id]);
+  const update = <K extends keyof AppointmentDraft>(
+    key: K,
+    value: AppointmentDraft[K],
+  ) => setDraft((current) => ({ ...current, [key]: value }));
+  const toggleService = (id: string) =>
+    update(
+      "serviceIds",
+      draft.serviceIds.includes(id)
+        ? draft.serviceIds.filter((item) => item !== id)
+        : [...draft.serviceIds, id],
+    );
 
   const goForward = () => {
-    router.push(activeIndex === steps.length - 1 ? `${basePath}/confirmation` : steps[activeIndex + 1].path);
+    router.push(
+      activeIndex === steps.length - 1
+        ? `${basePath}/confirmation`
+        : steps[activeIndex + 1].path,
+    );
   };
 
   const validateContactDetails = () => {
@@ -96,8 +170,13 @@ export function AppointmentPage({
     const emailResult = emailSchema.safeParse(draft.email);
 
     if (!draft.fullName.trim()) nextErrors.fullName = "Full name is required.";
-    if (!phoneResult.success) nextErrors.phone = phoneResult.error.issues[0]?.message ?? "Enter a valid Philippine mobile number.";
-    if (!emailResult.success) nextErrors.email = emailResult.error.issues[0]?.message ?? "Enter a valid email address.";
+    if (!phoneResult.success)
+      nextErrors.phone =
+        phoneResult.error.issues[0]?.message ??
+        "Enter a valid Philippine mobile number.";
+    if (!emailResult.success)
+      nextErrors.email =
+        emailResult.error.issues[0]?.message ?? "Enter a valid email address.";
 
     setFieldErrors(nextErrors);
     if (!phoneResult.success) {
@@ -117,69 +196,229 @@ export function AppointmentPage({
   };
 
   const next = () => {
-    const availableServices = services.filter((service) => service.status === "Active");
+    const availableServices = services.filter(
+      (service) => service.status === "Active",
+    );
     if (activeIndex === 0 && !availableServices.length) {
       return setError("This business has no available services at the moment.");
     }
-    if (activeIndex === 0 && !draft.serviceIds.length) return setError("Select at least one service to continue.");
-    if (activeIndex === 0 && draft.serviceIds.some((id) => !availableServices.some((service) => service.id === id))) {
+    if (activeIndex === 0 && !draft.serviceIds.length)
+      return setError("Select at least one service to continue.");
+    if (
+      activeIndex === 0 &&
+      draft.serviceIds.some(
+        (id) => !availableServices.some((service) => service.id === id),
+      )
+    ) {
       return setError("Select only services offered by this business.");
     }
-    if (activeIndex === 1 && (!draft.date || !draft.time)) return setError("Choose a date and time to continue.");
-    if (activeIndex === 2 && (!draft.petName || !draft.petType || !draft.reason)) return setError("Complete your pet's details to continue.");
+    if (activeIndex === 1 && (!draft.date || !draft.time))
+      return setError("Choose a date and time to continue.");
+    if (
+      activeIndex === 2 &&
+      (!draft.petName || !draft.petType || !draft.reason)
+    )
+      return setError("Complete your pet's details to continue.");
     if (activeIndex === 3 && !validateContactDetails()) return;
     setError("");
     goForward();
   };
-  const back = () => router.push(activeIndex === 0 ? (businessSlug ? `/business-profile/${businessSlug}` : "/#browse") : steps[activeIndex - 1].path);
+  const back = () =>
+    router.push(
+      activeIndex === 0
+        ? businessSlug
+          ? `/business-profile/${businessSlug}`
+          : "/#browse"
+        : steps[activeIndex - 1].path,
+    );
 
-  if (isConfirmation) return <ConfirmationPage draft={draft} businessSlug={businessSlug} businessName={businessName} />;
+  if (isConfirmation)
+    return (
+      <ConfirmationPage
+        draft={draft}
+        businessSlug={businessSlug}
+        businessName={businessName}
+      />
+    );
 
-  return <>
-  <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
-    <div className="mx-auto max-w-[1040px]">
-      <header className="flex items-center justify-between border-b border-[#dededb] pb-5">
-        <button type="button" onClick={back} className="inline-flex items-center gap-2 text-sm font-medium hover:text-[#3c6355]"><ChevronLeft size={16} />Back</button>
-        <Link href="/" className="text-base font-medium tracking-wide">Logo here</Link><span className="w-16" aria-hidden="true" />
-      </header>
-      <div className="py-8 sm:py-10"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#c5714e]">Customer appointment</p><h1 className="mt-2 text-2xl font-bold sm:text-3xl">Request an appointment</h1><p className="mt-2 max-w-[560px] text-sm leading-5 text-[#777b78]">Tell us what your pet needs and pick a time that works. The provider will confirm within the hour.</p><p className="mt-3 text-sm font-semibold">Step {activeIndex + 1} of {steps.length}</p></div>
-      <div className="grid gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:items-start">
-        <div><ProviderCard name={businessName} location={businessLocation} category={businessCategory} rating={businessRating} /><AppointmentStepper activeIndex={activeIndex} steps={steps} /></div>
-        <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
-          {activeIndex === 0 && <ServiceStep services={services} selected={draft.serviceIds} onToggle={toggleService} />}
-          {activeIndex === 1 && <DateStep date={draft.date} period={draft.period} time={draft.time} onDate={(value) => update("date", value)} onPeriod={(value) => { update("period", value); if (!timeSlots[value].includes(draft.time)) update("time", ""); }} onTime={(value) => update("time", value)} />}
-          {activeIndex === 2 && <PetStep draft={draft} update={update} />}
-          {activeIndex === 3 && <DetailsStep draft={draft} update={update} businessName={businessName} errors={fieldErrors} onChange={(field) => setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; })} />}
-          {error && <p role="alert" className="mt-5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between"><Button variant="ghost" type="button" onClick={back} className="justify-start px-0 hover:bg-transparent hover:text-[#3c6355]"><ChevronLeft size={16} />{activeIndex === 0 ? "Back to search" : "Back"}</Button><div className="flex flex-col gap-3 sm:flex-row"><Button type="button" variant="outline" onClick={() => router.push(businessSlug ? `/business-profile/${businessSlug}` : "/")}>Save and exit</Button><Button type="button" onClick={next} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">{activeIndex === steps.length - 1 ? "Request appointment" : "Save and continue"}</Button></div></div>
-        </Card>
-      </div>
-    </div>
-    <AlertDialog open={Boolean(emailSuggestion)} onOpenChange={(open) => !open && setEmailSuggestion(null)}>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Possible email typo</AlertDialogTitle>
-        <AlertDialogDescription>
-          You entered <strong>{emailSuggestion?.entered}</strong>. Did you mean <strong>{emailSuggestion?.suggested}</strong>?
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel onClick={() => { setEmailSuggestion(null); goForward(); }}>Keep Anyway</AlertDialogCancel>
-        <AlertDialogAction onClick={() => { if (emailSuggestion) update("email", emailSuggestion.suggested); setEmailSuggestion(null); goForward(); }}>Use Suggested Email</AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialog>
-    <AlertDialog open={phoneValidationOpen} onOpenChange={setPhoneValidationOpen}>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Invalid phone number</AlertDialogTitle>
-        <AlertDialogDescription>
-          Please enter a valid Philippine mobile number, such as 09171234567 or +639171234567.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogAction onClick={() => setPhoneValidationOpen(false)}>Edit Number</AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialog>
-  </main>
-  </>
+  return (
+    <>
+      <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1040px]">
+          <header className="flex items-center justify-between border-b border-[#dededb] pb-5">
+            <button
+              type="button"
+              onClick={back}
+              className="inline-flex items-center gap-2 text-sm font-medium hover:text-[#3c6355]"
+            >
+              <ChevronLeft size={16} />
+              Back
+            </button>
+            <Link href="/" className="text-base font-medium tracking-wide">
+              Logo here
+            </Link>
+            <span className="w-16" aria-hidden="true" />
+          </header>
+          <div className="py-8 sm:py-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#c5714e]">
+              Customer appointment
+            </p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+              Request an appointment
+            </h1>
+            <p className="mt-2 max-w-[560px] text-sm leading-5 text-[#777b78]">
+              Tell us what your pet needs and pick a time that works. The
+              provider will confirm within the hour.
+            </p>
+            <p className="mt-3 text-sm font-semibold">
+              Step {activeIndex + 1} of {steps.length}
+            </p>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-[170px_minmax(0,1fr)] lg:items-start">
+            <div>
+              <ProviderCard
+                name={businessName}
+                location={businessLocation}
+                category={businessCategory}
+                rating={businessRating}
+              />
+              <AppointmentStepper activeIndex={activeIndex} steps={steps} />
+            </div>
+            <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
+              {activeIndex === 0 && (
+                <ServiceStep
+                  services={services}
+                  selected={draft.serviceIds}
+                  onToggle={toggleService}
+                />
+              )}
+              {activeIndex === 1 && (
+                <DateStep
+                  date={draft.date}
+                  period={draft.period}
+                  time={draft.time}
+                  onDate={(value) => update("date", value)}
+                  onPeriod={(value) => {
+                    update("period", value);
+                    if (!timeSlots[value].includes(draft.time))
+                      update("time", "");
+                  }}
+                  onTime={(value) => update("time", value)}
+                />
+              )}
+              {activeIndex === 2 && <PetStep draft={draft} update={update} />}
+              {activeIndex === 3 && (
+                <DetailsStep
+                  draft={draft}
+                  update={update}
+                  businessName={businessName}
+                  errors={fieldErrors}
+                  onChange={(field) =>
+                    setFieldErrors((current) => {
+                      const next = { ...current };
+                      delete next[field];
+                      return next;
+                    })
+                  }
+                />
+              )}
+              {error && (
+                <p
+                  role="alert"
+                  className="mt-5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+                >
+                  {error}
+                </p>
+              )}
+              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={back}
+                  className="justify-start px-0 hover:bg-transparent hover:text-[#3c6355]"
+                >
+                  <ChevronLeft size={16} />
+                  {activeIndex === 0 ? "Back to search" : "Back"}
+                </Button>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      router.push(
+                        businessSlug
+                          ? `/business-profile/${businessSlug}`
+                          : "/",
+                      )
+                    }
+                  >
+                    Save and exit
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={next}
+                    className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                  >
+                    {activeIndex === steps.length - 1
+                      ? "Request appointment"
+                      : "Save and continue"}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+        <AlertDialog
+          open={Boolean(emailSuggestion)}
+          onOpenChange={(open) => !open && setEmailSuggestion(null)}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Possible email typo</AlertDialogTitle>
+            <AlertDialogDescription>
+              You entered <strong>{emailSuggestion?.entered}</strong>. Did you
+              mean <strong>{emailSuggestion?.suggested}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setEmailSuggestion(null);
+                goForward();
+              }}
+            >
+              Keep Anyway
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (emailSuggestion) update("email", emailSuggestion.suggested);
+                setEmailSuggestion(null);
+                goForward();
+              }}
+            >
+              Use Suggested Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialog>
+        <AlertDialog
+          open={phoneValidationOpen}
+          onOpenChange={setPhoneValidationOpen}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Invalid phone number</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please enter a valid Philippine mobile number, such as 09171234567
+              or +639171234567.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setPhoneValidationOpen(false)}>
+              Edit Number
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialog>
+      </main>
+    </>
+  );
 }
 
 function ProviderCard({
@@ -193,48 +432,270 @@ function ProviderCard({
   category: string;
   rating: string;
 }) {
-  return <Card className="mb-6 border-0 bg-[#f1f2f8] p-4 shadow-none"><div className="grid size-11 place-items-center rounded-lg bg-[#3c6355] text-white">＋</div><h2 className="mt-3 text-sm font-bold">{name}</h2><p className="text-[10px] text-slate-500">{category} · {location}</p><p className="mt-1 text-xs font-semibold text-slate-700">⭐ {rating} Ratings</p></Card>;
+  return (
+    <Card className="mb-6 border-0 bg-[#f1f2f8] p-4 shadow-none">
+      <div className="grid size-11 place-items-center rounded-lg bg-[#3c6355] text-white">
+        ＋
+      </div>
+      <h2 className="mt-3 text-sm font-bold">{name}</h2>
+      <p className="text-[10px] text-slate-500">
+        {category} · {location}
+      </p>
+      <p className="mt-1 text-xs font-semibold text-slate-700">
+        ⭐ {rating} Ratings
+      </p>
+    </Card>
+  );
 }
 
-function AppointmentStepper({ activeIndex, steps }: { activeIndex: number; steps: Step[] }) {
-  return <nav aria-label="Appointment progress" className="pb-2">
-    <ol className="grid grid-cols-4 gap-1 lg:block">
-      {steps.map(({ label, icon: Icon }, index) => {
-        const current = index === activeIndex;
-        const complete = index < activeIndex;
-        return <li key={label} className="relative flex min-w-0 items-start justify-center pb-2 lg:block lg:pb-5 lg:last:pb-0">
-          {index < steps.length - 1 && <span aria-hidden="true" className={`absolute left-[calc(50%+16px)] right-[calc(-50%+16px)] top-4 h-0.5 ${complete ? "bg-emerald-600" : "bg-[#cfd2cf]"} lg:bottom-0 lg:left-[18px] lg:right-auto lg:top-9 lg:h-auto lg:w-0.5`} />}
-          <div className={`relative z-10 flex min-w-0 flex-col items-center gap-1 text-center lg:flex-row lg:items-center lg:gap-3 lg:text-left ${index <= activeIndex ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}>
-            <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 lg:size-9 ${current ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : complete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}>
-              {complete ? <Check size={15} strokeWidth={2.5} /> : <Icon size={15} />}
-            </span>
-            <span className="block min-w-0 text-center lg:text-left">
-              <strong className="block truncate text-[10px] sm:text-xs lg:text-sm">{label}</strong>
-              <small className="block text-[9px] text-[#a0a4a1] lg:text-[10px]">{current ? "Current step" : complete ? "Completed" : "Not selected yet"}</small>
-            </span>
-          </div>
-        </li>;
-      })}
-    </ol>
-  </nav>;
+function AppointmentStepper({
+  activeIndex,
+  steps,
+}: {
+  activeIndex: number;
+  steps: Step[];
+}) {
+  return (
+    <nav aria-label="Appointment progress" className="pb-2">
+      <ol className="grid grid-cols-4 gap-1 lg:block">
+        {steps.map(({ label, icon: Icon }, index) => {
+          const current = index === activeIndex;
+          const complete = index < activeIndex;
+          return (
+            <li
+              key={label}
+              className="relative flex min-w-0 items-start justify-center pb-2 lg:block lg:pb-5 lg:last:pb-0"
+            >
+              {index < steps.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className={`absolute left-[calc(50%+16px)] right-[calc(-50%+16px)] top-4 h-0.5 ${complete ? "bg-emerald-600" : "bg-[#cfd2cf]"} lg:bottom-0 lg:left-[18px] lg:right-auto lg:top-9 lg:h-auto lg:w-0.5`}
+                />
+              )}
+              <div
+                className={`relative z-10 flex min-w-0 flex-col items-center gap-1 text-center lg:flex-row lg:items-center lg:gap-3 lg:text-left ${index <= activeIndex ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}
+              >
+                <span
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 lg:size-9 ${current ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : complete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
+                >
+                  {complete ? (
+                    <Check size={15} strokeWidth={2.5} />
+                  ) : (
+                    <Icon size={15} />
+                  )}
+                </span>
+                <span className="block min-w-0 text-center lg:text-left">
+                  <strong className="block truncate text-[10px] sm:text-xs lg:text-sm">
+                    {label}
+                  </strong>
+                  <small className="block text-[9px] text-[#a0a4a1] lg:text-[10px]">
+                    {current
+                      ? "Current step"
+                      : complete
+                        ? "Completed"
+                        : "Not selected yet"}
+                  </small>
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
 }
-function ServiceStep({ services, selected, onToggle }: { services: BusinessService[]; selected: string[]; onToggle: (id: string) => void }) {
-  const availableServices = services.filter((service) => service.status === "Active");
+function ServiceStep({
+  services,
+  selected,
+  onToggle,
+}: {
+  services: BusinessService[];
+  selected: string[];
+  onToggle: (id: string) => void;
+}) {
+  const availableServices = services.filter(
+    (service) => service.status === "Active",
+  );
   if (!availableServices.length) {
-    return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="rounded-xl border border-dashed border-[#d7d8d5] bg-[#fafaf9] p-6 text-sm text-[#777b78]">This business has no available services right now.</div></FormSection>;
+    return (
+      <FormSection
+        title="Request appointment"
+        description="Choose one or more services you would like to book."
+      >
+        <div className="rounded-xl border border-dashed border-[#d7d8d5] bg-[#fafaf9] p-6 text-sm text-[#777b78]">
+          This business has no available services right now.
+        </div>
+      </FormSection>
+    );
   }
-  return <FormSection title="Request appointment" description="Choose one or more services you would like to book."><div className="space-y-3">{availableServices.map((service) => { const checked = selected.includes(service.id); return <button key={service.id} type="button" onClick={() => onToggle(service.id)} aria-pressed={checked} className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${checked ? "border-[#3c6355] ring-1 ring-[#3c6355]" : "border-[#d7d8d5] hover:border-[#3c6355]"}`}><span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border ${checked ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#d7d8d5]"}`}>{checked && <Check size={14} />}</span><span className="min-w-0 flex-1"><strong className="block">{service.title}</strong><span className="block text-sm text-slate-400">{service.description}</span></span><strong className="shrink-0 text-[#3c6355]">{service.price}</strong></button>;})}</div></FormSection>;
+  return (
+    <FormSection
+      title="Request appointment"
+      description="Choose one or more services you would like to book."
+    >
+      <div className="space-y-3">
+        {availableServices.map((service) => {
+          const checked = selected.includes(service.id);
+          return (
+            <button
+              key={service.id}
+              type="button"
+              onClick={() => onToggle(service.id)}
+              aria-pressed={checked}
+              className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${checked ? "border-[#3c6355] ring-1 ring-[#3c6355]" : "border-[#d7d8d5] hover:border-[#3c6355]"}`}
+            >
+              <span
+                className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border ${checked ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#d7d8d5]"}`}
+              >
+                {checked && <Check size={14} />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <strong className="block">{service.title}</strong>
+                <span className="block text-sm text-slate-400">
+                  {service.description}
+                </span>
+              </span>
+              <strong className="shrink-0 text-[#3c6355]">
+                {service.price}
+              </strong>
+            </button>
+          );
+        })}
+      </div>
+    </FormSection>
+  );
 }
 
-function DateStep({ date, period, time, onDate, onPeriod, onTime }: { date: string; period: Period; time: string; onDate: (value: string) => void; onPeriod: (value: Period) => void; onTime: (value: string) => void }) {
+function DateStep({
+  date,
+  period,
+  time,
+  onDate,
+  onPeriod,
+  onTime,
+}: {
+  date: string;
+  period: Period;
+  time: string;
+  onDate: (value: string) => void;
+  onPeriod: (value: Period) => void;
+  onTime: (value: string) => void;
+}) {
   const selectedDate = date ? new Date(`${date}T12:00:00`) : undefined;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const availableSlots = date ? timeSlots[period] : [];
-  return <FormSection title="Preferred date & time" description="Pick a date, time period, and available slot."><div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]"><div><p className="mb-2 text-sm font-semibold">Date</p><Calendar selected={selectedDate} onSelect={(value) => onDate(`${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`)} disabled={(value) => value < today} /></div><div><p className="text-sm font-semibold">Time of day</p><div className="mt-2 flex flex-wrap gap-2">{(["Morning", "Afternoon", "Evening"] as Period[]).map((item) => <Button key={item} type="button" variant={period === item ? "default" : "outline"} className={period === item ? "bg-[#3c6355] text-white hover:bg-[#2f5044]" : ""} onClick={() => onPeriod(item)} disabled={!date}>{item}</Button>)}</div><p className="mt-5 text-sm font-semibold">{date ? "Available time slots" : "Select a date to see available times"}</p><div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">{availableSlots.map((slot) => <Button key={slot} type="button" variant="outline" className={time === slot ? "border-[#3c6355] bg-[#e8f5ef] text-[#3c6355]" : ""} onClick={() => onTime(slot)}>{slot}</Button>)}</div></div></div></FormSection>;
+  return (
+    <FormSection
+      title="Preferred date & time"
+      description="Pick a date, time period, and available slot."
+    >
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
+        <div>
+          <p className="mb-2 text-sm font-semibold">Date</p>
+          <Calendar
+            selected={selectedDate}
+            onSelect={(value) =>
+              onDate(
+                `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`,
+              )
+            }
+            disabled={(value) => value < today}
+          />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">Time of day</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(["Morning", "Afternoon", "Evening"] as Period[]).map((item) => (
+              <Button
+                key={item}
+                type="button"
+                variant={period === item ? "default" : "outline"}
+                className={
+                  period === item
+                    ? "bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                    : ""
+                }
+                onClick={() => onPeriod(item)}
+                disabled={!date}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+          <p className="mt-5 text-sm font-semibold">
+            {date
+              ? "Available time slots"
+              : "Select a date to see available times"}
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {availableSlots.map((slot) => (
+              <Button
+                key={slot}
+                type="button"
+                variant="outline"
+                className={
+                  time === slot
+                    ? "border-[#3c6355] bg-[#e8f5ef] text-[#3c6355]"
+                    : ""
+                }
+                onClick={() => onTime(slot)}
+              >
+                {slot}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </FormSection>
+  );
 }
-function PetStep({ draft, update }: { draft: AppointmentDraft; update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void }) {
-  return <FormSection title="About your pet" description="Help the provider prepare for your visit."><div className="grid gap-4 sm:grid-cols-2"><Field label="Pet's name"><Input value={draft.petName} onChange={(event) => update("petName", event.target.value)} placeholder="e.g. Mel-mel" /></Field><Field label="Pet's type"><select value={draft.petType} onChange={(event) => update("petType", event.target.value)} className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"><option value="">Select type</option><option>Dog</option><option>Cat</option><option>Other</option></select></Field></div><Field label="Reason's for visit"><textarea value={draft.reason} onChange={(event) => update("reason", event.target.value)} className="min-h-28 w-full rounded-md border border-input px-3 py-2 text-sm" placeholder="Tell us what your pet needs." /></Field></FormSection>;
+function PetStep({
+  draft,
+  update,
+}: {
+  draft: AppointmentDraft;
+  update: <K extends keyof AppointmentDraft>(
+    key: K,
+    value: AppointmentDraft[K],
+  ) => void;
+}) {
+  return (
+    <FormSection
+      title="About your pet"
+      description="Help the provider prepare for your visit."
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Pet's name">
+          <Input
+            value={draft.petName}
+            onChange={(event) => update("petName", event.target.value)}
+            placeholder="e.g. Mel-mel"
+          />
+        </Field>
+        <Field label="Pet's type">
+          <select
+            value={draft.petType}
+            onChange={(event) => update("petType", event.target.value)}
+            className="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
+          >
+            <option value="">Select type</option>
+            <option>Dog</option>
+            <option>Cat</option>
+            <option>Other</option>
+          </select>
+        </Field>
+      </div>
+      <Field label="Reason's for visit">
+        <textarea
+          value={draft.reason}
+          onChange={(event) => update("reason", event.target.value)}
+          className="min-h-28 w-full rounded-md border border-input px-3 py-2 text-sm"
+          placeholder="Tell us what your pet needs."
+        />
+      </Field>
+    </FormSection>
+  );
 }
 
 function DetailsStep({
@@ -245,13 +706,19 @@ function DetailsStep({
   onChange,
 }: {
   draft: AppointmentDraft;
-  update: <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => void;
+  update: <K extends keyof AppointmentDraft>(
+    key: K,
+    value: AppointmentDraft[K],
+  ) => void;
   businessName: string;
   errors: Record<string, string>;
   onChange: (field: string) => void;
 }) {
   return (
-    <FormSection title="Your contact details" description="We will use these details to confirm your appointment.">
+    <FormSection
+      title="Your contact details"
+      description="We will use these details to confirm your appointment."
+    >
       <Field label="Full name" error={errors.fullName}>
         <Input
           value={draft.fullName}
@@ -289,24 +756,119 @@ function DetailsStep({
           />
         </Field>
       </div>
-      <p className="text-xs text-slate-400">{businessName} usually responds within 1 hour.</p>
+      <p className="text-xs text-slate-400">
+        {businessName} usually responds within 1 hour.
+      </p>
     </FormSection>
   );
 }
 
-function ConfirmationPage({ draft, businessSlug, businessName }: { draft: AppointmentDraft; businessSlug?: string; businessName: string }) {
-  return <main className="min-h-screen bg-[#fafaf9] px-4 py-10 text-[#171817] sm:px-8"><div className="mx-auto max-w-[760px]"><Link href={businessSlug ? `/business-profile/${businessSlug}` : "/"} className="text-sm hover:text-[#3c6355]"><ChevronLeft className="mr-1 inline size-4" />Back</Link><Card className="mt-6 bg-white p-8 text-center shadow-none sm:p-12"><div className="mx-auto grid size-28 place-items-center rounded-full bg-[#3c6355] text-white"><Check size={64} /></div><h1 className="mt-6 text-3xl font-bold">Request sent</h1><p className="mt-2 text-sm text-slate-500">You'll get a message here and by email once {businessName} confirms your time.</p><div className="mx-auto mt-6 max-w-md rounded-xl border p-5 text-left text-sm"><p><span className="text-slate-500">Services</span><span className="float-right">{draft.serviceIds.length} selected</span></p><p className="mt-2"><span className="text-slate-500">Date</span><span className="float-right">{draft.date || "Not selected"}</span></p><p className="mt-2"><span className="text-slate-500">Time</span><span className="float-right">{draft.time || "Not selected"}</span></p><p className="mt-2"><span className="text-slate-500">Pet</span><span className="float-right">{draft.petName || "Not provided"}</span></p><p className="mt-2"><span className="text-slate-500">Booking #</span><span className="float-right">123456</span></p></div><Button type="button" className="mt-6 w-full max-w-md bg-[#3c6355] text-white hover:bg-[#2f5044]" onClick={() => window.print()}>Download</Button></Card></div></main>;
+function ConfirmationPage({
+  draft,
+  businessSlug,
+  businessName,
+}: {
+  draft: AppointmentDraft;
+  businessSlug?: string;
+  businessName: string;
+}) {
+  return (
+    <main className="min-h-screen bg-[#fafaf9] px-4 py-10 text-[#171817] sm:px-8">
+      <div className="mx-auto max-w-[760px]">
+        <Link
+          href={businessSlug ? `/business-profile/${businessSlug}` : "/"}
+          className="text-sm hover:text-[#3c6355]"
+        >
+          <ChevronLeft className="mr-1 inline size-4" />
+          Back
+        </Link>
+        <Card className="mt-6 bg-white p-8 text-center shadow-none sm:p-12">
+          <div className="mx-auto grid size-28 place-items-center rounded-full bg-[#3c6355] text-white">
+            <Check size={64} />
+          </div>
+          <h1 className="mt-6 text-3xl font-bold">Request sent</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            You'll get a message here and by email once {businessName} confirms
+            your time.
+          </p>
+          <div className="mx-auto mt-6 max-w-md rounded-xl border p-5 text-left text-sm">
+            <p>
+              <span className="text-slate-500">Services</span>
+              <span className="float-right">
+                {draft.serviceIds.length} selected
+              </span>
+            </p>
+            <p className="mt-2">
+              <span className="text-slate-500">Date</span>
+              <span className="float-right">
+                {draft.date || "Not selected"}
+              </span>
+            </p>
+            <p className="mt-2">
+              <span className="text-slate-500">Time</span>
+              <span className="float-right">
+                {draft.time || "Not selected"}
+              </span>
+            </p>
+            <p className="mt-2">
+              <span className="text-slate-500">Pet</span>
+              <span className="float-right">
+                {draft.petName || "Not provided"}
+              </span>
+            </p>
+            <p className="mt-2">
+              <span className="text-slate-500">Booking #</span>
+              <span className="float-right">123456</span>
+            </p>
+          </div>
+          <Button
+            type="button"
+            className="mt-6 w-full max-w-md bg-[#3c6355] text-white hover:bg-[#2f5044]"
+            onClick={() => window.print()}
+          >
+            Download
+          </Button>
+        </Card>
+      </div>
+    </main>
+  );
 }
 
-function FormSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
-  return <section className="space-y-5"><div><h2 className="text-lg font-bold">{title}</h2><p className="mt-1 text-sm leading-5 text-[#777b78]">{description}</p></div>{children}</section>;
+function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-5">
+      <div>
+        <h2 className="text-lg font-bold">{title}</h2>
+        <p className="mt-1 text-sm leading-5 text-[#777b78]">{description}</p>
+      </div>
+      {children}
+    </section>
+  );
 }
-function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: ReactNode;
+}) {
   return (
     <label className="block space-y-2 text-sm font-semibold">
       {label}
       {children}
-      {error && <span className="block text-xs font-normal text-red-600">{error}</span>}
+      {error && (
+        <span className="block text-xs font-normal text-red-600">{error}</span>
+      )}
     </label>
   );
 }

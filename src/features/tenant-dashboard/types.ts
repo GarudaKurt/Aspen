@@ -14,4 +14,7 @@ export type CalendarEvent = {
   customer: string;
 };
 
-export type { BusinessService as ServiceItem, BusinessServiceStatus as ServiceStatus } from "@/domain/business";
+export type {
+  BusinessService as ServiceItem,
+  BusinessServiceStatus as ServiceStatus,
+} from "@/domain/business";

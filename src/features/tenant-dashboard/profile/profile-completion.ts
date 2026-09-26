@@ -12,9 +12,7 @@ export function getProfileSetupItems(
   profile: TenantProfile,
 ): ProfileSetupItem[] {
   const businessInfoComplete = Boolean(
-    profile.name.trim() &&
-      profile.address.trim() &&
-      profile.description.trim(),
+    profile.name.trim() && profile.address.trim() && profile.description.trim(),
   );
 
   return [

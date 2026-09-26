@@ -35,7 +35,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
 export type TenantProfileData = {
   name: string;
   rating: string;
@@ -69,10 +68,6 @@ const defaultProvider: TenantProfileData = {
 
 const tabs = ["Overview", "Photos", "Services", "Reviews"];
 
-
-
-
-
 type ServiceItem = {
   title: string;
   description: string;
@@ -95,24 +90,28 @@ const mockReviews: ReviewData[] = [
   {
     name: "Marisse T.",
     starRating: 5,
-    comment: "Staff were gentle with my very anxious cat. Dr. Reyes explained everything clearly before the procedure.",
+    comment:
+      "Staff were gentle with my very anxious cat. Dr. Reyes explained everything clearly before the procedure.",
     photos: ["/kalinga-anima-hospital.png"],
   },
   {
     name: "Daniel R.",
     starRating: 5,
-    comment: "Very professional team and a smooth appointment from check-in to follow-up.",
+    comment:
+      "Very professional team and a smooth appointment from check-in to follow-up.",
     photos: ["/kalinga-anima-hospital.png"],
   },
   {
     name: "Andrea M.",
     starRating: 4,
-    comment: "Clean clinic, kind staff, and helpful advice for keeping my dog healthy.",
+    comment:
+      "Clean clinic, kind staff, and helpful advice for keeping my dog healthy.",
   },
   {
     name: "Nico P.",
     starRating: 5,
-    comment: "They took great care of my pet and made sure I understood the next steps.",
+    comment:
+      "They took great care of my pet and made sure I understood the next steps.",
   },
 ];
 
@@ -120,26 +119,66 @@ const serviceCategories: ServiceCategory[] = [
   {
     label: "Veterinary",
     services: [
-      { title: "General Consultation", description: "Checkup and health assessment", price: "₱500" },
-      { title: "Core Vaccination", description: "Rabies, DHPPi, or feline core vaccines", price: "₱650" },
-      { title: "Dental Cleaning", description: "Scaling and polishing under sedation", price: "₱650" },
-      { title: "Emergency Care", description: "Walk-in urgent and after-hours care", price: "₱650" },
+      {
+        title: "General Consultation",
+        description: "Checkup and health assessment",
+        price: "₱500",
+      },
+      {
+        title: "Core Vaccination",
+        description: "Rabies, DHPPi, or feline core vaccines",
+        price: "₱650",
+      },
+      {
+        title: "Dental Cleaning",
+        description: "Scaling and polishing under sedation",
+        price: "₱650",
+      },
+      {
+        title: "Emergency Care",
+        description: "Walk-in urgent and after-hours care",
+        price: "₱650",
+      },
     ],
   },
   {
     label: "Grooming",
     services: [
-      { title: "Full Grooming", description: "Bath, haircut, nail trim, and ear cleaning", price: "₱900" },
-      { title: "Grooming Add-on", description: "Bath, nail trim, and ear cleaning", price: "₱500" },
-      { title: "De-shedding Treatment", description: "Deep coat care for heavy shedders", price: "₱750" },
+      {
+        title: "Full Grooming",
+        description: "Bath, haircut, nail trim, and ear cleaning",
+        price: "₱900",
+      },
+      {
+        title: "Grooming Add-on",
+        description: "Bath, nail trim, and ear cleaning",
+        price: "₱500",
+      },
+      {
+        title: "De-shedding Treatment",
+        description: "Deep coat care for heavy shedders",
+        price: "₱750",
+      },
     ],
   },
   {
     label: "Boarding",
     services: [
-      { title: "Day Boarding", description: "Supervised daytime care and play", price: "₱800" },
-      { title: "Overnight Boarding", description: "Comfortable overnight stay with check-ins", price: "₱1,500" },
-      { title: "Boarding Add-on", description: "Medication and special care support", price: "₱300" },
+      {
+        title: "Day Boarding",
+        description: "Supervised daytime care and play",
+        price: "₱800",
+      },
+      {
+        title: "Overnight Boarding",
+        description: "Comfortable overnight stay with check-ins",
+        price: "₱1,500",
+      },
+      {
+        title: "Boarding Add-on",
+        description: "Medication and special care support",
+        price: "₱300",
+      },
     ],
   },
 ];
@@ -150,9 +189,13 @@ export function BusinessProfile({
 }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
   const businessKey = provider.slug ?? provider.name;
-  const isFavorite = useFavoritesStore((state) => state.favoriteIds.includes(businessKey));
+  const isFavorite = useFavoritesStore((state) =>
+    state.favoriteIds.includes(businessKey),
+  );
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
-  const [coverPhoto, setCoverPhoto] = useState<string | null>(provider.coverPhoto ?? null);
+  const [coverPhoto, setCoverPhoto] = useState<string | null>(
+    provider.coverPhoto ?? null,
+  );
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);
   const displayedAmenities = provider.amenities ?? amenityOptions.slice(0, 3);
@@ -231,12 +274,20 @@ export function BusinessProfile({
               </div>
               <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-[#838684] sm:text-xs">
                 <Star size={11} fill="#ffd000" strokeWidth={0} />
-                <span className="font-semibold text-[#242524]">{provider.rating}</span>
+                <span className="font-semibold text-[#242524]">
+                  {provider.rating}
+                </span>
                 <span>·</span>
                 <span>{provider.reviews}</span>
                 <span>·</span>
-                <Heart size={11} fill="currentColor" className="text-[#3c6355]" />
-                <span>{(provider.favorites ?? 0) + (isFavorite ? 1 : 0)} favorites</span>
+                <Heart
+                  size={11}
+                  fill="currentColor"
+                  className="text-[#3c6355]"
+                />
+                <span>
+                  {(provider.favorites ?? 0) + (isFavorite ? 1 : 0)} favorites
+                </span>
                 <span>·</span>
                 <span>{provider.category}</span>
                 <span>·</span>
@@ -249,7 +300,9 @@ export function BusinessProfile({
                 variant="outline"
                 size="icon"
                 type="button"
-                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                aria-label={
+                  isFavorite ? "Remove from favorites" : "Add to favorites"
+                }
                 aria-pressed={isFavorite}
                 onClick={toggleFavorite}
                 className={`rounded-full border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0] ${isFavorite ? "bg-[#3c6355] text-white hover:bg-[#3c6355]" : ""}`}
@@ -293,7 +346,6 @@ export function BusinessProfile({
               className={`relative h-10 shrink-0 rounded-none px-0 text-base font-medium text-[#171817] hover:bg-transparent hover:text-[#3c6355] sm:text-lg ${activeTab === tab ? "text-[#3c6355] after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:bg-[#c5714e]" : ""}`}
             >
               {tab}
-              
             </Button>
           ))}
         </div>
@@ -311,23 +363,35 @@ export function BusinessProfile({
 
                 <ProfileSection title="Amenities">
                   <div className="flex max-w-[700px] flex-wrap gap-4">
-                    {displayedAmenities.length ? displayedAmenities.map((amenity) => (
-                      <span
-                        key={amenity.id}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[#dedbd8] px-3 py-1.5 text-xs font-semibold text-[#272927]"
-                      >
-                        <span className="text-[#3c6355]"><AmenityIcon amenity={amenity} /></span>
-                        {amenity.label}
-                      </span>
-                    )) : (
-                      <p className="text-sm text-[#929492]">No amenities listed.</p>
+                    {displayedAmenities.length ? (
+                      displayedAmenities.map((amenity) => (
+                        <span
+                          key={amenity.id}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#dedbd8] px-3 py-1.5 text-xs font-semibold text-[#272927]"
+                        >
+                          <span className="text-[#3c6355]">
+                            <AmenityIcon amenity={amenity} />
+                          </span>
+                          {amenity.label}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-sm text-[#929492]">
+                        No amenities listed.
+                      </p>
                     )}
                   </div>
                 </ProfileSection>
 
                 <ProfileSection title="Service coverage">
                   <div className="flex max-w-[700px] flex-wrap gap-3">
-                    {(provider.serviceCoverage ?? ["Grooming", "Boarding", "Training"]).map((coverage) => (
+                    {(
+                      provider.serviceCoverage ?? [
+                        "Grooming",
+                        "Boarding",
+                        "Training",
+                      ]
+                    ).map((coverage) => (
                       <span
                         key={coverage}
                         className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-600"
@@ -387,7 +451,9 @@ function ProfileSection({
 }) {
   return (
     <section className="mb-12">
-      <h2 className="mb-6 text-lg font-bold text-[#3c6355] sm:text-xl">{title}</h2>
+      <h2 className="mb-6 text-lg font-bold text-[#3c6355] sm:text-xl">
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -399,7 +465,10 @@ function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
       <div className="flex items-start gap-5 border-b border-[#e5e6e4] pb-5">
         <div>
           <p className="text-4xl font-bold text-[#3c6355]">{provider.rating}</p>
-          <div className="mt-1 flex gap-0.5 text-[#ffd000]" aria-label={`Average rating: ${provider.rating} out of 5`}>
+          <div
+            className="mt-1 flex gap-0.5 text-[#ffd000]"
+            aria-label={`Average rating: ${provider.rating} out of 5`}
+          >
             {Array.from({ length: 5 }, (_, index) => (
               <Star key={index} size={14} fill="currentColor" strokeWidth={0} />
             ))}
@@ -436,7 +505,10 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-bold text-[#272927]">{name}</p>
-          <div className="mt-1 flex gap-0.5 text-[#ffd000]" aria-label={`${starRating} out of 5 stars`}>
+          <div
+            className="mt-1 flex gap-0.5 text-[#ffd000]"
+            aria-label={`${starRating} out of 5 stars`}
+          >
             {Array.from({ length: 5 }, (_, index) => (
               <Star
                 key={index}
@@ -446,7 +518,9 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
               />
             ))}
           </div>
-          <p className="mt-2 text-xs leading-5 text-[#929492] sm:text-sm">{comment}</p>
+          <p className="mt-2 text-xs leading-5 text-[#929492] sm:text-sm">
+            {comment}
+          </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {reviewPhotos.map((photo, index) => (
               <Image
@@ -467,20 +541,28 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
                 className="sr-only"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) setReviewPhotos((current) => [...current, URL.createObjectURL(file)]);
+                  if (file)
+                    setReviewPhotos((current) => [
+                      ...current,
+                      URL.createObjectURL(file),
+                    ]);
                 }}
               />
             </label>
           </div>
         </div>
-        <time className="ml-auto shrink-0 text-[10px] text-[#929492]">2 weeks ago</time>
+        <time className="ml-auto shrink-0 text-[10px] text-[#929492]">
+          2 weeks ago
+        </time>
       </div>
     </article>
   );
 }
 
 function ServicesPanel() {
-  const [selectedCategory, setSelectedCategory] = useState(serviceCategories[0].label);
+  const [selectedCategory, setSelectedCategory] = useState(
+    serviceCategories[0].label,
+  );
   const category =
     serviceCategories.find(({ label }) => label === selectedCategory) ??
     serviceCategories[0];
@@ -510,7 +592,9 @@ function ServicesPanel() {
 
       <div className="rounded-xl border border-[#e5e6e4] bg-white px-4 sm:px-6">
         <div className="border-b border-[#e5e6e4] py-4">
-          <h3 className="text-base font-bold text-[#3c6355]">{category.label}</h3>
+          <h3 className="text-base font-bold text-[#3c6355]">
+            {category.label}
+          </h3>
           <p className="mt-1 text-xs text-[#929492]">
             Available services and starting prices
           </p>
@@ -529,10 +613,14 @@ function ServiceItemRow({ title, description, price }: ServiceItem) {
   return (
     <article className="flex items-start justify-between gap-6 py-5">
       <div className="min-w-0">
-        <h3 className="text-sm font-bold text-[#272927] sm:text-base">{title}</h3>
+        <h3 className="text-sm font-bold text-[#272927] sm:text-base">
+          {title}
+        </h3>
         <p className="mt-1 text-xs text-[#929492] sm:text-sm">{description}</p>
       </div>
-      <p className="shrink-0 pt-0.5 text-sm font-bold text-[#3c6355] sm:text-base">{price}</p>
+      <p className="shrink-0 pt-0.5 text-sm font-bold text-[#3c6355] sm:text-base">
+        {price}
+      </p>
     </article>
   );
 }
@@ -569,7 +657,10 @@ function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
   return (
     <div className="max-w-[420px] space-y-3 text-xs font-semibold text-[#3c6355]">
       {getBusinessHoursDisplayRows(schedule).map((row) => (
-        <div key={row.label} className="flex justify-between gap-4 border-b border-[#bfc3c0] pb-2">
+        <div
+          key={row.label}
+          className="flex justify-between gap-4 border-b border-[#bfc3c0] pb-2"
+        >
           <span>{row.label}</span>
           <span className="text-right">{row.value}</span>
         </div>
@@ -578,14 +669,22 @@ function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
   );
 }
 
-function ScheduleCard({ schedule, businessSlug }: { schedule: BusinessHoursDay[]; businessSlug?: string }) {
+function ScheduleCard({
+  schedule,
+  businessSlug,
+}: {
+  schedule: BusinessHoursDay[];
+  businessSlug?: string;
+}) {
   const businessStatus = getBusinessHoursStatus(schedule);
 
   return (
     <Card className="h-fit rounded-xl border-[#d8d8d5] bg-white p-5 shadow-none">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-[#3c6355]">This week</h2>
-        <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${businessStatus.open ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+        <span
+          className={`rounded-full px-2 py-1 text-[10px] font-bold ${businessStatus.open ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}
+        >
           {businessStatus.label}
         </span>
       </div>
@@ -593,7 +692,11 @@ function ScheduleCard({ schedule, businessSlug }: { schedule: BusinessHoursDay[]
         <BusinessHoursList schedule={schedule} />
       </div>
       <Link
-        href={businessSlug ? `/business-profile/${businessSlug}/request-appointment` : "/request-appointment"}
+        href={
+          businessSlug
+            ? `/business-profile/${businessSlug}/request-appointment`
+            : "/request-appointment"
+        }
         className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-[10px] font-medium text-white hover:bg-[#2f5044]"
       >
         Request Appointment

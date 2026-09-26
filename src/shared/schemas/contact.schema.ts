@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-const emailDomainCandidates = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com"] as const;
+const emailDomainCandidates = [
+  "gmail.com",
+  "yahoo.com",
+  "outlook.com",
+  "hotmail.com",
+] as const;
 
 export const emailSchema = z
   .string()
@@ -11,11 +16,11 @@ export const emailSchema = z
     const [localPart, domain] = value.split("@");
     return Boolean(
       localPart &&
-        domain &&
-        !localPart.includes("..") &&
-        !domain.includes("..") &&
-        /^[^\s@]+$/.test(localPart) &&
-        /^[^\s@]+(?:\.[^\s@]+)+$/.test(domain),
+      domain &&
+      !localPart.includes("..") &&
+      !domain.includes("..") &&
+      /^[^\s@]+$/.test(localPart) &&
+      /^[^\s@]+(?:\.[^\s@]+)+$/.test(domain),
     );
   }, "Enter a valid email address.");
 
@@ -27,7 +32,9 @@ export const philippinePhoneSchema = z
   .refine((value) => /^09\d{9}$/.test(value) || /^\+639\d{9}$/.test(value), {
     message: "Enter a valid Philippine mobile number.",
   })
-  .transform((value) => (value.startsWith("09") ? `+63${value.slice(1)}` : value));
+  .transform((value) =>
+    value.startsWith("09") ? `+63${value.slice(1)}` : value,
+  );
 
 export type EmailSuggestion = {
   entered: string;
@@ -35,7 +42,10 @@ export type EmailSuggestion = {
 };
 
 function editDistance(left: string, right: string) {
-  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  const previous = Array.from(
+    { length: right.length + 1 },
+    (_, index) => index,
+  );
 
   for (let row = 1; row <= left.length; row += 1) {
     const current = [row];
@@ -44,7 +54,11 @@ function editDistance(left: string, right: string) {
       current[column] =
         left[row - 1] === right[column - 1]
           ? previous[column - 1]
-          : Math.min(previous[column - 1] + 1, previous[column] + 1, current[column - 1] + 1);
+          : Math.min(
+              previous[column - 1] + 1,
+              previous[column] + 1,
+              current[column - 1] + 1,
+            );
     }
 
     for (let column = 0; column <= right.length; column += 1) {
@@ -61,7 +75,11 @@ export function getEmailSuggestion(value: string): EmailSuggestion | null {
 
   const [localPart, domain] = parsed.data.split("@");
   const normalizedDomain = domain.toLowerCase();
-  if (emailDomainCandidates.includes(normalizedDomain as (typeof emailDomainCandidates)[number])) {
+  if (
+    emailDomainCandidates.includes(
+      normalizedDomain as (typeof emailDomainCandidates)[number],
+    )
+  ) {
     return null;
   }
 

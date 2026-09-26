@@ -4,7 +4,10 @@ import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
 import { Check, Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
-import { amenityOptions, type BusinessAmenity } from "@/features/business-profile/amenities";
+import {
+  amenityOptions,
+  type BusinessAmenity,
+} from "@/features/business-profile/amenities";
 import { AmenityIcon } from "@/features/business-profile/components/amenity-icon";
 import {
   businessDays,
@@ -13,7 +16,15 @@ import {
   type BusinessHoursDay,
 } from "@/features/business-profile/business-hours";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,14 +45,22 @@ export function ProfileView() {
   const profile = useTenantProfile();
   const [draft, setDraft] = useState<EditableProfile>(profile);
   const [coverageDraft, setCoverageDraft] = useState(profile.serviceCoverage);
-  const [hoursDraft, setHoursDraft] = useState<BusinessHoursDay[]>(profile.businessHours);
-  const [copySourceDay, setCopySourceDay] = useState(profile.businessHours[0]?.day ?? businessDays[0]);
+  const [hoursDraft, setHoursDraft] = useState<BusinessHoursDay[]>(
+    profile.businessHours,
+  );
+  const [copySourceDay, setCopySourceDay] = useState(
+    profile.businessHours[0]?.day ?? businessDays[0],
+  );
   const [copyTargetDays, setCopyTargetDays] = useState<string[]>([]);
-  const [amenitiesDraft, setAmenitiesDraft] = useState<BusinessAmenity[]>(profile.amenities);
+  const [amenitiesDraft, setAmenitiesDraft] = useState<BusinessAmenity[]>(
+    profile.amenities,
+  );
   const [customAmenity, setCustomAmenity] = useState("");
   const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
   const [editingAmenityName, setEditingAmenityName] = useState("");
-  const [pendingAmenity, setPendingAmenity] = useState<BusinessAmenity | null>(null);
+  const [pendingAmenity, setPendingAmenity] = useState<BusinessAmenity | null>(
+    null,
+  );
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingHours, setEditingHours] = useState(false);
   const [editingAmenities, setEditingAmenities] = useState(false);
@@ -102,7 +121,8 @@ export function ProfileView() {
   const saveHours = () => {
     if (hoursDraft.some((entry) => !isValidBusinessHours(entry))) {
       setErrors({
-        businessHours: "Opening time must be earlier than closing time for every open day.",
+        businessHours:
+          "Opening time must be earlier than closing time for every open day.",
       });
       return;
     }
@@ -114,13 +134,17 @@ export function ProfileView() {
 
   const updateHours = (day: string, update: Partial<BusinessHoursDay>) => {
     setHoursDraft((current) =>
-      current.map((entry) => (entry.day === day ? { ...entry, ...update } : entry)),
+      current.map((entry) =>
+        entry.day === day ? { ...entry, ...update } : entry,
+      ),
     );
   };
 
   const toggleCopyTarget = (day: string) => {
     setCopyTargetDays((current) =>
-      current.includes(day) ? current.filter((item) => item !== day) : [...current, day],
+      current.includes(day)
+        ? current.filter((item) => item !== day)
+        : [...current, day],
     );
   };
 
@@ -130,7 +154,12 @@ export function ProfileView() {
     setHoursDraft((current) =>
       current.map((entry) =>
         copyTargetDays.includes(entry.day)
-          ? { ...entry, open: source.open, openTime: source.openTime, closeTime: source.closeTime }
+          ? {
+              ...entry,
+              open: source.open,
+              openTime: source.openTime,
+              closeTime: source.closeTime,
+            }
           : entry,
       ),
     );
@@ -151,7 +180,10 @@ export function ProfileView() {
       return;
     }
 
-    setDraft((current) => ({ ...current, coverPhoto: URL.createObjectURL(file) }));
+    setDraft((current) => ({
+      ...current,
+      coverPhoto: URL.createObjectURL(file),
+    }));
     setErrors((current) => ({ ...current, photo: "" }));
   };
 
@@ -175,7 +207,11 @@ export function ProfileView() {
 
   const saveAmenities = () => {
     updateTenantProfile({ amenities: amenitiesDraft });
-    toast({ title: "Amenities saved", description: "Your amenity changes were saved.", variant: "success" });
+    toast({
+      title: "Amenities saved",
+      description: "Your amenity changes were saved.",
+      variant: "success",
+    });
     setErrors({});
     setEditingAmenities(false);
   };
@@ -197,17 +233,29 @@ export function ProfileView() {
       setErrors({ amenities: "Enter a name for the custom amenity." });
       return;
     }
-    if (amenitiesDraft.some((amenity) => amenity.id !== editingAmenityId && amenity.label.toLowerCase() === label.toLowerCase())) {
+    if (
+      amenitiesDraft.some(
+        (amenity) =>
+          amenity.id !== editingAmenityId &&
+          amenity.label.toLowerCase() === label.toLowerCase(),
+      )
+    ) {
       setErrors({ amenities: "That amenity has already been added." });
       return;
     }
     setAmenitiesDraft((current) =>
       current.map((amenity) =>
-        amenity.id === editingAmenityId ? { ...amenity, label, custom: true } : amenity,
+        amenity.id === editingAmenityId
+          ? { ...amenity, label, custom: true }
+          : amenity,
       ),
     );
     cancelCustomAmenityEdit();
-    toast({ title: "Amenity updated", description: label + " was updated.", variant: "success" });
+    toast({
+      title: "Amenity updated",
+      description: label + " was updated.",
+      variant: "success",
+    });
     setErrors((current) => ({ ...current, amenities: "" }));
   };
 
@@ -219,7 +267,9 @@ export function ProfileView() {
   const confirmRemoveAmenity = () => {
     if (!pendingAmenity) return;
     try {
-      setAmenitiesDraft((current) => current.filter((item) => item.id !== pendingAmenity.id));
+      setAmenitiesDraft((current) =>
+        current.filter((item) => item.id !== pendingAmenity.id),
+      );
       toast({
         title: "Amenity removed",
         description: pendingAmenity.label + " was removed from your profile.",
@@ -243,7 +293,11 @@ export function ProfileView() {
       return;
     }
     setAmenitiesDraft((current) => [...current, amenity]);
-    toast({ title: "Amenity added", description: amenity.label + " is now selected.", variant: "success" });
+    toast({
+      title: "Amenity added",
+      description: amenity.label + " is now selected.",
+      variant: "success",
+    });
   };
 
   const addCustomAmenity = () => {
@@ -252,19 +306,25 @@ export function ProfileView() {
       setErrors({ amenities: "Enter a custom amenity before adding it." });
       return;
     }
-    if (amenitiesDraft.some((amenity) => amenity.label.toLowerCase() === label.toLowerCase())) {
+    if (
+      amenitiesDraft.some(
+        (amenity) => amenity.label.toLowerCase() === label.toLowerCase(),
+      )
+    ) {
       setErrors({ amenities: "That amenity has already been added." });
       return;
     }
     setAmenitiesDraft((current) => [
       ...current,
-      { id: `custom-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, label, custom: true },
+      {
+        id: `custom-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        label,
+        custom: true,
+      },
     ]);
     setCustomAmenity("");
     setErrors((current) => ({ ...current, amenities: "" }));
   };
-
-
 
   const startCoverageEdit = () => {
     setCoverageDraft(profile.serviceCoverage);
@@ -343,48 +403,72 @@ export function ProfileView() {
           {editingInfo ? (
             <div className="mt-5 space-y-4">
               <div>
-                <label htmlFor="business-name" className="text-sm text-slate-500">
+                <label
+                  htmlFor="business-name"
+                  className="text-sm text-slate-500"
+                >
                   Business name
                 </label>
                 <Input
                   id="business-name"
                   value={draft.name}
                   onChange={(event) =>
-                    setDraft((current) => ({ ...current, name: event.target.value }))
+                    setDraft((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
                   }
                   aria-invalid={Boolean(errors.name)}
                 />
-                {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+                {errors.name && (
+                  <p className="mt-1 text-xs text-red-600">{errors.name}</p>
+                )}
               </div>
               <div>
-                <label htmlFor="business-address" className="text-sm text-slate-500">
+                <label
+                  htmlFor="business-address"
+                  className="text-sm text-slate-500"
+                >
                   Address
                 </label>
                 <Input
                   id="business-address"
                   value={draft.address}
                   onChange={(event) =>
-                    setDraft((current) => ({ ...current, address: event.target.value }))
+                    setDraft((current) => ({
+                      ...current,
+                      address: event.target.value,
+                    }))
                   }
                   aria-invalid={Boolean(errors.address)}
                 />
-                {errors.address && <p className="mt-1 text-xs text-red-600">{errors.address}</p>}
+                {errors.address && (
+                  <p className="mt-1 text-xs text-red-600">{errors.address}</p>
+                )}
               </div>
               <div>
-                <label htmlFor="business-description" className="text-sm text-slate-500">
+                <label
+                  htmlFor="business-description"
+                  className="text-sm text-slate-500"
+                >
                   Description
                 </label>
                 <textarea
                   id="business-description"
                   value={draft.description}
                   onChange={(event) =>
-                    setDraft((current) => ({ ...current, description: event.target.value }))
+                    setDraft((current) => ({
+                      ...current,
+                      description: event.target.value,
+                    }))
                   }
                   className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   aria-invalid={Boolean(errors.description)}
                 />
                 {errors.description && (
-                  <p className="mt-1 text-xs text-red-600">{errors.description}</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.description}
+                  </p>
                 )}
               </div>
               <div>
@@ -418,13 +502,20 @@ export function ProfileView() {
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => setDraft((current) => ({ ...current, coverPhoto: null }))}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          coverPhoto: null,
+                        }))
+                      }
                     >
                       <X className="mr-2 size-4" /> Remove
                     </Button>
                   )}
                 </div>
-                {errors.photo && <p className="mt-1 text-xs text-red-600">{errors.photo}</p>}
+                {errors.photo && (
+                  <p className="mt-1 text-xs text-red-600">{errors.photo}</p>
+                )}
               </div>
             </div>
           ) : (
@@ -465,8 +556,12 @@ export function ProfileView() {
             </span>
           )}
           <h2 className="mt-4 text-xl font-semibold">{profile.name}</h2>
-          <p className="text-slate-500">{profile.address} · {profile.category}</p>
-          <p className="mt-4 text-[#c5714e]">★ {profile.rating} ({profile.reviews})</p>
+          <p className="text-slate-500">
+            {profile.address} · {profile.category}
+          </p>
+          <p className="mt-4 text-[#c5714e]">
+            ★ {profile.rating} ({profile.reviews})
+          </p>
         </Card>
       </div>
 
@@ -531,7 +626,11 @@ export function ProfileView() {
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button type="button" variant="ghost" onClick={cancelAmenitiesEdit}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={cancelAmenitiesEdit}
+              >
                 Cancel
               </Button>
               <Button
@@ -561,20 +660,24 @@ export function ProfileView() {
           />
         ) : (
           <div className="mt-5 flex flex-wrap gap-2">
-            {profile.amenities.length ? profile.amenities.map((amenity) => (
-              <span
-                key={amenity.id}
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-600"
-              >
-                <AmenityIcon amenity={amenity} />
-                {amenity.label}
-              </span>
-            )) : (
+            {profile.amenities.length ? (
+              profile.amenities.map((amenity) => (
+                <span
+                  key={amenity.id}
+                  className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-600"
+                >
+                  <AmenityIcon amenity={amenity} />
+                  {amenity.label}
+                </span>
+              ))
+            ) : (
               <p className="text-sm text-slate-500">No amenities added yet.</p>
             )}
           </div>
         )}
-        {errors.amenities && <p className="mt-2 text-xs text-red-600">{errors.amenities}</p>}
+        {errors.amenities && (
+          <p className="mt-2 text-xs text-red-600">{errors.amenities}</p>
+        )}
       </Card>
 
       <Card className="mt-5 bg-white p-6 shadow-none">
@@ -586,7 +689,11 @@ export function ProfileView() {
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button type="button" variant="ghost" onClick={cancelCoverageEdit}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={cancelCoverageEdit}
+              >
                 Cancel
               </Button>
               <Button
@@ -616,7 +723,9 @@ export function ProfileView() {
               </label>
             ))}
             {errors.coverage && (
-              <p className="text-xs text-red-600 sm:col-span-2">{errors.coverage}</p>
+              <p className="text-xs text-red-600 sm:col-span-2">
+                {errors.coverage}
+              </p>
             )}
           </div>
         ) : (
@@ -633,16 +742,24 @@ export function ProfileView() {
         )}
       </Card>
 
-      <AlertDialog open={Boolean(pendingAmenity)} onOpenChange={(open) => !open && setPendingAmenity(null)}>
+      <AlertDialog
+        open={Boolean(pendingAmenity)}
+        onOpenChange={(open) => !open && setPendingAmenity(null)}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Remove amenity?</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to remove {pendingAmenity?.label} from your business profile?
+            Are you sure you want to remove {pendingAmenity?.label} from your
+            business profile?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setPendingAmenity(null)}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmRemoveAmenity}>Delete</AlertDialogAction>
+          <AlertDialogCancel onClick={() => setPendingAmenity(null)}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={confirmRemoveAmenity}>
+            Delete
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialog>
 
@@ -657,7 +774,9 @@ export function ProfileView() {
               variant="ghost"
               size="icon"
               onClick={() => setPreviewMaximized((current) => !current)}
-              aria-label={previewMaximized ? "Minimize preview" : "Maximize preview"}
+              aria-label={
+                previewMaximized ? "Minimize preview" : "Maximize preview"
+              }
               title={previewMaximized ? "Minimize preview" : "Maximize preview"}
             >
               {previewMaximized ? <Minimize2 /> : <Maximize2 />}
@@ -673,12 +792,14 @@ export function ProfileView() {
   );
 }
 
-
 function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
   return (
     <div className="max-w-[520px] space-y-2 text-sm">
       {getBusinessHoursDisplayRows(schedule).map((row) => (
-        <div key={row.label} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
+        <div
+          key={row.label}
+          className="flex justify-between gap-4 border-b border-slate-100 pb-2"
+        >
           <span className="font-medium">{row.label}</span>
           <span className="text-right text-slate-500">{row.value}</span>
         </div>
@@ -707,13 +828,18 @@ function BusinessHoursEditor({
   return (
     <div className="mt-4 space-y-3">
       {schedule.map((entry) => (
-        <div key={entry.day} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(100px,1fr)_auto_minmax(110px,1fr)_minmax(110px,1fr)] sm:items-center">
+        <div
+          key={entry.day}
+          className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(100px,1fr)_auto_minmax(110px,1fr)_minmax(110px,1fr)] sm:items-center"
+        >
           <span className="font-medium">{entry.day}</span>
           <label className="flex items-center gap-2 text-sm text-slate-600">
             <input
               type="checkbox"
               checked={!entry.open}
-              onChange={(event) => onChange(entry.day, { open: !event.target.checked })}
+              onChange={(event) =>
+                onChange(entry.day, { open: !event.target.checked })
+              }
               className="size-4 accent-[#3c6355]"
             />
             Closed
@@ -723,7 +849,9 @@ function BusinessHoursEditor({
             <TimePicker
               value={entry.openTime}
               disabled={!entry.open}
-              onValueChange={(value) => onChange(entry.day, { openTime: value })}
+              onValueChange={(value) =>
+                onChange(entry.day, { openTime: value })
+              }
               aria-label={`${entry.day} opening time`}
             />
           </label>
@@ -732,7 +860,9 @@ function BusinessHoursEditor({
             <TimePicker
               value={entry.closeTime}
               disabled={!entry.open}
-              onValueChange={(value) => onChange(entry.day, { closeTime: value })}
+              onValueChange={(value) =>
+                onChange(entry.day, { closeTime: value })
+              }
               aria-label={`${entry.day} closing time`}
             />
           </label>
@@ -748,26 +878,40 @@ function BusinessHoursEditor({
               onChange={(event) => onCopySourceChange(event.target.value)}
               className="w-full rounded-md border border-input bg-white px-2 py-2 text-sm"
             >
-              {schedule.map((entry) => <option key={entry.day} value={entry.day}>{entry.day}</option>)}
+              {schedule.map((entry) => (
+                <option key={entry.day} value={entry.day}>
+                  {entry.day}
+                </option>
+              ))}
             </select>
           </label>
           <div>
             <span className="mb-1 block text-sm text-slate-500">Apply to</span>
             <div className="flex flex-wrap gap-2">
-              {schedule.filter((entry) => entry.day !== copySourceDay).map((entry) => (
-                <label key={entry.day} className="inline-flex items-center gap-1 text-xs text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={copyTargetDays.includes(entry.day)}
-                    onChange={() => onToggleCopyTarget(entry.day)}
-                    className="size-3.5 accent-[#3c6355]"
-                  />
-                  {entry.day.slice(0, 3)}
-                </label>
-              ))}
+              {schedule
+                .filter((entry) => entry.day !== copySourceDay)
+                .map((entry) => (
+                  <label
+                    key={entry.day}
+                    className="inline-flex items-center gap-1 text-xs text-slate-600"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={copyTargetDays.includes(entry.day)}
+                      onChange={() => onToggleCopyTarget(entry.day)}
+                      className="size-3.5 accent-[#3c6355]"
+                    />
+                    {entry.day.slice(0, 3)}
+                  </label>
+                ))}
             </div>
           </div>
-          <Button type="button" variant="outline" onClick={onApplyHours} disabled={!copyTargetDays.length}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onApplyHours}
+            disabled={!copyTargetDays.length}
+          >
             Apply
           </Button>
         </div>
@@ -775,7 +919,6 @@ function BusinessHoursEditor({
     </div>
   );
 }
-
 
 function AmenitiesEditor({
   selected,
@@ -808,20 +951,27 @@ function AmenitiesEditor({
     <div className="mt-5 space-y-4">
       <div className="grid gap-2 sm:grid-cols-2">
         {amenityOptions.map((amenity) => (
-          <label key={amenity.id} className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm">
+          <label
+            key={amenity.id}
+            className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm"
+          >
             <input
               type="checkbox"
               checked={selected.some((item) => item.id === amenity.id)}
               onChange={() => onToggle(amenity)}
               className="size-4 accent-[#3c6355]"
             />
-            <span className="text-[#3c6355]"><AmenityIcon amenity={amenity} /></span>
+            <span className="text-[#3c6355]">
+              <AmenityIcon amenity={amenity} />
+            </span>
             <span>{amenity.label}</span>
           </label>
         ))}
       </div>
       <div>
-        <label htmlFor="custom-amenity" className="text-sm font-medium">Custom amenity</label>
+        <label htmlFor="custom-amenity" className="text-sm font-medium">
+          Custom amenity
+        </label>
         <div className="mt-2 flex gap-2">
           <Input
             id="custom-amenity"
@@ -829,42 +979,65 @@ function AmenitiesEditor({
             onChange={(event) => onCustomAmenityChange(event.target.value)}
             placeholder="e.g. Grooming tables"
           />
-          <Button type="button" variant="outline" onClick={onAddCustom}>Add</Button>
+          <Button type="button" variant="outline" onClick={onAddCustom}>
+            Add
+          </Button>
         </div>
       </div>
       {selected.filter((amenity) => amenity.custom).length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {selected.filter((amenity) => amenity.custom).map((amenity) => (
-            <span key={amenity.id} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm">
-              <AmenityIcon amenity={amenity} />
-              {editingId === amenity.id ? (
-                <>
-                  <Input
-                    value={editingName}
-                    onChange={(event) => onEditNameChange(event.target.value)}
-                    aria-label="Custom amenity name"
-                    className="h-7 w-36"
-                  />
-                  <button type="button" onClick={onSaveEdit} aria-label="Save amenity name">
-                    <Check className="size-3.5" />
-                  </button>
-                  <button type="button" onClick={onCancelEdit} aria-label="Cancel amenity edit">
-                    <X className="size-3.5" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span>{amenity.label}</span>
-                  <button type="button" onClick={() => onStartEdit(amenity)} aria-label={`Edit ${amenity.label}`}>
-                    <Pencil className="size-3.5" />
-                  </button>
-                  <button type="button" onClick={() => onRemove(amenity.id)} aria-label={`Remove ${amenity.label}`}>
-                    <X className="size-3.5" />
-                  </button>
-                </>
-              )}
-            </span>
-          ))}
+          {selected
+            .filter((amenity) => amenity.custom)
+            .map((amenity) => (
+              <span
+                key={amenity.id}
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm"
+              >
+                <AmenityIcon amenity={amenity} />
+                {editingId === amenity.id ? (
+                  <>
+                    <Input
+                      value={editingName}
+                      onChange={(event) => onEditNameChange(event.target.value)}
+                      aria-label="Custom amenity name"
+                      className="h-7 w-36"
+                    />
+                    <button
+                      type="button"
+                      onClick={onSaveEdit}
+                      aria-label="Save amenity name"
+                    >
+                      <Check className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onCancelEdit}
+                      aria-label="Cancel amenity edit"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span>{amenity.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => onStartEdit(amenity)}
+                      aria-label={`Edit ${amenity.label}`}
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRemove(amenity.id)}
+                      aria-label={`Remove ${amenity.label}`}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </>
+                )}
+              </span>
+            ))}
         </div>
       )}
     </div>

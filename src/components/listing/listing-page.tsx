@@ -33,7 +33,11 @@ type ListingStep = {
 
 const steps: ListingStep[] = [
   { label: "Business", path: "/list-your-business", icon: Building2 },
-  { label: "Services", path: "/list-your-business/services", icon: ShieldCheck },
+  {
+    label: "Services",
+    path: "/list-your-business/services",
+    icon: ShieldCheck,
+  },
   { label: "Identity", path: "/list-your-business/identity", icon: UserRound },
   { label: "Review", path: "/list-your-business/review", icon: BookOpenCheck },
 ];
@@ -51,7 +55,9 @@ export function ListingPage() {
   const router = useRouter();
   const [providerType, setProviderType] = useState("Individual provider");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<Record<string, string>>({});
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, string>>(
+    {},
+  );
 
   const activeIndex = Math.max(
     0,
@@ -74,7 +80,8 @@ export function ListingPage() {
   };
 
   const handleFile = (label: string, file?: File) => {
-    if (file) setUploadedFiles((current) => ({ ...current, [label]: file.name }));
+    if (file)
+      setUploadedFiles((current) => ({ ...current, [label]: file.name }));
   };
 
   return (
@@ -126,10 +133,7 @@ export function ListingPage() {
               />
             )}
             {activeIndex === 2 && (
-              <IdentityStep
-                uploadedFiles={uploadedFiles}
-                onFile={handleFile}
-              />
+              <IdentityStep uploadedFiles={uploadedFiles} onFile={handleFile} />
             )}
             {activeIndex === 3 && <ReviewStep />}
             <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between">
@@ -175,7 +179,10 @@ export function ListingPage() {
 
 function ListingStepper({ activeIndex }: { activeIndex: number }) {
   return (
-    <nav aria-label="Listing progress" className="overflow-x-auto pb-2 lg:overflow-visible">
+    <nav
+      aria-label="Listing progress"
+      className="overflow-x-auto pb-2 lg:overflow-visible"
+    >
       <ol className="flex min-w-max items-start gap-0 lg:block lg:min-w-0">
         {steps.map(({ label, path, icon: Icon }, index) => {
           const isCurrent = index === activeIndex;
@@ -184,7 +191,10 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
           const hasNext = index < steps.length - 1;
 
           return (
-            <li key={label} className="relative flex flex-1 items-start lg:block lg:pb-6">
+            <li
+              key={label}
+              className="relative flex flex-1 items-start lg:block lg:pb-6"
+            >
               <Link
                 href={path}
                 aria-current={isCurrent ? "step" : undefined}
@@ -193,12 +203,20 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
                 <span
                   className={`relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${isCurrent ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : isComplete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
                 >
-                  {isComplete ? <Check size={16} strokeWidth={2.5} /> : <Icon size={16} />}
+                  {isComplete ? (
+                    <Check size={16} strokeWidth={2.5} />
+                  ) : (
+                    <Icon size={16} />
+                  )}
                 </span>
                 <span className="hidden sm:block lg:block">
                   <span className="block font-semibold">{label}</span>
                   <span className="block text-[9px] text-[#a0a4a1]">
-                    {isCurrent ? "Current step" : isComplete ? "Completed" : "Not selected yet"}
+                    {isCurrent
+                      ? "Current step"
+                      : isComplete
+                        ? "Completed"
+                        : "Not selected yet"}
                   </span>
                 </span>
               </Link>
@@ -224,7 +242,10 @@ function BusinessStep({
   onProviderTypeChange: (value: string) => void;
 }) {
   return (
-    <FormSection title="Business information" description="Share the public details customers will see.">
+    <FormSection
+      title="Business information"
+      description="Share the public details customers will see."
+    >
       <FieldLabel label="Provider type">
         <div className="grid gap-3 sm:grid-cols-2">
           {["Individual provider", "Registered business"].map((type) => (
@@ -236,7 +257,9 @@ function BusinessStep({
               aria-pressed={providerType === type}
               className={`justify-start rounded-lg bg-white text-left font-normal ${providerType === type ? "border-[#3c6355] text-[#3c6355]" : "border-[#d2d5d2] text-[#242524]"}`}
             >
-              <span className={`size-4 rounded-full border ${providerType === type ? "border-[#3c6355] bg-[#3c6355] shadow-[inset_0_0_0_3px_white]" : "border-[#529dff]"}`} />
+              <span
+                className={`size-4 rounded-full border ${providerType === type ? "border-[#3c6355] bg-[#3c6355] shadow-[inset_0_0_0_3px_white]" : "border-[#529dff]"}`}
+              />
               {type}
             </Button>
           ))}
@@ -245,7 +268,10 @@ function BusinessStep({
       <FieldLabel label="Business or display name">
         <Input placeholder="e.g. Kalinga Animal Hospital" />
       </FieldLabel>
-      <FieldLabel label="Business description" hint="Describe your experience and what makes your service distinctive.">
+      <FieldLabel
+        label="Business description"
+        hint="Describe your experience and what makes your service distinctive."
+      >
         <textarea className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
       </FieldLabel>
       <FieldLabel label="Business address">
@@ -263,7 +289,10 @@ function ServicesStep({
   onToggleService: (service: string) => void;
 }) {
   return (
-    <FormSection title="Service categories" description="Select one or more categories.">
+    <FormSection
+      title="Service categories"
+      description="Select one or more categories."
+    >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {serviceOptions.map((service) => (
           <Button
@@ -274,7 +303,9 @@ function ServicesStep({
             onClick={() => onToggleService(service)}
             className={`justify-start rounded-lg bg-white font-normal ${selectedServices.includes(service) ? "border-[#3c6355] text-[#3c6355]" : "border-[#d2d5d2] text-[#242524]"}`}
           >
-            <span className={`flex size-4 items-center justify-center rounded-sm border ${selectedServices.includes(service) ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#b8bdb9]"}`}>
+            <span
+              className={`flex size-4 items-center justify-center rounded-sm border ${selectedServices.includes(service) ? "border-[#3c6355] bg-[#3c6355] text-white" : "border-[#b8bdb9]"}`}
+            >
               {selectedServices.includes(service) && <Check size={12} />}
             </span>
             {service}
@@ -284,7 +315,9 @@ function ServicesStep({
       <div className="grid gap-4 sm:grid-cols-2">
         <FieldLabel label="Service area">
           <Select defaultValue="Cebu City">
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="Cebu City">Cebu City</SelectItem>
               <SelectItem value="Mandaue City">Mandaue City</SelectItem>
@@ -314,12 +347,19 @@ function IdentityStep({
   onFile: (label: string, file?: File) => void;
 }) {
   return (
-    <FormSection title="Verify your identity" description="Your identity documents are private and available only to you and authorized administrators during this demo review.">
+    <FormSection
+      title="Verify your identity"
+      description="Your identity documents are private and available only to you and authorized administrators during this demo review."
+    >
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldLabel label="Full name"><Input placeholder="Your legal name" /></FieldLabel>
+        <FieldLabel label="Full name">
+          <Input placeholder="Your legal name" />
+        </FieldLabel>
         <FieldLabel label="Government ID type">
           <Select defaultValue="National ID">
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="National ID">National ID</SelectItem>
               <SelectItem value="Passport">Passport</SelectItem>
@@ -330,14 +370,32 @@ function IdentityStep({
       </div>
       <Card className="rounded-lg border-[#d8dbd8] p-3 shadow-none">
         <FieldLabel label="Contact number">
-          <div className="flex gap-2"><Input placeholder="+63 900 000 0000" /><Button type="button" variant="outline">Send code</Button></div>
+          <div className="flex gap-2">
+            <Input placeholder="+63 900 000 0000" />
+            <Button type="button" variant="outline">
+              Send code
+            </Button>
+          </div>
         </FieldLabel>
         <FieldLabel label="Four-digit verification code">
-          <div className="flex gap-2"><Input inputMode="numeric" maxLength={4} /><Button type="button" className="bg-[#2768f5] text-white hover:bg-[#1d55d1]">Verify</Button></div>
+          <div className="flex gap-2">
+            <Input inputMode="numeric" maxLength={4} />
+            <Button
+              type="button"
+              className="bg-[#2768f5] text-white hover:bg-[#1d55d1]"
+            >
+              Verify
+            </Button>
+          </div>
         </FieldLabel>
       </Card>
       {["Government ID", "Business Permit"].map((label) => (
-        <FileUpload key={label} label={label} fileName={uploadedFiles[label]} onFile={(file) => onFile(label, file)} />
+        <FileUpload
+          key={label}
+          label={label}
+          fileName={uploadedFiles[label]}
+          onFile={(file) => onFile(label, file)}
+        />
       ))}
     </FormSection>
   );
@@ -345,17 +403,28 @@ function IdentityStep({
 
 function ReviewStep() {
   return (
-    <FormSection title="Review and submit" description="Check every section before sending the application to the administrator.">
+    <FormSection
+      title="Review and submit"
+      description="Check every section before sending the application to the administrator."
+    >
       {["Business", "Services", "Identity"].map((section) => (
-        <Card key={section} className="rounded-lg border-[#d8dbd8] p-4 shadow-none">
+        <Card
+          key={section}
+          className="rounded-lg border-[#d8dbd8] p-4 shadow-none"
+        >
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">{section}</h3>
-            <Button variant="ghost" type="button" className="text-[#3c6355]">EDIT</Button>
+            <Button variant="ghost" type="button" className="text-[#3c6355]">
+              EDIT
+            </Button>
           </div>
           <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-8 gap-y-1 text-sm text-[#777b78]">
-            <dt>Name</dt><dd>XYZ</dd>
-            <dt>Details</dt><dd>XYZ</dd>
-            <dt>Status</dt><dd>Ready to review</dd>
+            <dt>Name</dt>
+            <dd>XYZ</dd>
+            <dt>Details</dt>
+            <dd>XYZ</dd>
+            <dt>Status</dt>
+            <dd>Ready to review</dd>
           </dl>
         </Card>
       ))}
@@ -379,8 +448,15 @@ function FileUpload({
           <FileCheck2 size={18} />
           {fileName ?? "No document selected"}
         </span>
-        <span className="rounded-md border border-[#cfd2cf] px-3 py-1.5 text-xs font-semibold">Upload file</span>
-        <input type="file" className="sr-only" accept=".jpg,.jpeg,.png,.pdf" onChange={(event) => onFile(event.target.files?.[0])} />
+        <span className="rounded-md border border-[#cfd2cf] px-3 py-1.5 text-xs font-semibold">
+          Upload file
+        </span>
+        <input
+          type="file"
+          className="sr-only"
+          accept=".jpg,.jpeg,.png,.pdf"
+          onChange={(event) => onFile(event.target.files?.[0])}
+        />
       </label>
     </FieldLabel>
   );
@@ -417,7 +493,12 @@ function FieldLabel({
 }) {
   return (
     <label className="block space-y-2 text-sm font-semibold">
-      <span>{label} {hint && <span className="text-xs font-normal text-[#777b78]">({hint})</span>}</span>
+      <span>
+        {label}{" "}
+        {hint && (
+          <span className="text-xs font-normal text-[#777b78]">({hint})</span>
+        )}
+      </span>
       {children}
     </label>
   );

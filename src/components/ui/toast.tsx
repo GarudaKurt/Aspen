@@ -21,7 +21,10 @@ function notify() {
 }
 
 export function toast(input: Omit<ToastItem, "id"> | string) {
-  const item: ToastItem = typeof input === "string" ? { id: ++nextId, title: input } : { ...input, id: ++nextId };
+  const item: ToastItem =
+    typeof input === "string"
+      ? { id: ++nextId, title: input }
+      : { ...input, id: ++nextId };
   items = [...items, item];
   notify();
 

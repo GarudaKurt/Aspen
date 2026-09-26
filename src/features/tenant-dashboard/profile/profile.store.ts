@@ -3,7 +3,10 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { TenantProfileData } from "@/features/business-profile/components/business-profile";
-import { initialBusinessHours, type BusinessHoursDay } from "@/features/business-profile/business-hours";
+import {
+  initialBusinessHours,
+  type BusinessHoursDay,
+} from "@/features/business-profile/business-hours";
 import { type BusinessAmenity } from "@/features/business-profile/amenities";
 import { tenantProfileSchema } from "./profile.schema";
 
@@ -22,7 +25,8 @@ export const initialTenantProfile: TenantProfile = {
   favorites: 24,
   category: "Grooming, Boarding",
   address: "Cebu City",
-  description: "Full-service grooming and short-stay boarding for dogs and cats.",
+  description:
+    "Full-service grooming and short-stay boarding for dogs and cats.",
   serviceCoverage: ["Grooming", "Boarding", "Training"],
   coverPhoto: null,
   weeklyAvailabilitySet: false,
@@ -54,11 +58,15 @@ export const useTenantProfileStore = create<TenantProfileStore>()(
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({ profile: state.profile }),
       merge: (persisted, current) => {
-        const parsed = tenantProfileSchema.partial().safeParse(
-          typeof persisted === "object" && persisted !== null && "profile" in persisted
-            ? persisted.profile
-            : persisted,
-        );
+        const parsed = tenantProfileSchema
+          .partial()
+          .safeParse(
+            typeof persisted === "object" &&
+              persisted !== null &&
+              "profile" in persisted
+              ? persisted.profile
+              : persisted,
+          );
 
         return parsed.success
           ? { ...current, profile: { ...current.profile, ...parsed.data } }

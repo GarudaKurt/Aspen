@@ -41,7 +41,7 @@ export function SiteHeader() {
             List your business
           </Link>
           <Button
-          variant="ghost"
+            variant="ghost"
             type="button"
             aria-label="Open menu"
             className="rounded-lg border border-[#e1e5e2] p-2 text-[#3c6355] transition-colors hover:bg-[#f5f7f5] md:hidden"

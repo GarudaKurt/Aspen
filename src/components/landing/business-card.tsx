@@ -69,7 +69,9 @@ export function BusinessCard({
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
   const businessKey = slug ?? businessName;
-  const isFavorite = useFavoritesStore((state) => state.favoriteIds.includes(businessKey));
+  const isFavorite = useFavoritesStore((state) =>
+    state.favoriteIds.includes(businessKey),
+  );
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
   const pointerStart = useRef<number | null>(null);
 
