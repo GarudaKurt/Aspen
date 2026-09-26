@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
+import { AppointmentPagination, APPOINTMENTS_PAGE_SIZE } from "./appointment-pagination";
 import {
   appointmentStatusUpdateSchema,
 } from "../schemas";
@@ -142,6 +143,7 @@ export function AppointmentManagementPage({
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>("All");
   const [dateFilter, setDateFilter] = useState<AppointmentDateFilter>("all");
+  const [page, setPage] = useState(1);
 
   const counts = useMemo(
     () => ({
@@ -172,6 +174,24 @@ export function AppointmentManagementPage({
       );
     });
   }, [appointments, dateFilter, query, statusFilter]);
+
+  const pageCount = Math.ceil(visibleAppointments.length / APPOINTMENTS_PAGE_SIZE);
+  const paginatedAppointments = useMemo(
+    () =>
+      visibleAppointments.slice(
+        (page - 1) * APPOINTMENTS_PAGE_SIZE,
+        page * APPOINTMENTS_PAGE_SIZE,
+      ),
+    [page, visibleAppointments],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [dateFilter, query, statusFilter]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(Math.max(current, 1), Math.max(pageCount, 1)));
+  }, [pageCount]);
 
   const updateStatus = (
     appointment: AppointmentRequest,
@@ -287,7 +307,7 @@ export function AppointmentManagementPage({
 
         <div className="divide-y divide-slate-200">
           {visibleAppointments.length ? (
-            visibleAppointments.map((appointment) => (
+            paginatedAppointments.map((appointment) => (
               <article
                 key={appointment.appointmentId}
                 className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
@@ -353,6 +373,11 @@ export function AppointmentManagementPage({
             </div>
           )}
         </div>
+        <AppointmentPagination
+          page={page}
+          totalItems={visibleAppointments.length}
+          onPageChange={setPage}
+        />
       </Card>
 
       <Sheet open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
@@ -440,7 +465,7 @@ function InfoRow({
   label,
   value,
 }: {
-  icon: typeof CalendarDays;
+  icon: LucideIcon;
   label: string;
   value: string;
 }) {
