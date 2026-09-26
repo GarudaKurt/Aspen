@@ -1,10 +1,11 @@
+import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 export function SiteFooter() {
   return (
     <footer className="bg-[#faf9f6] px-6 py-12 sm:px-10 lg:px-[130px]">
       <div className="mx-auto grid max-w-[1440px] gap-10 text-[#3c6355] sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <h2 className="text-lg font-bold">Logo here</h2>
+          <div className="flex items-center gap-2 text-lg font-bold"><AspenLogo size={32} decorative /><span>Aspen</span></div>
           <p className="mt-4 max-w-[250px] text-sm leading-5">
             Discover and book trusted pet services, all in one directory.
           </p>
