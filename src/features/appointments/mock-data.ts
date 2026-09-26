@@ -1,87 +1,110 @@
-import type { AppointmentRequest } from "./types";
+import type { AppointmentRequest, AppointmentStatus } from "./types";
 
 export const tenantBusinessId = "pawspot-cebu";
 
-export const mockAppointmentRequests: AppointmentRequest[] = [
+const statusGroups: Array<{
+  status: AppointmentStatus;
+  serviceNames: string[];
+  notes: string;
+}> = [
   {
-    appointmentId: "apt-1001",
-    businessId: tenantBusinessId,
-    customerId: "customer-juan",
-    serviceId: "service-grooming",
-    customerName: "Juan Dela Cruz",
-    customerEmail: "juan@example.com",
-    customerPhone: "+639171234567",
-    serviceName: "Full Grooming Package",
-    appointmentDate: "2026-09-28",
-    appointmentTime: "2:00 PM",
-    petName: "Bingo",
-    petType: "Golden Retriever",
-    notes: "Please use the sensitive-skin shampoo.",
     status: "Pending",
+    serviceNames: ["Full Grooming Package", "General Consultation"],
+    notes: "Customer is waiting for the provider's confirmation.",
   },
   {
-    appointmentId: "apt-1002",
-    businessId: tenantBusinessId,
-    customerId: "customer-maria",
-    serviceId: "service-consultation",
-    customerName: "Maria Santos",
-    customerEmail: "maria@example.com",
-    customerPhone: "+639181234567",
-    serviceName: "General Consultation",
-    appointmentDate: "2026-09-29",
-    appointmentTime: "10:30 AM",
-    petName: "Milo",
-    petType: "Domestic Shorthair Cat",
-    notes: "First visit. Milo has been less active than usual.",
     status: "Confirmed",
+    serviceNames: ["Core Vaccination", "General Consultation"],
+    notes: "Please confirm the appointment details with the customer.",
   },
   {
-    appointmentId: "apt-1003",
-    businessId: tenantBusinessId,
-    customerId: "customer-ben",
-    serviceId: "service-boarding",
-    customerName: "Ben Edison",
-    customerEmail: "ben@example.com",
-    customerPhone: "+639191234567",
-    serviceName: "Overnight Boarding",
-    appointmentDate: "2026-09-25",
-    appointmentTime: "6:00 PM",
-    petName: "Coco",
-    petType: "Shih Tzu",
-    notes: "Will bring medication and feeding instructions.",
     status: "Completed",
+    serviceNames: ["Dental Cleaning", "Overnight Boarding"],
+    notes: "Appointment was completed successfully.",
   },
   {
-    appointmentId: "apt-1004",
-    businessId: tenantBusinessId,
-    customerId: "customer-liza",
-    serviceId: "service-vaccine",
-    customerName: "Liza Reyes",
-    customerEmail: "liza@example.com",
-    customerPhone: "+639201234567",
-    serviceName: "Core Vaccination",
-    appointmentDate: "2026-09-30",
-    appointmentTime: "9:00 AM",
-    petName: "Pepper",
-    petType: "Beagle",
-    notes: "Please confirm which vaccine records to bring.",
     status: "Rejected",
-    rejectionReason: "The requested time is no longer available.",
+    serviceNames: ["Full Grooming Package", "Core Vaccination"],
+    notes: "The requested schedule was not available.",
   },
   {
-    appointmentId: "apt-2001",
-    businessId: "another-business",
-    customerId: "customer-other",
-    serviceId: "other-service",
-    customerName: "Other Customer",
-    customerEmail: "other@example.com",
-    customerPhone: "+639211234567",
-    serviceName: "Other Service",
-    appointmentDate: "2026-09-29",
-    appointmentTime: "11:00 AM",
-    petName: "Buddy",
-    petType: "Mixed Breed",
-    notes: "",
-    status: "Pending",
+    status: "Cancelled",
+    serviceNames: ["General Consultation", "Overnight Boarding"],
+    notes: "Customer cancelled the appointment request.",
   },
 ];
+
+const customerNames = [
+  "Juan Dela Cruz",
+  "Maria Santos",
+  "Ben Edison",
+  "Liza Reyes",
+  "Ana Garcia",
+  "Carlo Mendoza",
+  "Sofia Cruz",
+  "Daniel Lim",
+  "Nina Flores",
+  "Marco Villanueva",
+];
+
+const petNames = [
+  "Bingo",
+  "Milo",
+  "Coco",
+  "Pepper",
+  "Luna",
+  "Oreo",
+  "Buddy",
+  "Simba",
+  "Cookie",
+  "Max",
+];
+
+const petTypes = [
+  "Golden Retriever",
+  "Domestic Shorthair Cat",
+  "Shih Tzu",
+  "Beagle",
+  "Pomeranian",
+  "Mixed Breed",
+];
+
+function createMockAppointment(
+  status: AppointmentStatus,
+  index: number,
+  serviceNames: string[],
+  notes: string,
+): AppointmentRequest {
+  const customerIndex = index % customerNames.length;
+  const serviceIndex = index % serviceNames.length;
+  const day = String(1 + ((index * 2) % 28)).padStart(2, "0");
+  const phoneSuffix = String(71234567 + index).padStart(8, "0");
+  const appointmentId = status.toLowerCase().replace(/[^a-z]+/g, "-");
+
+  return {
+    appointmentId: `apt-${appointmentId}-${String(index + 1).padStart(2, "0")}`,
+    businessId: tenantBusinessId,
+    customerId: `customer-${customerIndex + 1}`,
+    serviceId: `service-${serviceNames[serviceIndex].toLowerCase().replace(/[^a-z]+/g, "-")}`,
+    customerName: customerNames[customerIndex],
+    customerEmail: `${customerNames[customerIndex].toLowerCase().replace(/ /g, ".")}@example.com`,
+    customerPhone: `+639${phoneSuffix}`,
+    serviceName: serviceNames[serviceIndex],
+    appointmentDate: `2026-10-${day}`,
+    appointmentTime: ["8:00 AM", "10:30 AM", "1:00 PM", "3:30 PM", "6:00 PM"][index % 5],
+    petName: petNames[index % petNames.length],
+    petType: petTypes[index % petTypes.length],
+    notes,
+    status,
+    ...(status === "Rejected"
+      ? { rejectionReason: "The requested schedule was not available." }
+      : {}),
+  };
+}
+
+export const mockAppointmentRequests: AppointmentRequest[] = statusGroups.flatMap(
+  ({ status, serviceNames, notes }) =>
+    Array.from({ length: 10 }, (_, index) =>
+      createMockAppointment(status, index, serviceNames, notes),
+    ),
+);
