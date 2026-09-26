@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   CalendarDays,
@@ -79,6 +80,8 @@ export function SiteHeader({
   isSignedIn = false,
   hasBusiness = false,
 }: SiteHeaderProps) {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
   const favoriteIds = useFavoritesStore((state) => state.favoriteIds);
   const [favoriteCount, setFavoriteCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -108,9 +111,13 @@ export function SiteHeader({
             <span>Aspen</span>
           </Link>
 
-          <div className="mx-auto hidden min-w-0 flex-1 justify-center md:flex">
-            <SearchAction />
-          </div>
+          {isHomePage ? (
+            <div className="hidden flex-1 md:block" aria-hidden="true" />
+          ) : (
+            <div className="mx-auto hidden min-w-0 flex-1 justify-center md:flex">
+              <SearchAction />
+            </div>
+          )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <Link
