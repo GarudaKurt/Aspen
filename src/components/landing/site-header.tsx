@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { AspenLogo } from "@/components/brand/aspen-logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useFavoritesStore } from "@/features/favorites";
@@ -105,9 +106,7 @@ export function SiteHeader({
             onClick={closeMenus}
             className="flex shrink-0 items-center gap-2 rounded-md text-lg font-bold tracking-tight text-[#111111] outline-none transition-colors hover:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 sm:text-xl"
           >
-            <span className="flex size-8 items-center justify-center rounded-full bg-[#3c6355] text-sm font-bold text-white">
-              A
-            </span>
+            <AspenLogo size={40} decorative className="size-9 sm:size-10" />
             <span>Aspen</span>
           </Link>
 
