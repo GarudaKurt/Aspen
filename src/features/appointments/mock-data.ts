@@ -78,7 +78,7 @@ function createMockAppointment(
   const customerIndex = index % customerNames.length;
   const serviceIndex = index % serviceNames.length;
   const day = String(1 + ((index * 2) % 28)).padStart(2, "0");
-  const phoneSuffix = String(71234567 + index).padStart(8, "0");
+  const phoneSuffix = String(171234567 + index).padStart(9, "0");
   const appointmentId = status.toLowerCase().replace(/[^a-z]+/g, "-");
 
   return {
