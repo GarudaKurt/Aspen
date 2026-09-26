@@ -44,7 +44,7 @@ function Metric({
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <Icon className="size-4 shrink-0 text-[#8b5cf6]" aria-hidden="true" />
+      <Icon className="size-4 shrink-0 text-[#3c6355]" aria-hidden="true" />
       <div className="min-w-0">
         <strong className="block text-sm leading-5">{value}</strong>
         <span className="block truncate text-[10px] uppercase tracking-wide text-slate-500">
@@ -73,7 +73,7 @@ function SummaryCard({
           <p className="text-sm text-slate-500">{label}</p>
           <strong className="mt-2 block text-3xl">{value}</strong>
         </div>
-        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#f1eaff] text-[#8b5cf6]">
+        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-[#3c6355]">
           <Icon className="size-6" aria-hidden="true" />
         </span>
       </div>
@@ -191,7 +191,7 @@ export function ServicesView({
     <div className="space-y-7">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8b5cf6]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#3c6355]">
             Service management
           </p>
           <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Your listings</h1>
@@ -202,7 +202,7 @@ export function ServicesView({
         <Button
           type="button"
           onClick={openCreate}
-          className="bg-[#8b5cf6] text-white hover:bg-[#7c4fe0]"
+          className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
         >
           <Plus className="mr-2 size-4" />
           Add new listing
@@ -225,7 +225,7 @@ export function ServicesView({
                 type="button"
                 variant="ghost"
                 onClick={() => setFilter(item)}
-                className={`h-9 rounded-lg px-3 text-sm ${filter === item ? "bg-white text-[#8b5cf6] shadow-sm" : "text-slate-500 hover:bg-white/70"}`}
+                className={`h-9 rounded-lg px-3 text-sm ${filter === item ? "bg-white text-[#3c6355] shadow-sm" : "text-slate-500 hover:bg-white/70"}`}
               >
                 {item}
                 <span className="ml-1 text-xs">{counts[item]}</span>
@@ -264,14 +264,14 @@ export function ServicesView({
                       <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass(service.status)}`}>
                         {service.status}
                       </span>
-                      <p className="mt-2 text-sm text-[#8b5cf6]">{service.category}</p>
+                      <p className="mt-2 text-sm text-[#3c6355]">{service.category}</p>
                       <h2 className="truncate text-xl font-bold">{service.title}</h2>
                       <p className="mt-1 line-clamp-2 text-sm text-slate-500">{service.description}</p>
-                      <p className="mt-3 font-bold text-[#8b5cf6]">{service.price}<span className="ml-2 text-sm font-normal text-slate-400">{service.duration}</span></p>
+                      <p className="mt-3 font-bold text-[#3c6355]">{service.price}<span className="ml-2 text-sm font-normal text-slate-400">{service.duration}</span></p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-x-5 gap-y-4 rounded-xl bg-[#f8f5fb] p-4 sm:grid-cols-4 lg:grid-cols-2">
+                  <div className="grid grid-cols-2 gap-x-5 gap-y-4 rounded-xl bg-emerald-50/60 p-4 sm:grid-cols-4 lg:grid-cols-2">
                     <Metric icon={Eye} label="Views" value={metrics.views} />
                     <Metric icon={Heart} label="Favorites" value={metrics.favorites} />
                     <Metric icon={MessageCircle} label="Inquiries" value={metrics.inquiries} />
@@ -282,7 +282,7 @@ export function ServicesView({
                     <Button type="button" variant="outline" onClick={() => setPreviewing(service)} className="flex-1 lg:flex-none">
                       <Eye className="mr-2 size-4" />Preview
                     </Button>
-                    <Button type="button" onClick={() => openEdit(service)} className="flex-1 bg-[#8b5cf6] text-white hover:bg-[#7c4fe0] lg:flex-none">
+                    <Button type="button" onClick={() => openEdit(service)} className="flex-1 bg-[#3c6355] text-white hover:bg-[#2f5044] lg:flex-none">
                       <Pencil className="mr-2 size-4" />Edit
                     </Button>
                     <Button type="button" variant="outline" onClick={() => toggle(service.id)} className="flex-1 lg:flex-none">
@@ -302,7 +302,7 @@ export function ServicesView({
                 {items.length ? "Try another search or filter." : "Add your first service so customers know what you offer."}
               </p>
               {!items.length && (
-                <Button type="button" onClick={openCreate} className="mt-4 bg-[#8b5cf6] text-white hover:bg-[#7c4fe0]">
+                <Button type="button" onClick={openCreate} className="mt-4 bg-[#3c6355] text-white hover:bg-[#2f5044]">
                   Add service
                 </Button>
               )}
