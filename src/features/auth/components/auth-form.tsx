@@ -73,10 +73,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     return false;
   };
 
-  const submitMock = async () => {
+  const submitMock = async (skipEmailSuggestion = false) => {
     if (!validate()) return;
 
-    if (mode !== "reset") {
+    if (!skipEmailSuggestion && mode !== "reset") {
       const typo = getEmailSuggestion(values.email);
       if (typo) {
         setSuggestion(typo);
@@ -265,10 +265,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => { const current = suggestion; setSuggestion(null); if (current) void submitMock(); }}>
+          <AlertDialogCancel onClick={() => { setSuggestion(null); void submitMock(true); }}>
             Keep anyway
           </AlertDialogCancel>
-          <AlertDialogAction onClick={() => { if (suggestion) update("email", suggestion.suggested); setSuggestion(null); }}>
+          <AlertDialogAction onClick={() => { if (suggestion) { update("email", suggestion.suggested); } setSuggestion(null); void submitMock(true); }}>
             Use suggested email
           </AlertDialogAction>
         </AlertDialogFooter>
