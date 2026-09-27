@@ -277,13 +277,13 @@ export function SiteHeader({
               ) : (
                 <div className="hidden items-center gap-1 sm:flex">
                   <Link
-                    href="/?auth=sign-in"
+                    href="/login"
                     className="rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Sign in
                   </Link>
                   <Link
-                    href="/?auth=create-account"
+                    href="/signup"
                     className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
@@ -343,7 +343,7 @@ export function SiteHeader({
               ) : (
                 <div className="space-y-2 pt-2">
                   <Link
-                    href="/?auth=sign-in"
+                    href="/login"
                     onClick={closeMenus}
                     className="flex min-h-11 items-center gap-3 rounded-lg border border-[#d8d8d8] px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
@@ -351,7 +351,7 @@ export function SiteHeader({
                     Sign in
                   </Link>
                   <Link
-                    href="/?auth=create-account"
+                    href="/signup"
                     onClick={closeMenus}
                     className="flex min-h-11 items-center justify-center rounded-lg bg-[#3c6355] px-3 text-base font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
