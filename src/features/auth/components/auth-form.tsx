@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Apple, Chrome, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { Apple, Eye, EyeOff, Globe2, LockKeyhole, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import {
@@ -228,7 +228,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <Button type="button" variant="outline" onClick={() => toast("Google sign-in preview")} className="h-10 gap-2">
-                <Chrome size={16} /> Google
+                <Globe2 size={16} /> Google
               </Button>
               <Button type="button" variant="outline" onClick={() => toast("Apple sign-in preview")} className="h-10 gap-2">
                 <Apple size={16} /> Apple
