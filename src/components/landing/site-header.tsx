@@ -122,7 +122,7 @@ function ListBusinessAction({ onClick }: { onClick?: () => void }) {
       className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 md:inline-flex"
     >
       <Store size={17} aria-hidden="true" />
-      <span className="hidden lg:inline">List your business</span>
+      <span className="hidden lg:inline">Get Listed</span>
     </Link>
   );
 }
@@ -369,7 +369,7 @@ export function SiteHeader({
               className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
             >
               <Store size={18} aria-hidden="true" />
-              List your business
+              Get Listed
             </Link>
 
             {isSignedIn && hasBusiness && (
