@@ -89,6 +89,31 @@ function FavoritesAction({
   );
 }
 
+function MobileFavoritesAction({
+  favoriteCount,
+  onClick,
+}: {
+  favoriteCount: number;
+  onClick?: () => void;
+}) {
+  return (
+    <Link
+      href="/#browse"
+      onClick={onClick}
+      aria-label={`Saved businesses${favoriteCount ? ` (${favoriteCount})` : ""}`}
+      className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#242524] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+    >
+      <Heart size={18} className="text-[#3c6355]" aria-hidden="true" />
+      Wishlist
+      {favoriteCount > 0 && (
+        <span className="ml-auto flex min-w-5 items-center justify-center rounded-full bg-[#eaf0ed] px-1.5 text-xs font-bold text-[#3c6355]">
+          {favoriteCount}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 function ListBusinessAction({ onClick }: { onClick?: () => void }) {
   return (
     <Link
@@ -125,7 +150,7 @@ export function SiteHeader({
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-[#d8d8d8] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-12 xl:px-[130px]">
+        <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-12 xl:px-[70px]">
           <Link
             href="/"
             onClick={closeMenus}
@@ -144,126 +169,128 @@ export function SiteHeader({
           )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <div className="hidden sm:block">
-              <FavoritesAction favoriteCount={favoriteCount} />
-            </div>
+            <div className="flex items-center gap-1 sm:gap-2 md:ml-6 lg:ml-10">
+              <div className="hidden sm:block">
+                <FavoritesAction favoriteCount={favoriteCount} />
+              </div>
 
-            <ListBusinessAction />
+              <ListBusinessAction />
 
-            {isSignedIn ? (
-              <>
-                <div className="hidden items-center gap-1 md:flex">
-                  {signedInLinks.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        aria-label={item.label}
-                        className="relative inline-flex size-10 items-center justify-center rounded-full text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
-                      >
-                        <Icon size={18} aria-hidden="true" />
-                      </Link>
-                    );
-                  })}
-                </div>
+              {isSignedIn ? (
+                <>
+                  <div className="hidden items-center gap-1 md:flex">
+                    {signedInLinks.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          aria-label={item.label}
+                          className="relative inline-flex size-10 items-center justify-center rounded-full text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                        >
+                          <Icon size={18} aria-hidden="true" />
+                        </Link>
+                      );
+                    })}
+                  </div>
 
-                <div className="relative hidden sm:block">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-expanded={accountOpen}
-                    aria-haspopup="menu"
-                    onClick={() => setAccountOpen((open) => !open)}
-                    className="gap-2 border-[#d8d8d8] text-[#3c6355]"
-                  >
-                    <span className="flex size-6 items-center justify-center rounded-full bg-[#eaf0ed] text-xs font-semibold text-[#3c6355]">
-                      JD
-                    </span>
-                    <span className="hidden lg:inline">Account</span>
-                    <ChevronDown
-                      size={14}
-                      aria-hidden="true"
-                      className={
-                        accountOpen
-                          ? "rotate-180 transition-transform"
-                          : "transition-transform"
-                      }
-                    />
-                  </Button>
-
-                  {accountOpen && (
-                    <div
-                      role="menu"
-                      aria-label="Account menu"
-                      className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-[#e0e0dd] bg-white p-2 shadow-lg"
+                  <div className="relative hidden sm:block">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-expanded={accountOpen}
+                      aria-haspopup="menu"
+                      onClick={() => setAccountOpen((open) => !open)}
+                      className="gap-2 border-[#d8d8d8] text-[#3c6355]"
                     >
-                      <div className="border-b border-[#ececea] px-3 py-2">
-                        <p className="text-sm font-semibold text-[#111111]">
-                          Juan Dela Cruz
-                        </p>
-                        <p className="text-xs text-[#8d918f]">
-                          Customer account
-                        </p>
-                      </div>
-                      {signedInLinks.map((item) => {
-                        const Icon = item.icon;
-                        return (
+                      <span className="flex size-6 items-center justify-center rounded-full bg-[#eaf0ed] text-xs font-semibold text-[#3c6355]">
+                        JD
+                      </span>
+                      <span className="hidden lg:inline">Account</span>
+                      <ChevronDown
+                        size={14}
+                        aria-hidden="true"
+                        className={
+                          accountOpen
+                            ? "rotate-180 transition-transform"
+                            : "transition-transform"
+                        }
+                      />
+                    </Button>
+
+                    {accountOpen && (
+                      <div
+                        role="menu"
+                        aria-label="Account menu"
+                        className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-[#e0e0dd] bg-white p-2 shadow-lg"
+                      >
+                        <div className="border-b border-[#ececea] px-3 py-2">
+                          <p className="text-sm font-semibold text-[#111111]">
+                            Juan Dela Cruz
+                          </p>
+                          <p className="text-xs text-[#8d918f]">
+                            Customer account
+                          </p>
+                        </div>
+                        {signedInLinks.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              role="menuitem"
+                              onClick={closeMenus}
+                              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#242524] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:bg-[#eaf0ed]"
+                            >
+                              <Icon
+                                size={16}
+                                className="text-[#3c6355]"
+                                aria-hidden="true"
+                              />
+                              {item.label}
+                            </Link>
+                          );
+                        })}
+                        {hasBusiness && (
                           <Link
-                            key={item.href}
-                            href={item.href}
+                            href="/tenant-dashboard"
                             role="menuitem"
                             onClick={closeMenus}
                             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#242524] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:bg-[#eaf0ed]"
                           >
-                            <Icon
+                            <LayoutDashboard
                               size={16}
                               className="text-[#3c6355]"
                               aria-hidden="true"
                             />
-                            {item.label}
+                            Manage business
                           </Link>
-                        );
-                      })}
-                      {hasBusiness && (
-                        <Link
-                          href="/tenant-dashboard"
-                          role="menuitem"
-                          onClick={closeMenus}
-                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#242524] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:bg-[#eaf0ed]"
-                        >
-                          <LayoutDashboard
-                            size={16}
-                            className="text-[#3c6355]"
-                            aria-hidden="true"
-                          />
-                          Manage business
-                        </Link>
-                      )}
-                      <div className="mt-1 border-t border-[#ececea] px-3 py-2 text-xs text-[#8d918f]">
-                        Saved businesses: {favoriteCount}
+                        )}
+                        <div className="mt-1 border-t border-[#ececea] px-3 py-2 text-xs text-[#8d918f]">
+                          Saved businesses: {favoriteCount}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="hidden items-center gap-1 sm:flex">
+                  <Link
+                    href="/?auth=sign-in"
+                    className="rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/?auth=create-account"
+                    className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                  >
+                    Create account
+                  </Link>
                 </div>
-              </>
-            ) : (
-              <div className="hidden items-center gap-1 sm:flex">
-                <Link
-                  href="/?auth=sign-in"
-                  className="rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/?auth=create-account"
-                  className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
-                >
-                  Create account
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
 
             <Button
               variant="outline"
@@ -289,7 +316,7 @@ export function SiteHeader({
             <div className="my-4 border-t border-[#ececea]" />
 
             <nav aria-label="Mobile customer navigation" className="space-y-1">
-              <FavoritesAction
+              <MobileFavoritesAction
                 favoriteCount={favoriteCount}
                 onClick={closeMenus}
               />
