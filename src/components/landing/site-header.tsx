@@ -144,14 +144,6 @@ export function SiteHeader({
           )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <Link
-              href="/#browse"
-              aria-label="Search pet services"
-              className="inline-flex size-10 items-center justify-center rounded-full text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 md:hidden"
-            >
-              <Search size={19} aria-hidden="true" />
-            </Link>
-
             <div className="hidden sm:block">
               <FavoritesAction favoriteCount={favoriteCount} />
             </div>
@@ -294,8 +286,6 @@ export function SiteHeader({
           className="max-w-sm"
         >
           <div className="flex flex-1 flex-col p-4">
-            <SearchAction onClick={closeMenus} />
-
             <div className="my-4 border-t border-[#ececea]" />
 
             <nav aria-label="Mobile customer navigation" className="space-y-1">
