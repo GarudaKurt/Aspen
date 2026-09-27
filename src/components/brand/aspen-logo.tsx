@@ -7,13 +7,13 @@ type AspenLogoProps = {
 };
 
 export function AspenLogo({
-  size = 40,
+  size = 60,
   className,
   decorative = false,
 }: AspenLogoProps) {
   return (
     <Image
-      src="/img/logo/logo.svg"
+      src="/img/logo/logo.png"
       alt={decorative ? "" : "Aspen"}
       width={size}
       height={size}

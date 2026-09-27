@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  ArrowBigLeft,
+  ArrowUp,
+  ArrowUpRight,
   GraduationCap,
   Hotel,
   ListFilter,
@@ -120,7 +123,7 @@ export function DiscoverySearch({
             aria-label="Search"
             className="flex h-auto min-h-[52px] w-full items-center justify-start gap-3 rounded-none border-t border-[#e6e5e1] bg-transparent px-5 text-base font-semibold text-[#2c2c2c] transition-colors hover:bg-[#f3f3f2] hover:text-[#3c6355] sm:mx-2 sm:my-2 sm:h-11 sm:min-h-[44px] sm:w-auto sm:shrink-0 sm:justify-center sm:gap-2 sm:rounded-xl sm:border-0 sm:px-4"
           >
-            <Search size={20} strokeWidth={1.8} className="shrink-0" />
+            <ArrowUpRight size={20} strokeWidth={1.8} className="shrink-0" />
             Search
           </Button>
         </form>

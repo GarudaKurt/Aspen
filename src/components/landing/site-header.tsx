@@ -31,9 +31,17 @@ type SiteHeaderProps = {
 };
 
 const signedInLinks = [
-  { label: "My appointments", href: "/request-appointment", icon: CalendarDays },
+  {
+    label: "My appointments",
+    href: "/request-appointment",
+    icon: CalendarDays,
+  },
   { label: "Messages", href: "/tenant-dashboard/chat", icon: MessageCircle },
-  { label: "Notifications", href: "/tenant-dashboard/notifications", icon: Bell },
+  {
+    label: "Notifications",
+    href: "/tenant-dashboard/notifications",
+    icon: Bell,
+  },
 ];
 
 function SearchAction({ onClick }: { onClick?: () => void }) {
@@ -44,7 +52,11 @@ function SearchAction({ onClick }: { onClick?: () => void }) {
       className="group flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-[#d8d8d8] bg-white px-3 text-sm text-[#6f7773] outline-none transition-colors hover:border-[#3c6355] hover:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 sm:max-w-[360px] sm:px-4"
       aria-label="Find pet services and businesses"
     >
-      <Search size={17} aria-hidden="true" className="shrink-0 text-[#3c6355]" />
+      <Search
+        size={17}
+        aria-hidden="true"
+        className="shrink-0 text-[#3c6355]"
+      />
       <span className="truncate group-hover:text-[#3c6355]">
         Find pet services or businesses
       </span>
@@ -73,6 +85,19 @@ function FavoritesAction({
           {favoriteCount}
         </span>
       )}
+    </Link>
+  );
+}
+
+function ListBusinessAction({ onClick }: { onClick?: () => void }) {
+  return (
+    <Link
+      href="/list-your-business"
+      onClick={onClick}
+      className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 md:inline-flex"
+    >
+      <Store size={17} aria-hidden="true" />
+      <span className="hidden lg:inline">List your business</span>
     </Link>
   );
 }
@@ -131,6 +156,8 @@ export function SiteHeader({
               <FavoritesAction favoriteCount={favoriteCount} />
             </div>
 
+            <ListBusinessAction />
+
             {isSignedIn ? (
               <>
                 <div className="hidden items-center gap-1 md:flex">
@@ -166,7 +193,11 @@ export function SiteHeader({
                     <ChevronDown
                       size={14}
                       aria-hidden="true"
-                      className={accountOpen ? "rotate-180 transition-transform" : "transition-transform"}
+                      className={
+                        accountOpen
+                          ? "rotate-180 transition-transform"
+                          : "transition-transform"
+                      }
                     />
                   </Button>
 
@@ -177,8 +208,12 @@ export function SiteHeader({
                       className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-[#e0e0dd] bg-white p-2 shadow-lg"
                     >
                       <div className="border-b border-[#ececea] px-3 py-2">
-                        <p className="text-sm font-semibold text-[#111111]">Juan Dela Cruz</p>
-                        <p className="text-xs text-[#8d918f]">Customer account</p>
+                        <p className="text-sm font-semibold text-[#111111]">
+                          Juan Dela Cruz
+                        </p>
+                        <p className="text-xs text-[#8d918f]">
+                          Customer account
+                        </p>
                       </div>
                       {signedInLinks.map((item) => {
                         const Icon = item.icon;
@@ -190,7 +225,11 @@ export function SiteHeader({
                             onClick={closeMenus}
                             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#242524] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:bg-[#eaf0ed]"
                           >
-                            <Icon size={16} className="text-[#3c6355]" aria-hidden="true" />
+                            <Icon
+                              size={16}
+                              className="text-[#3c6355]"
+                              aria-hidden="true"
+                            />
                             {item.label}
                           </Link>
                         );
@@ -202,7 +241,11 @@ export function SiteHeader({
                           onClick={closeMenus}
                           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#242524] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:bg-[#eaf0ed]"
                         >
-                          <LayoutDashboard size={16} className="text-[#3c6355]" aria-hidden="true" />
+                          <LayoutDashboard
+                            size={16}
+                            className="text-[#3c6355]"
+                            aria-hidden="true"
+                          />
                           Manage business
                         </Link>
                       )}
@@ -256,7 +299,10 @@ export function SiteHeader({
             <div className="my-4 border-t border-[#ececea]" />
 
             <nav aria-label="Mobile customer navigation" className="space-y-1">
-              <FavoritesAction favoriteCount={favoriteCount} onClick={closeMenus} />
+              <FavoritesAction
+                favoriteCount={favoriteCount}
+                onClick={closeMenus}
+              />
 
               {isSignedIn ? (
                 signedInLinks.map((item) => {
@@ -268,7 +314,11 @@ export function SiteHeader({
                       onClick={closeMenus}
                       className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#242524] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                     >
-                      <Icon size={18} className="text-[#3c6355]" aria-hidden="true" />
+                      <Icon
+                        size={18}
+                        className="text-[#3c6355]"
+                        aria-hidden="true"
+                      />
                       {item.label}
                     </Link>
                   );
