@@ -46,14 +46,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setErrors((current) => ({ ...current, [field]: "" }));
   };
 
-  const validate = () => {
+  const validate = (emailOverride?: string) => {
     const result =
       mode === "login"
-        ? loginSchema.safeParse({ email: values.email, password: values.password })
+        ? loginSchema.safeParse({ email: emailOverride ?? values.email, password: values.password })
         : mode === "signup"
           ? signupSchema.safeParse(values)
           : mode === "forgot"
-            ? recoverySchema.safeParse({ email: values.email })
+            ? recoverySchema.safeParse({ email: emailOverride ?? values.email })
             : resetPasswordSchema.safeParse({
                 password: values.password,
                 confirmPassword: values.confirmPassword,
@@ -73,11 +73,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     return false;
   };
 
-  const submitMock = async (skipEmailSuggestion = false) => {
-    if (!validate()) return;
+  const submitMock = async (skipEmailSuggestion = false, emailOverride?: string) => {
+    if (!validate(emailOverride)) return;
 
     if (!skipEmailSuggestion && mode !== "reset") {
-      const typo = getEmailSuggestion(values.email);
+      const typo = getEmailSuggestion(emailOverride ?? values.email);
       if (typo) {
         setSuggestion(typo);
         return;
@@ -268,7 +268,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           <AlertDialogCancel onClick={() => { setSuggestion(null); void submitMock(true); }}>
             Keep anyway
           </AlertDialogCancel>
-          <AlertDialogAction onClick={() => { if (suggestion) { update("email", suggestion.suggested); } setSuggestion(null); void submitMock(true); }}>
+          <AlertDialogAction onClick={() => { const current = suggestion; if (current) update("email", current.suggested); setSuggestion(null); if (current) void submitMock(true, current.suggested); }}>
             Use suggested email
           </AlertDialogAction>
         </AlertDialogFooter>
