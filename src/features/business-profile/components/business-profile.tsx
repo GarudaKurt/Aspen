@@ -216,7 +216,10 @@ export function BusinessProfile({
             <ArrowLeft size={16} />
             Back to search
           </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-base font-medium tracking-wide">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-base font-medium tracking-wide"
+          >
             <AspenLogo size={28} decorative />
             <span>Aspen</span>
           </Link>
@@ -695,7 +698,7 @@ function ScheduleCard({
             ? `/business-profile/${businessSlug}/request-appointment`
             : "/request-appointment"
         }
-        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-[10px] font-medium text-white hover:bg-[#2f5044]"
+        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-xs font-semibold text-white hover:bg-[#2f5044]"
       >
         Request Appointment
       </Link>
