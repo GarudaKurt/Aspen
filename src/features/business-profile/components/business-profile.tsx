@@ -20,7 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { amenityOptions, type BusinessAmenity } from "../amenities";
 import { AmenityIcon } from "./amenity-icon";
-import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 import {
   getBusinessHoursDisplayRows,
   getBusinessHoursStatus,
@@ -189,11 +188,8 @@ export function BusinessProfile({
   preview = false,
 }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
-  const businessKey = provider.slug ?? provider.name;
-  const isFavorite = useFavoritesStore((state) =>
-    state.favoriteIds.includes(businessKey),
-  );
-  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const toggleFavorite = () => setIsFavorite((current) => !current);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(
     provider.coverPhoto ?? null,
   );
