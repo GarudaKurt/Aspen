@@ -12,7 +12,7 @@ import {
 
 import { AuthForm } from "./auth-form";
 
-type AuthDialogMode = "login" | "signup" | "forgot";
+export type AuthDialogMode = "login" | "signup" | "forgot" | "reset";
 
 export function AuthDialog({
   open,
