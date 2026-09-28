@@ -32,21 +32,14 @@ import {
   type EmailSuggestion,
 } from "@/shared/schemas/contact.schema";
 import type { BusinessService } from "@/domain/business";
+import {
+  resetBookingDraft,
+  useBookingDraftStore,
+  type AppointmentDraft,
+  type Period,
+} from "../store/booking-draft.store";
 
 type Period = "Morning" | "Afternoon" | "Evening";
-
-type AppointmentDraft = {
-  serviceIds: string[];
-  date: string;
-  period: Period;
-  time: string;
-  petName: string;
-  petType: string;
-  reason: string;
-  fullName: string;
-  phone: string;
-  email: string;
-};
 
 type Step = { label: string; path: string; icon: LucideIcon };
 
@@ -95,19 +88,6 @@ const timeSlots: Record<Period, string[]> = {
   ],
   Evening: ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"],
 };
-const initialDraft: AppointmentDraft = {
-  serviceIds: [],
-  date: "",
-  period: "Morning",
-  time: "",
-  petName: "",
-  petType: "",
-  reason: "",
-  fullName: "",
-  phone: "",
-  email: "",
-};
-
 export function AppointmentPage({
   businessSlug,
   businessName = "Kalinga Animal Hospital",
@@ -122,15 +102,13 @@ export function AppointmentPage({
     ? `/business-profile/${businessSlug}/request-appointment`
     : "/request-appointment";
   const steps = createSteps(basePath);
-  const draftStorageKey = businessSlug
-    ? `aspen-appointment-draft:${businessSlug}`
-    : "aspen-appointment-draft";
   const isConfirmation = pathname === `${basePath}/confirmation`;
   const activeIndex = Math.max(
     0,
     steps.findIndex((step) => step.path === pathname),
   );
-  const [draft, setDraft] = useState<AppointmentDraft>(initialDraft);
+  const draft = useBookingDraftStore((state) => state.draft);
+  const updateDraft = useBookingDraftStore((state) => state.updateDraft);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [emailSuggestion, setEmailSuggestion] =
@@ -138,17 +116,16 @@ export function AppointmentPage({
   const [phoneValidationOpen, setPhoneValidationOpen] = useState(false);
 
   useEffect(() => {
-    const saved = window.sessionStorage.getItem(draftStorageKey);
-    if (saved) setDraft({ ...initialDraft, ...JSON.parse(saved) });
-  }, [draftStorageKey]);
-  useEffect(() => {
-    window.sessionStorage.setItem(draftStorageKey, JSON.stringify(draft));
-  }, [draft, draftStorageKey]);
+    const currentBusiness = businessSlug ?? null;
+    if (draft.businessSlug !== currentBusiness) {
+      resetBookingDraft(currentBusiness);
+    }
+  }, [businessSlug, draft.businessSlug]);
 
   const update = <K extends keyof AppointmentDraft>(
     key: K,
     value: AppointmentDraft[K],
-  ) => setDraft((current) => ({ ...current, [key]: value }));
+  ) => updateDraft({ [key]: value } as Partial<AppointmentDraft>);
   const toggleService = (id: string) =>
     update(
       "serviceIds",
