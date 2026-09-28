@@ -32,17 +32,18 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MobileDashboardNav } from "./dashboard-shell";
 import {
-  updateTenantProfile,
-  useTenantProfile,
+  initialTenantProfile,
+  type TenantProfile,
 } from "../profile/profile.store";
-import type { TenantProfile } from "../profile/profile.store";
 
 type EditableProfile = TenantProfile;
 
 const coverageOptions = ["Grooming", "Boarding", "Training", "Veterinary"];
 
 export function ProfileView() {
-  const profile = useTenantProfile();
+  const [profile, setProfile] = useState<EditableProfile>(initialTenantProfile);
+  const updateTenantProfile = (update: Partial<EditableProfile>) =>
+    setProfile((current) => ({ ...current, ...update }));
   const [draft, setDraft] = useState<EditableProfile>(profile);
   const [coverageDraft, setCoverageDraft] = useState(profile.serviceCoverage);
   const [hoursDraft, setHoursDraft] = useState<BusinessHoursDay[]>(
