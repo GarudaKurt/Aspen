@@ -1,11 +1,20 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { CreateAccountDialog } from "./create-account-dialog";
 
 export function SignupPage() {
+  const router = useRouter();
   const [open, setOpen] = useState(true);
 
-  return <CreateAccountDialog open={open} onOpenChange={setOpen} />;
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) router.replace("/");
+  };
+
+  return (
+    <CreateAccountDialog open={open} onOpenChange={handleOpenChange} />
+  );
 }
