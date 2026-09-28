@@ -134,7 +134,7 @@ export function AuthForm({
   const handleVerificationSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const code = verificationCode.trim();
-    if (!/^\\d{6}$/.test(code)) {
+    if (!/^\d{6}$/.test(code)) {
       setVerificationError("Enter the 6-digit verification code.");
       return;
     }
@@ -183,7 +183,7 @@ export function AuthForm({
             maxLength={6}
             value={verificationCode}
             onChange={(event) => {
-              setVerificationCode(event.target.value.replace(/\\D/g, ""));
+              setVerificationCode(event.target.value.replace(/\D/g, ""));
               setVerificationError("");
             }}
             placeholder="000000"
@@ -294,7 +294,7 @@ export function AuthForm({
 
         {mode === "login" && (
           <div className="flex justify-end">
-            onForgotPassword ? (
+            {onForgotPassword ? (
               <button
                 type="button"
                 onClick={onForgotPassword}
@@ -306,7 +306,7 @@ export function AuthForm({
               <Link href="/forgot-password" className="text-sm font-semibold text-[#3c6355] hover:underline">
                 Forgot password?
               </Link>
-            )
+            )}
           </div>
         )}
 
@@ -334,7 +334,7 @@ export function AuthForm({
       {mode === "login" && (
         <p className="mt-5 text-center text-sm text-[#6e7872]">
           New to Aspen?{" "}
-          onCreateAccount ? (
+          {onCreateAccount ? (
             <button type="button" onClick={onCreateAccount} className="font-semibold text-[#3c6355] hover:underline">
               Create an account
             </button>
@@ -342,13 +342,13 @@ export function AuthForm({
             <Link href="/signup" className="font-semibold text-[#3c6355] hover:underline">
               Create an account
             </Link>
-          )
+          )}
         </p>
       )}
       {mode === "signup" && (
         <p className="mt-5 text-center text-sm text-[#6e7872]">
           Already have an account?{" "}
-          onSignIn ? (
+          {onSignIn ? (
             <button type="button" onClick={onSignIn} className="font-semibold text-[#3c6355] hover:underline">
               Sign in
             </button>
@@ -356,12 +356,24 @@ export function AuthForm({
             <Link href="/login" className="font-semibold text-[#3c6355] hover:underline">
               Sign in
             </Link>
-          )
+          )}
         </p>
       )}
       {(mode === "forgot" || mode === "reset") && (
         <p className="mt-5 text-center text-sm text-[#6e7872]">
-          <Link href="/login" className="font-semibold text-[#3c6355] hover:underline">Back to sign in</Link>
+          {onSignIn ? (
+            <button
+              type="button"
+              onClick={onSignIn}
+              className="font-semibold text-[#3c6355] hover:underline"
+            >
+              Back to sign in
+            </button>
+          ) : (
+            <Link href="/login" className="font-semibold text-[#3c6355] hover:underline">
+              Back to sign in
+            </Link>
+          )}
         </p>
       )}
 
