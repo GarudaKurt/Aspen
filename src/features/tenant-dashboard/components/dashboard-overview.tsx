@@ -15,7 +15,8 @@ import {
   getProfileCompletion,
   getProfileSetupItems,
 } from "../profile/profile-completion";
-import { useTenantProfile } from "../profile/profile.store";
+import { initialTenantProfile } from "../profile/profile.store";
+import { useState } from "react";
 
 const stats = [
   ["6", "Upcoming bookings", CalendarDays],
@@ -25,7 +26,7 @@ const stats = [
 ] as const;
 
 export function DashboardOverview() {
-  const profile = useTenantProfile();
+  const [profile] = useState(initialTenantProfile);
   const completion = getProfileCompletion(profile);
   const setupItems = getProfileSetupItems(profile);
 
