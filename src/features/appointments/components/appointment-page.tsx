@@ -39,7 +39,6 @@ import {
   type Period,
 } from "../store/booking-draft.store";
 
-type Period = "Morning" | "Afternoon" | "Evening";
 
 type Step = { label: string; path: string; icon: LucideIcon };
 
