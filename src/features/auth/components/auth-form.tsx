@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Apple, Eye, EyeOff, Globe2, LockKeyhole, Mail } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import {
@@ -29,7 +30,17 @@ import {
 type AuthMode = "login" | "signup" | "forgot" | "reset";
 type AuthValues = { email: string; password: string; confirmPassword: string };
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+export function AuthForm({
+  mode,
+  onForgotPassword,
+  onCreateAccount,
+  onSignIn,
+}: {
+  mode: AuthMode;
+  onForgotPassword?: () => void;
+  onCreateAccount?: () => void;
+  onSignIn?: () => void;
+}) {
   const [values, setValues] = useState<AuthValues>({
     email: "",
     password: "",
@@ -40,6 +51,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [suggestion, setSuggestion] = useState<{ entered: string; suggested: string } | null>(null);
+  const [recoveryStep, setRecoveryStep] = useState<"email" | "verification">(
+    "email",
+  );
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationError, setVerificationError] = useState("");
 
   const update = (field: keyof AuthValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -93,6 +109,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
+    if (mode === "forgot") {
+      setRecoveryStep("verification");
+      return;
+    }
+
     toast({
       title:
         mode === "forgot"
@@ -110,6 +131,22 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     void submitMock();
   };
 
+  const handleVerificationSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const code = verificationCode.trim();
+    if (!/^\\d{6}$/.test(code)) {
+      setVerificationError("Enter the 6-digit verification code.");
+      return;
+    }
+
+    setVerificationError("");
+    toast({
+      title: "Verification ready",
+      description: "Connect the authentication provider to verify this code.",
+      variant: "success",
+    });
+  };
+
   if (showConfirmation) {
     return (
       <div className="rounded-xl bg-[#eef7f1] p-5 text-center">
@@ -123,6 +160,52 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           Back to sign in
         </Link>
       </div>
+    );
+  }
+
+  if (mode === "forgot" && recoveryStep === "verification") {
+    return (
+      <form onSubmit={handleVerificationSubmit} className="space-y-5" noValidate>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Verification</h1>
+          <p className="mt-2 text-sm leading-6 text-[#69736d]">
+            Enter the 6-digit code sent to <strong>{values.email}</strong>.
+          </p>
+        </div>
+        <div>
+          <label htmlFor="verification-code" className="text-sm font-semibold">
+            Verification code
+          </label>
+          <Input
+            id="verification-code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={verificationCode}
+            onChange={(event) => {
+              setVerificationCode(event.target.value.replace(/\\D/g, ""));
+              setVerificationError("");
+            }}
+            placeholder="000000"
+            className="mt-2 text-center text-lg tracking-[0.45em]"
+            aria-invalid={Boolean(verificationError)}
+          />
+          {verificationError && (
+            <p className="mt-1 text-xs text-red-600">{verificationError}</p>
+          )}
+        </div>
+        <Button type="submit" className="h-11 w-full bg-[#3c6355] text-white hover:bg-[#2f5044]">
+          Verify code
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setRecoveryStep("email")}
+          className="w-full text-[#3c6355]"
+        >
+          Use a different email
+        </Button>
+      </form>
     );
   }
 
@@ -211,9 +294,19 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
         {mode === "login" && (
           <div className="flex justify-end">
-            <Link href="/forgot-password" className="text-sm font-semibold text-[#3c6355] hover:underline">
-              Forgot password?
-            </Link>
+            onForgotPassword ? (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-sm font-semibold text-[#3c6355] hover:underline"
+              >
+                Forgot password?
+              </button>
+            ) : (
+              <Link href="/forgot-password" className="text-sm font-semibold text-[#3c6355] hover:underline">
+                Forgot password?
+              </Link>
+            )
           </div>
         )}
 
@@ -228,10 +321,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <Button type="button" variant="outline" onClick={() => toast("Google sign-in preview")} className="h-10 gap-2">
-                <Globe2 size={16} /> Google
+                <Image src="/img/logo/google.svg" alt="" width={16} height={16} /> Google
               </Button>
               <Button type="button" variant="outline" onClick={() => toast("Apple sign-in preview")} className="h-10 gap-2">
-                <Apple size={16} /> Apple
+                <Image src="/img/logo/apple.svg" alt="" width={16} height={16} /> Apple
               </Button>
             </div>
           </>
@@ -241,13 +334,29 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       {mode === "login" && (
         <p className="mt-5 text-center text-sm text-[#6e7872]">
           New to Aspen?{" "}
-          <Link href="/signup" className="font-semibold text-[#3c6355] hover:underline">Create an account</Link>
+          onCreateAccount ? (
+            <button type="button" onClick={onCreateAccount} className="font-semibold text-[#3c6355] hover:underline">
+              Create an account
+            </button>
+          ) : (
+            <Link href="/signup" className="font-semibold text-[#3c6355] hover:underline">
+              Create an account
+            </Link>
+          )
         </p>
       )}
       {mode === "signup" && (
         <p className="mt-5 text-center text-sm text-[#6e7872]">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-[#3c6355] hover:underline">Sign in</Link>
+          onSignIn ? (
+            <button type="button" onClick={onSignIn} className="font-semibold text-[#3c6355] hover:underline">
+              Sign in
+            </button>
+          ) : (
+            <Link href="/login" className="font-semibold text-[#3c6355] hover:underline">
+              Sign in
+            </Link>
+          )
         </p>
       )}
       {(mode === "forgot" || mode === "reset") && (
