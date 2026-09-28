@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
+import { CreateAccountDialog } from "@/features/auth/components/create-account-dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useFavoritesStore } from "@/features/favorites";
@@ -137,6 +138,7 @@ export function SiteHeader({
   const [favoriteCount, setFavoriteCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [createAccountOpen, setCreateAccountOpen] = useState(false);
 
   useEffect(() => {
     setFavoriteCount(favoriteIds.length);
@@ -282,12 +284,13 @@ export function SiteHeader({
                   >
                     Sign in
                   </Link>
-                  <Link
-                    href="/signup"
+                  <button
+                    type="button"
+                    onClick={() => setCreateAccountOpen(true)}
                     className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
@@ -350,13 +353,16 @@ export function SiteHeader({
                     <UserRound size={18} aria-hidden="true" />
                     Sign in
                   </Link>
-                  <Link
-                    href="/signup"
-                    onClick={closeMenus}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenus();
+                      setCreateAccountOpen(true);
+                    }}
                     className="flex min-h-11 items-center justify-center rounded-lg bg-[#3c6355] px-3 text-base font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
-                  </Link>
+                  </button>
                 </div>
               )}
             </nav>
@@ -396,6 +402,11 @@ export function SiteHeader({
           </div>
         </SheetContent>
       </Sheet>
+
+      <CreateAccountDialog
+        open={createAccountOpen}
+        onOpenChange={setCreateAccountOpen}
+      />
     </>
   );
 }
