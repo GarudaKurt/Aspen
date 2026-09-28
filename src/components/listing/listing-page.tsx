@@ -3,7 +3,7 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpenCheck,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useListingStore } from "@/features/business-profile/store/onboarding.store";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -54,11 +55,12 @@ const serviceOptions = [
 export function ListingPage() {
   const pathname = usePathname();
   const router = useRouter();
-  const [providerType, setProviderType] = useState("Individual provider");
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<Record<string, string>>(
-    {},
-  );
+  const providerType = useListingStore((state) => state.providerType);
+  const setProviderType = useListingStore((state) => state.setProviderType);
+  const selectedServices = useListingStore((state) => state.selectedServices);
+  const toggleService = useListingStore((state) => state.toggleService);
+  const uploadedFiles = useListingStore((state) => state.uploadedFiles);
+  const setUploadedFile = useListingStore((state) => state.setUploadedFile);
 
   const activeIndex = Math.max(
     0,
@@ -72,17 +74,8 @@ export function ListingPage() {
     router.push(activeIndex === 0 ? "/#browse" : steps[activeIndex - 1].path);
   };
 
-  const toggleService = (service: string) => {
-    setSelectedServices((current) =>
-      current.includes(service)
-        ? current.filter((item) => item !== service)
-        : [...current, service],
-    );
-  };
-
   const handleFile = (label: string, file?: File) => {
-    if (file)
-      setUploadedFiles((current) => ({ ...current, [label]: file.name }));
+    if (file) setUploadedFile(label, file.name);
   };
 
   return (
