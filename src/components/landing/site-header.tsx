@@ -14,12 +14,11 @@ import {
   Store,
   UserRound,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useFavoritesStore } from "@/features/favorites";
 
 type SiteHeaderProps = {
   /**
@@ -133,14 +132,9 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
-  const favoriteIds = useFavoritesStore((state) => state.favoriteIds);
-  const [favoriteCount, setFavoriteCount] = useState(0);
+  const favoriteCount = 0;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-
-  useEffect(() => {
-    setFavoriteCount(favoriteIds.length);
-  }, [favoriteIds.length]);
 
   const closeMenus = () => {
     setMobileOpen(false);
