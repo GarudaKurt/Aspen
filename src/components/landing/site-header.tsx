@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
+import { AuthDialog } from "@/features/auth/components/auth-dialog";
 import { CreateAccountDialog } from "@/features/auth/components/create-account-dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -139,6 +140,7 @@ export function SiteHeader({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [createAccountOpen, setCreateAccountOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
 
   useEffect(() => {
     setFavoriteCount(favoriteIds.length);
@@ -278,12 +280,13 @@ export function SiteHeader({
                 </>
               ) : (
                 <div className="hidden items-center gap-1 sm:flex">
-                  <Link
-                    href="/login"
+                  <button
+                    type="button"
+                    onClick={() => setSignInOpen(true)}
                     className="rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Sign in
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setCreateAccountOpen(true)}
@@ -345,14 +348,17 @@ export function SiteHeader({
                 })
               ) : (
                 <div className="space-y-2 pt-2">
-                  <Link
-                    href="/login"
-                    onClick={closeMenus}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenus();
+                      setSignInOpen(true);
+                    }}
                     className="flex min-h-11 items-center gap-3 rounded-lg border border-[#d8d8d8] px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     <UserRound size={18} aria-hidden="true" />
                     Sign in
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -403,6 +409,11 @@ export function SiteHeader({
         </SheetContent>
       </Sheet>
 
+      <AuthDialog
+        open={signInOpen}
+        onOpenChange={setSignInOpen}
+        initialMode="login"
+      />
       <CreateAccountDialog
         open={createAccountOpen}
         onOpenChange={setCreateAccountOpen}
