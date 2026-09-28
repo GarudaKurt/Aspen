@@ -1,5 +1,5 @@
-import { SignupPage } from "@/features/auth/components/signup-page";
+import { AuthRoutePage } from "@/features/auth/components/auth-route-page";
 
-export default function SignupRoute() {
-  return <SignupPage />;
+export default function AuthPage() {
+  return <AuthRoutePage initialMode="signup" />;
 }
