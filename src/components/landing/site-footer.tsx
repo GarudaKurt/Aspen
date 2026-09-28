@@ -1,5 +1,6 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
+
 export function SiteFooter() {
   return (
     <footer className="bg-[#faf9f6] px-6 py-12 sm:px-10 lg:px-[130px]">
@@ -27,13 +28,13 @@ export function SiteFooter() {
         <div>
           <h3 className="text-lg font-bold">For business</h3>
           <div className="mt-4 space-y-2 text-sm">
-            <Link className="block hover:underline" href="#list-your-business">
+            <Link className="block hover:underline" href="/subscriptions">
               List your business
             </Link>
-            <Link className="block hover:underline" href="#top">
+            <Link className="block hover:underline" href="/subscriptions">
               Pricing
             </Link>
-            <Link className="block hover:underline" href="#top">
+            <Link className="block hover:underline" href="/tenant-dashboard">
               Dashboard
             </Link>
           </div>

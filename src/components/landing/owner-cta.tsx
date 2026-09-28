@@ -18,7 +18,7 @@ export function OwnerCta() {
           </p>
         </div>
         <Link
-          href="/list-your-business"
+          href="/subscriptions"
           className="inline-flex w-fit items-center gap-2 rounded-full bg-[#d6794f] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#c56d46]"
         >
           List your business <ArrowRight size={19} />

@@ -1,5 +1,5 @@
-import { ListingPage } from "@/components/listing/listing-page";
+import { redirect } from "next/navigation";
 
 export default function BusinessListingPage() {
-  return <ListingPage />;
+  redirect("/subscriptions");
 }
