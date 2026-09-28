@@ -17,6 +17,8 @@ import {
 import { useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
+import { AuthDialog } from "@/features/auth/components/auth-dialog";
+import { CreateAccountDialog } from "@/features/auth/components/create-account-dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -135,6 +137,8 @@ export function SiteHeader({
   const favoriteCount = 0;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [createAccountOpen, setCreateAccountOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const closeMenus = () => {
     setMobileOpen(false);
@@ -270,18 +274,20 @@ export function SiteHeader({
                 </>
               ) : (
                 <div className="hidden items-center gap-1 sm:flex">
-                  <Link
-                    href="/?auth=sign-in"
+                  <button
+                    type="button"
+                    onClick={() => setSignInOpen(true)}
                     className="rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Sign in
-                  </Link>
-                  <Link
-                    href="/?auth=create-account"
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateAccountOpen(true)}
                     className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
@@ -336,21 +342,27 @@ export function SiteHeader({
                 })
               ) : (
                 <div className="space-y-2 pt-2">
-                  <Link
-                    href="/?auth=sign-in"
-                    onClick={closeMenus}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenus();
+                      setSignInOpen(true);
+                    }}
                     className="flex min-h-11 items-center gap-3 rounded-lg border border-[#d8d8d8] px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     <UserRound size={18} aria-hidden="true" />
                     Sign in
-                  </Link>
-                  <Link
-                    href="/?auth=create-account"
-                    onClick={closeMenus}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenus();
+                      setCreateAccountOpen(true);
+                    }}
                     className="flex min-h-11 items-center justify-center rounded-lg bg-[#3c6355] px-3 text-base font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
-                  </Link>
+                  </button>
                 </div>
               )}
             </nav>
@@ -390,6 +402,16 @@ export function SiteHeader({
           </div>
         </SheetContent>
       </Sheet>
+
+      <AuthDialog
+        open={signInOpen}
+        onOpenChange={setSignInOpen}
+        initialMode="login"
+      />
+      <CreateAccountDialog
+        open={createAccountOpen}
+        onOpenChange={setCreateAccountOpen}
+      />
     </>
   );
 }
