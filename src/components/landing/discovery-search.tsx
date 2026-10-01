@@ -93,7 +93,7 @@ function CityCombobox({
   };
 
   return (
-    <div ref={containerRef} className="relative min-w-0 flex-1 sm:flex-none">
+    <div ref={containerRef} className="relative z-30 min-w-0 flex-1 sm:flex-none">
       <div className="flex items-center gap-1">
         <Input
           value={search}
@@ -218,7 +218,7 @@ export function DiscoverySearch({
         </p>
         <form
           onSubmit={submitSearch}
-          className="mt-7 flex max-w-[660px] flex-col overflow-hidden rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
+          className="relative z-20 mt-7 flex max-w-[660px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
         >
           <div className="flex min-h-[58px] flex-1 items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
