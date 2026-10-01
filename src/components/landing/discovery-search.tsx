@@ -46,7 +46,6 @@ const serviceCategories = [
   { label: "Training", icon: GraduationCap },
 ];
 
-
 function CityCombobox({
   city,
   onCityChange,
@@ -93,7 +92,7 @@ function CityCombobox({
   };
 
   return (
-    <div ref={containerRef} className="relative z-30 min-w-0 flex-1 sm:flex-none">
+    <div ref={containerRef} className="relative z-30 min-w-0 flex-1">
       <div className="flex items-center gap-1">
         <Input
           value={search}
@@ -118,7 +117,7 @@ function CityCombobox({
           aria-controls="city-options"
           aria-label="Search or choose city"
           placeholder="Choose city"
-          className="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 text-base text-[#444743] shadow-none !transition-none focus-visible:ring-0 sm:w-40 sm:flex-none"
+          className="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 text-base text-[#444743] shadow-none !transition-none focus-visible:ring-0"
         />
         <Button
           type="button"
@@ -220,18 +219,18 @@ export function DiscoverySearch({
           onSubmit={submitSearch}
           className="relative z-20 mt-7 flex max-w-[660px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
         >
-          <div className="flex min-h-[58px] flex-1 items-center gap-3 px-5 text-[#8e918e]">
+          <div className="flex min-h-[64px] min-w-0 flex-[2_1_0%] items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
             <Input
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
               aria-label="Search clinics, shops, groomers"
               placeholder="Search clinics, shops, groomers"
-              className="min-w-0 flex-1 border-0 bg-transparent px-0 text-base text-[#242524] shadow-none outline-none placeholder:text-[#8e918e] focus-visible:ring-0 sm:text-lg"
+              className="w-full min-w-0 flex-1 border-0 bg-transparent px-0 text-base text-[#242524] shadow-none outline-none placeholder:text-[#8e918e] focus-visible:ring-0 sm:text-lg"
             />
           </div>
           <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
-          <div className="flex min-h-[52px] items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:border-t-0">
+          <div className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:w-[230px] sm:border-t-0">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
             <CityCombobox city={city} onCityChange={onCityChange} />
           </div>
