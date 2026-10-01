@@ -3,16 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ArrowBigLeft,
   ArrowUp,
   ArrowUpRight,
+  Check,
+  ChevronDown,
   GraduationCap,
   Hotel,
   ListFilter,
@@ -22,7 +17,7 @@ import {
   ShoppingBag,
   Stethoscope,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 type DiscoverySearchProps = {
   query: string;
@@ -50,6 +45,148 @@ const serviceCategories = [
   { label: "Boarding", icon: Hotel },
   { label: "Training", icon: GraduationCap },
 ];
+
+
+function CityCombobox({
+  city,
+  onCityChange,
+}: {
+  city: string;
+  onCityChange: (city: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState(city);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSearch(city);
+  }, [city]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
+  const filteredCities = cities.filter((option) =>
+    option.toLowerCase().includes(search.trim().toLowerCase()),
+  );
+  const customCity = search.trim();
+  const hasExactCity = cities.some(
+    (option) => option.toLowerCase() === customCity.toLowerCase(),
+  );
+
+  const selectCity = (value: string) => {
+    onCityChange(value);
+    setSearch(value);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={containerRef} className="relative min-w-0 flex-1 sm:flex-none">
+      <div className="flex items-center gap-1">
+        <Input
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setSearch(city);
+              setOpen(false);
+            }
+
+            if (event.key === "Enter" && customCity) {
+              event.preventDefault();
+              selectCity(customCity);
+            }
+          }}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls="city-options"
+          aria-label="Search or choose city"
+          placeholder="Choose city"
+          className="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 text-base text-[#444743] shadow-none !transition-none focus-visible:ring-0 sm:w-40 sm:flex-none"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          aria-label={open ? "Close city selector" : "Open city selector"}
+          onClick={() => setOpen((currentOpen) => !currentOpen)}
+          className="size-8 shrink-0 rounded-full p-0 text-[#444743] hover:bg-[#f3f3f2] hover:text-[#3c6355]"
+        >
+          <ChevronDown
+            size={17}
+            strokeWidth={1.8}
+            className={open ? "rotate-180 transition-none" : "transition-none"}
+          />
+        </Button>
+      </div>
+
+      {open && (
+        <div
+          id="city-options"
+          role="listbox"
+          className="absolute left-0 top-[calc(100%+0.5rem)] z-50 max-h-72 w-[min(18rem,calc(100vw-3rem))] overflow-y-auto rounded-xl border border-[#d8d8d8] bg-white p-1.5 text-[#242524] shadow-lg"
+        >
+          {filteredCities.map((option) => {
+            const isSelected = city === option;
+
+            return (
+              <button
+                key={option}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => selectCity(option)}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#f3f3f2] focus-visible:bg-[#f3f3f2] focus-visible:outline-none"
+              >
+                <Check
+                  size={16}
+                  className={isSelected ? "text-[#3c6355]" : "text-transparent"}
+                />
+                {option}
+              </button>
+            );
+          })}
+
+          {customCity && !hasExactCity && (
+            <button
+              type="button"
+              role="option"
+              aria-selected={false}
+              onClick={() => selectCity(customCity)}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[#3c6355] hover:bg-[#eef5f1] focus-visible:bg-[#eef5f1] focus-visible:outline-none"
+            >
+              <MapPin size={16} />
+              <span>
+                Use <span className="font-semibold">{customCity}</span>
+              </span>
+            </button>
+          )}
+
+          {!filteredCities.length && !customCity && (
+            <p className="px-3 py-2.5 text-sm text-[#737773]">
+              Type a city to search or enter a custom city.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function DiscoverySearch({
   query,
@@ -96,40 +233,7 @@ export function DiscoverySearch({
           <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
           <div className="flex min-h-[52px] items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:border-t-0">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
-            <select
-              value={city}
-              onChange={(event) => onCityChange(event.target.value)}
-              aria-label="Choose city"
-              className="h-10 min-w-0 flex-1 appearance-none border-0 bg-transparent px-0 text-base text-[#444743] outline-none transition-none sm:hidden"
-            >
-              {cities.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <div className="hidden min-w-0 sm:block">
-              <Select
-                value={city}
-                onValueChange={(value) => {
-                  if (value) onCityChange(value);
-                }}
-              >
-                <SelectTrigger
-                  aria-label="Choose city"
-                  className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none !transition-none focus-visible:ring-0"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="!animate-none !transition-none">
-                  {cities.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CityCombobox city={city} onCityChange={onCityChange} />
           </div>
           <Button
             variant="ghost"
