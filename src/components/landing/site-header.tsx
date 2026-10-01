@@ -318,7 +318,7 @@ export function SiteHeader({
           className="max-w-sm"
         >
           <div className="flex flex-1 flex-col p-4">
-            <div className="order-3 my-4 border-t border-[#ececea]" />
+            <div className="my-4 border-t border-[#ececea]" />
 
             <nav aria-label="Mobile customer navigation" className="flex flex-col space-y-1">
               <MobileFavoritesAction
@@ -326,8 +326,17 @@ export function SiteHeader({
                 onClick={closeMenus}
               />
 
+              <Link
+                href="/list-your-business"
+                onClick={closeMenus}
+                className="order-2 flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+              >
+                <Store size={18} aria-hidden="true" />
+                Get Listed
+              </Link>
+
               {isSignedIn ? (
-                <div className="order-4 space-y-1">
+                <div className="order-3 space-y-1">
                   {signedInLinks.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -348,7 +357,7 @@ export function SiteHeader({
                   })}
                 </div>
               ) : (
-                <div className="order-4 space-y-2 pt-2">
+                <div className="order-3 space-y-2 pt-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -374,16 +383,6 @@ export function SiteHeader({
               )}
             </nav>
 
-            <div className="my-4 border-t border-[#ececea]" />
-
-            <Link
-              href="/list-your-business"
-              onClick={closeMenus}
-              className="order-2 flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
-            >
-              <Store size={18} aria-hidden="true" />
-              Get Listed
-            </Link>
 
             {isSignedIn && hasBusiness && (
               <Link
