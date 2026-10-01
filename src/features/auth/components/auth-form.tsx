@@ -49,6 +49,7 @@ export function AuthForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [suggestion, setSuggestion] = useState<{ entered: string; suggested: string } | null>(null);
   const [recoveryStep, setRecoveryStep] = useState<"email" | "verification">(
@@ -121,7 +122,12 @@ export function AuthForm({
           : mode === "reset"
             ? "Password reset preview ready"
             : "Sign-in preview ready",
-      description: "This UI is ready for the authentication integration.",
+      description:
+        mode === "login"
+          ? rememberMe
+            ? "You chose to stay connected on this device."
+            : "You will be asked to sign in again when the session expires."
+          : "This UI is ready for the authentication integration.",
       variant: "success",
     });
   };
@@ -293,7 +299,18 @@ export function AuthForm({
         )}
 
         {mode === "login" && (
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <label htmlFor="remember-me" className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#69736d]">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
+                className="size-4 rounded border-[#b9c8be] accent-[#3c6355] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+              />
+              Remember me
+            </label>
+            <div className="flex justify-end">
             {onForgotPassword ? (
               <button
                 type="button"
