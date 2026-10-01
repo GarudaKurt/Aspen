@@ -324,6 +324,7 @@ export function AuthForm({
                 Forgot password?
               </Link>
             )}
+            </div>
           </div>
         )}
 
