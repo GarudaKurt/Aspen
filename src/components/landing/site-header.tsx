@@ -102,7 +102,7 @@ function MobileFavoritesAction({
       href="/#browse"
       onClick={onClick}
       aria-label={`Saved businesses${favoriteCount ? ` (${favoriteCount})` : ""}`}
-      className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#242524] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+      className="order-1 flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#242524] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
     >
       <Heart size={18} className="text-[#3c6355]" aria-hidden="true" />
       Wishlist
@@ -308,21 +308,27 @@ export function SiteHeader({
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
-          title="Aspen navigation"
+          title={
+            <span className="flex items-center gap-2">
+              <AspenLogo size={32} decorative className="size-8" />
+              <span>Aspen</span>
+            </span>
+          }
           onClose={() => setMobileOpen(false)}
           className="max-w-sm"
         >
           <div className="flex flex-1 flex-col p-4">
-            <div className="my-4 border-t border-[#ececea]" />
+            <div className="order-3 my-4 border-t border-[#ececea]" />
 
-            <nav aria-label="Mobile customer navigation" className="space-y-1">
+            <nav aria-label="Mobile customer navigation" className="flex flex-col space-y-1">
               <MobileFavoritesAction
                 favoriteCount={favoriteCount}
                 onClick={closeMenus}
               />
 
               {isSignedIn ? (
-                signedInLinks.map((item) => {
+                <div className="order-4 space-y-1">
+                  {signedInLinks.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
@@ -339,9 +345,10 @@ export function SiteHeader({
                       {item.label}
                     </Link>
                   );
-                })
+                  })}
+                </div>
               ) : (
-                <div className="space-y-2 pt-2">
+                <div className="order-4 space-y-2 pt-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -372,7 +379,7 @@ export function SiteHeader({
             <Link
               href="/list-your-business"
               onClick={closeMenus}
-              className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+              className="order-2 flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
             >
               <Store size={18} aria-hidden="true" />
               Get Listed
