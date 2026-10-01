@@ -96,40 +96,26 @@ export function DiscoverySearch({
           <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
           <div className="flex min-h-[52px] items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:border-t-0">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
-            <select
+            <Select
               value={city}
-              onChange={(event) => onCityChange(event.target.value)}
-              aria-label="Choose city"
-              className="h-10 min-w-0 flex-1 appearance-none border-0 bg-transparent px-0 text-base text-[#444743] outline-none transition-none sm:hidden"
+              onValueChange={(value) => {
+                if (value) onCityChange(value);
+              }}
             >
-              {cities.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <div className="hidden min-w-0 sm:block">
-              <Select
-                value={city}
-                onValueChange={(value) => {
-                  if (value) onCityChange(value);
-                }}
+              <SelectTrigger
+                aria-label="Choose city"
+                className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none !transition-none focus-visible:ring-0"
               >
-                <SelectTrigger
-                  aria-label="Choose city"
-                  className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none transition-none focus-visible:ring-0 sm:transition-[color,box-shadow]"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="!animate-none !transition-none">
+                {cities.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button
             variant="ghost"
