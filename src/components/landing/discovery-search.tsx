@@ -104,7 +104,7 @@ export function DiscoverySearch({
             >
               <SelectTrigger
                 aria-label="Choose city"
-                className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none focus-visible:ring-0"
+                className="h-auto w-auto border-0 bg-transparent px-0 py-0 text-base shadow-none transition-none focus-visible:ring-0 sm:transition-[color,box-shadow]"
               >
                 <SelectValue />
               </SelectTrigger>
