@@ -36,7 +36,7 @@ export function SheetContent({
 }: {
   children: ReactNode;
   onClose: () => void;
-  title: string;
+  title: ReactNode;
   className?: string;
   headerActions?: ReactNode;
 }) {
