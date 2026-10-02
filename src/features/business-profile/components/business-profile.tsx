@@ -625,7 +625,9 @@ function ServicesPanel() {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#777b78]">
           Service type
         </p>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select value={selectedCategory} onValueChange={(value) => {
+                if (value !== null) setSelectedCategory(value);
+              }}>
           <SelectTrigger
             aria-label="Choose a service type"
             className="h-11 rounded-xl border-[#d8d8d5] bg-white text-sm font-semibold text-[#3c6355] shadow-none"
