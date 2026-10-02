@@ -10,7 +10,6 @@ import {
   Heart,
   ImagePlus,
   MapPin,
-  Menu,
   MessageCircle,
   Share2,
   Star,
@@ -250,19 +249,11 @@ export function BusinessProfile({
           </Link>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-base font-medium tracking-wide"
+            className="ml-auto inline-flex items-center gap-2 text-base font-medium tracking-wide"
           >
             <AspenLogo size={28} decorative />
             <span>Aspen</span>
           </Link>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            aria-label="Open menu"
-            className="rounded-lg border-[#d8dfdc] bg-white text-[#3c6355] hover:bg-[#eef3f0]"
-          >
-            <Menu size={17} />
-          </Button>
         </header>
 
         <section className="pt-6 sm:pt-8">
