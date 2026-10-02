@@ -57,6 +57,7 @@ export function AuthForm({
   );
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationError, setVerificationError] = useState("");
+  const isForgotMode = mode === "forgot";
 
   const update = (field: keyof AuthValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -69,7 +70,7 @@ export function AuthForm({
         ? loginSchema.safeParse({ email: emailOverride ?? values.email, password: values.password })
         : mode === "signup"
           ? signupSchema.safeParse(values)
-          : mode === "forgot"
+          : isForgotMode
             ? recoverySchema.safeParse({ email: emailOverride ?? values.email })
             : resetPasswordSchema.safeParse({
                 password: values.password,
@@ -110,14 +111,14 @@ export function AuthForm({
       return;
     }
 
-    if (mode === "forgot") {
+    if (isForgotMode) {
       setRecoveryStep("verification");
       return;
     }
 
     toast({
       title:
-        mode === "forgot"
+        isForgotMode
           ? "Reset email preview ready"
           : mode === "reset"
             ? "Password reset preview ready"
