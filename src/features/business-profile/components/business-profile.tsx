@@ -18,6 +18,13 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { amenityOptions, type BusinessAmenity } from "../amenities";
 import { AmenityIcon } from "./amenity-icon";
 import {
@@ -461,6 +468,19 @@ function ProfileSection({
 }
 
 function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
+  const reviewsPerPage = 5;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(mockReviews.length / reviewsPerPage),
+  );
+  const [reviewPage, setReviewPage] = useState(1);
+  const currentPage = Math.min(reviewPage, totalPages);
+  const pageStart = (currentPage - 1) * reviewsPerPage;
+  const visibleReviews = mockReviews.slice(
+    pageStart,
+    pageStart + reviewsPerPage,
+  );
+
   return (
     <div className="rounded-2xl border border-[#d8d8d5] bg-white p-4 shadow-sm sm:p-6">
       <div className="flex items-start gap-5 border-b border-[#e5e6e4] pb-5">
@@ -482,10 +502,39 @@ function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
         </p>
       </div>
       <div className="space-y-3">
-        {mockReviews.map((review) => (
+        {visibleReviews.map((review) => (
           <ReviewItem key={`${review.name}-${review.comment}`} {...review} />
         ))}
       </div>
+      {totalPages > 1 && (
+        <Pagination className="mt-5 border-t border-[#e5e6e4] pt-4">
+          <PaginationContent className="w-full justify-between gap-2">
+            <PaginationItem>
+              <PaginationPrevious
+                aria-label="Previous reviews"
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setReviewPage((page) => Math.max(1, page - 1))
+                }
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <span className="px-2 text-xs text-[#737773] sm:text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext
+                aria-label="Next reviews"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setReviewPage((page) => Math.min(totalPages, page + 1))
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }
