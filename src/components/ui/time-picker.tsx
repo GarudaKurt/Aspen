@@ -26,7 +26,13 @@ export function TimePicker({
   "aria-label"?: string;
 }) {
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+    <Select
+      value={value}
+      onValueChange={(nextValue) => {
+        if (nextValue !== null) onValueChange(nextValue);
+      }}
+      disabled={disabled}
+    >
       <SelectTrigger aria-label={ariaLabel} className="bg-white">
         <SelectValue />
       </SelectTrigger>
