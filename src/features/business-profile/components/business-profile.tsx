@@ -120,6 +120,42 @@ const mockReviews: ReviewData[] = [
     comment:
       "They took great care of my pet and made sure I understood the next steps.",
   },
+  {
+    name: "Paolo S.",
+    starRating: 5,
+    comment:
+      "The team was welcoming, organized, and made our first visit stress-free.",
+  },
+  {
+    name: "Kim A.",
+    starRating: 4,
+    comment:
+      "The clinic was easy to find and the staff gave us practical aftercare instructions.",
+  },
+  {
+    name: "Jessa L.",
+    starRating: 5,
+    comment:
+      "My puppy received gentle care and the appointment started right on time.",
+  },
+  {
+    name: "Marco V.",
+    starRating: 5,
+    comment:
+      "Helpful recommendations and thoughtful staff. I would gladly return.",
+  },
+  {
+    name: "Rina C.",
+    starRating: 4,
+    comment:
+      "Everything was clean and professional, with clear explanations throughout the visit.",
+  },
+  {
+    name: "Owen B.",
+    starRating: 5,
+    comment:
+      "A great experience from booking through follow-up. Highly recommended for pet owners.",
+  },
 ];
 
 const serviceCategories: ServiceCategory[] = [
