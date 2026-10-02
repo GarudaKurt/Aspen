@@ -3,7 +3,7 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type ChangeEvent, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   Check,
@@ -12,7 +12,6 @@ import {
   MapPin,
   Menu,
   MessageCircle,
-  Pencil,
   Share2,
   Star,
 } from "lucide-react";
@@ -233,20 +232,10 @@ export function BusinessProfile({
   const [activeTab, setActiveTab] = useState("Overview");
   const [isFavorite, setIsFavorite] = useState(false);
   const toggleFavorite = () => setIsFavorite((current) => !current);
-  const [coverPhoto, setCoverPhoto] = useState<string | null>(
-    provider.coverPhoto ?? null,
-  );
+  const coverPhoto = provider.coverPhoto ?? null;
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);
   const displayedAmenities = provider.amenities ?? amenityOptions.slice(0, 3);
-
-  const handleImageUpload = (
-    event: ChangeEvent<HTMLInputElement>,
-    setPreview: (preview: string) => void,
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) setPreview(URL.createObjectURL(file));
-  };
 
   return (
     <main className="min-h-screen bg-white px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
@@ -277,32 +266,18 @@ export function BusinessProfile({
         </header>
 
         <section className="pt-6 sm:pt-8">
-          <label className="relative block h-[150px] cursor-pointer overflow-hidden rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
+          <div className="relative block h-[150px] overflow-hidden rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
             {coverPhoto && (
               <Image
                 src={coverPhoto}
-                alt="Cover photo preview"
+                alt="Business cover photo"
                 fill
                 unoptimized
                 sizes="(min-width: 1024px) 1120px, 100vw"
                 className="object-cover"
               />
             )}
-            {!preview && (
-              <>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(event) => handleImageUpload(event, setCoverPhoto)}
-                />
-                <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-[#3c6355] shadow-sm">
-                  <Pencil size={16} />
-                  <span className="sr-only">Upload or edit cover photo</span>
-                </span>
-              </>
-            )}
-          </label>
+          </div>
           <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
