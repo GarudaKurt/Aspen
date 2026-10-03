@@ -69,7 +69,7 @@ export function BusinessCard({
   const [activeImage, setActiveImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const toggleFavorite = () => setIsFavorite((current) => !current);
-  const pointerStart = useRef<number | null>(null);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
   if (isLoading) {
     return <BusinessCardSkeleton />;
@@ -85,18 +85,41 @@ export function BusinessCard({
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    pointerStart.current = event.clientX;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    pointerStart.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const start = pointerStart.current;
+    if (!start) return;
+
+    const horizontalDistance = Math.abs(event.clientX - start.x);
+    const verticalDistance = Math.abs(event.clientY - start.y);
+
+    // Once movement is clearly vertical, hand the gesture back to the page.
+    if (
+      verticalDistance > 8 &&
+      verticalDistance > horizontalDistance
+    ) {
+      pointerStart.current = null;
+    }
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (pointerStart.current === null) return;
-    const distance = event.clientX - pointerStart.current;
-    if (hasImages && Math.abs(distance) >= 40) {
-      moveImage(distance > 0 ? -1 : 1);
+    const start = pointerStart.current;
+    if (!start) return;
+
+    const horizontalDelta = event.clientX - start.x;
+    const verticalDistance = Math.abs(event.clientY - start.y);
+    const horizontalDistance = Math.abs(horizontalDelta);
+    const isHorizontalSwipe =
+      horizontalDistance >= 40 && horizontalDistance > verticalDistance * 1.2;
+
+    if (hasImages && isHorizontalSwipe) {
+      moveImage(horizontalDelta > 0 ? -1 : 1);
     }
+
     pointerStart.current = null;
-    event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
   const currentImage = cardImages[activeImage];
@@ -109,7 +132,7 @@ export function BusinessCard({
         onPointerCancel={() => {
           pointerStart.current = null;
         }}
-        className="relative aspect-[1.35] cursor-grab touch-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
+        className="relative aspect-[1.35] cursor-grab touch-pan-y select-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
       >
         {currentImage && (
           <Image
