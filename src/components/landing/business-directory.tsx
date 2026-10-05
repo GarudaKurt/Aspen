@@ -35,7 +35,7 @@ export function BusinessDirectory({
           Filter by services
         </p>
         <div className="mt-8 grid gap-10 lg:grid-cols-[202px_1fr]">
-          <aside className="h-fit rounded-lg bg-[#faf9f6] p-5">
+          <aside className="h-fit rounded-lg bg-[#faf9f6] p-5 lg:sticky lg:top-6">
             <div className="flex items-center gap-2">
               <SlidersHorizontal size={17} className="text-[#3c6355]" />
               <h3 className="text-xl font-bold text-[#3c6355]">Filters</h3>

@@ -37,7 +37,10 @@ export function FeaturedStores() {
         </div>
         <div className="mt-10 grid grid-cols-1 gap-5 min-[560px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {mockBusinesses.slice(0, 4).map((business, index) => (
-            <BusinessCard key={`${business.businessName}-${index}`} {...business} />
+            <BusinessCard
+              key={`${business.businessName}-${index}`}
+              {...business}
+            />
           ))}
         </div>
       </div>

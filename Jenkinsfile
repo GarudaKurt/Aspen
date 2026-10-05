@@ -7,9 +7,9 @@ pipeline {
                 echo "Hello World"
             }
         }
-        stage('Test') {
-            steps{
-                echo "Test CI"
+        stage('test') {
+            steps {
+                echo "Testing CI/CD"
             }
         }
     }

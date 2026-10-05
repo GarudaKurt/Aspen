@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
+import type { BusinessService } from "@/domain/business";
 
 export type BusinessCardImage = {
   src: string;
@@ -23,6 +24,8 @@ export interface BusinessCardProps {
   rating: string;
   services: string;
   priceStarts: string;
+  slug?: string;
+  servicesOffered?: BusinessService[];
   images?: BusinessCardImage[];
   href?: string;
   isLoading?: boolean;
@@ -56,6 +59,7 @@ export function BusinessCard({
   rating,
   services,
   priceStarts,
+  slug,
   images = [],
   href = "#",
   isLoading = false,
@@ -63,8 +67,9 @@ export function BusinessCard({
   const cardImages = images;
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
-  const [saved, setSaved] = useState(false);
-  const pointerStart = useRef<number | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const toggleFavorite = () => setIsFavorite((current) => !current);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
   if (isLoading) {
     return <BusinessCardSkeleton />;
@@ -80,18 +85,41 @@ export function BusinessCard({
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    pointerStart.current = event.clientX;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    pointerStart.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const start = pointerStart.current;
+    if (!start) return;
+
+    const horizontalDistance = Math.abs(event.clientX - start.x);
+    const verticalDistance = Math.abs(event.clientY - start.y);
+
+    // Once movement is clearly vertical, hand the gesture back to the page.
+    if (
+      verticalDistance > 8 &&
+      verticalDistance > horizontalDistance
+    ) {
+      pointerStart.current = null;
+    }
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (pointerStart.current === null) return;
-    const distance = event.clientX - pointerStart.current;
-    if (hasImages && Math.abs(distance) >= 40) {
-      moveImage(distance > 0 ? -1 : 1);
+    const start = pointerStart.current;
+    if (!start) return;
+
+    const horizontalDelta = event.clientX - start.x;
+    const verticalDistance = Math.abs(event.clientY - start.y);
+    const horizontalDistance = Math.abs(horizontalDelta);
+    const isHorizontalSwipe =
+      horizontalDistance >= 40 && horizontalDistance > verticalDistance * 1.2;
+
+    if (hasImages && isHorizontalSwipe) {
+      moveImage(horizontalDelta > 0 ? -1 : 1);
     }
+
     pointerStart.current = null;
-    event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
   const currentImage = cardImages[activeImage];
@@ -104,7 +132,7 @@ export function BusinessCard({
         onPointerCancel={() => {
           pointerStart.current = null;
         }}
-        className="relative aspect-[1.35] cursor-grab touch-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
+        className="relative aspect-[1.35] cursor-grab touch-pan-y select-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
       >
         {currentImage && (
           <Image
@@ -145,18 +173,18 @@ export function BusinessCard({
           type="button"
           onPointerDown={(event) => event.stopPropagation()}
           onPointerUp={(event) => event.stopPropagation()}
-          onClick={() => setSaved((current) => !current)}
+          onClick={toggleFavorite}
           aria-label={
-            saved
+            isFavorite
               ? `Remove ${businessName} from favorites`
               : `Save ${businessName}`
           }
-          aria-pressed={saved}
-          className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${saved ? "bg-[#3c6355] text-white" : ""}`}
+          aria-pressed={isFavorite}
+          className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm ring-2 ring-white transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${isFavorite ? "bg-[#3c6355] text-white" : ""}`}
         >
           <Heart
             size={12}
-            fill={saved ? "currentColor" : "none"}
+            fill={isFavorite ? "currentColor" : "none"}
             strokeWidth={1.8}
           />
         </Button>
@@ -190,7 +218,7 @@ export function BusinessCard({
           <span className="text-[#d9d9d7]">•</span>
           <span>{services}</span>
           <Link
-            href={href}
+            href={slug ? `/business-profile/${slug}` : href}
             aria-label={`View ${businessName} details`}
             className="ml-auto flex shrink-0 items-center justify-center rounded-full text-[#ff8b2c] transition-colors hover:text-[#e67a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8b2c]/50"
           >
