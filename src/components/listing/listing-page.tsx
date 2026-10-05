@@ -426,6 +426,82 @@ function IdentityStep({
   );
 }
 
+function BillingStep({
+  billing,
+  errors,
+  onChange,
+}: {
+  billing: BillingDetails;
+  errors: Record<string, string>;
+  onChange: <K extends keyof BillingDetails>(
+    field: K,
+    value: BillingDetails[K],
+  ) => void;
+}) {
+  return (
+    <FormSection
+      title="Billing details"
+      description="Provide the billing information we will use for your provider account."
+    >
+      <div className="rounded-lg border border-[#d8dbd8] bg-[#f7faf8] p-4 text-sm text-[#587267]">
+        No payment is collected in this step. Billing and plan activation will be
+        finalized after your listing is reviewed.
+      </div>
+      <FieldLabel label="Billing name">
+        <Input
+          value={billing.fullName}
+          onChange={(event) => onChange("fullName", event.target.value)}
+          placeholder="Your full name or registered business name"
+          aria-invalid={Boolean(errors.fullName)}
+        />
+        {errors.fullName && (
+          <span className="block text-xs font-normal text-red-600">{errors.fullName}</span>
+        )}
+      </FieldLabel>
+      <FieldLabel label="Billing email">
+        <Input
+          type="email"
+          value={billing.email}
+          onChange={(event) => onChange("email", event.target.value)}
+          placeholder="billing@example.com"
+          aria-invalid={Boolean(errors.email)}
+        />
+        {errors.email && (
+          <span className="block text-xs font-normal text-red-600">{errors.email}</span>
+        )}
+      </FieldLabel>
+      <FieldLabel label="Billing address">
+        <textarea
+          value={billing.address}
+          onChange={(event) => onChange("address", event.target.value)}
+          placeholder="Street, city, province"
+          aria-invalid={Boolean(errors.address)}
+          className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
+        />
+        {errors.address && (
+          <span className="block text-xs font-normal text-red-600">{errors.address}</span>
+        )}
+      </FieldLabel>
+      <FieldLabel label="Billing preference">
+        <Select
+          value={billing.method}
+          onValueChange={(value) =>
+            onChange("method", value as BillingDetails["method"])
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="invoice">Invoice after approval</SelectItem>
+            <SelectItem value="online">Pay online when billing is enabled</SelectItem>
+          </SelectContent>
+        </Select>
+      </FieldLabel>
+    </FormSection>
+  );
+}
+
 function ReviewStep() {
   return (
     <FormSection
