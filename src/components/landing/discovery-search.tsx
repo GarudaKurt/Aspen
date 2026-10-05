@@ -3,8 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowBigLeft,
-  ArrowUp,
   ArrowUpRight,
   Check,
   ChevronDown,
@@ -56,10 +54,6 @@ function CityCombobox({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(city);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setSearch(city);
-  }, [city]);
 
   useEffect(() => {
     if (!open) return;
@@ -232,7 +226,7 @@ export function DiscoverySearch({
           <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
           <div className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:w-[230px] sm:border-t-0">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
-            <CityCombobox city={city} onCityChange={onCityChange} />
+            <CityCombobox key={city} city={city} onCityChange={onCityChange} />
           </div>
           <Button
             variant="ghost"
