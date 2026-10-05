@@ -36,6 +36,8 @@ function sameDay(first?: Date, second?: Date) {
 export function Calendar({ selected, onSelect, disabled }: CalendarProps) {
   const [viewDate, setViewDate] = React.useState(selected ?? new Date());
   React.useEffect(() => {
+    // The calendar is controlled by the selected date and must follow external changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selected) setViewDate(selected);
   }, [selected]);
   const year = viewDate.getFullYear();
