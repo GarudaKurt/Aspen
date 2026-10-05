@@ -54,9 +54,7 @@ export function ServiceFormSheet({
           : emptyDraft,
       );
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError("");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPhotoError("");
   }, [open, service]);
 
