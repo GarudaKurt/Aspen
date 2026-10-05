@@ -204,7 +204,9 @@ export function BillingDetailsPage() {
           </p>
         </div>
 
-        <div className="grid items-start gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
+          <div className="space-y-4">
+
           <Card className="h-fit bg-[#3c6355] p-6 text-white shadow-none">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -228,7 +230,27 @@ export function BillingDetailsPage() {
             </Button>
           </Card>
 
-          <Card className="bg-white p-6 shadow-none">
+\n        <Card className="bg-white p-5 shadow-none sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold">Billing Information</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Details collected during your List Your Business setup.
+              </p>
+            </div>
+            <Link
+              href="/list-your-business/billing"
+              className="font-semibold text-[#3c6355] hover:underline"
+            >
+              Edit details
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <BillingField label="Billing name" value={billing.fullName} />
+            <BillingField label="Billing email" value={billing.email} />
+            <BillingField label="Billing address" value={billing.address} />
+          </div>
+        </Card>\n          </div>\n          <Card className="bg-white p-6 shadow-none">
             <div className="flex items-start gap-3">
               <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#3c6355]">
                 <Banknote className="size-5" />
@@ -290,37 +312,7 @@ export function BillingDetailsPage() {
           </Card>
         </div>
 
-        <Card className="bg-white p-5 shadow-none sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">
-                Account profile
-              </p>
-              <h2 className="mt-1 text-xl font-semibold">Billing Information</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Details collected during your List Your Business setup.
-              </p>
-            </div>
-            <Link
-              href="/list-your-business/billing"
-              className="font-semibold text-[#3c6355] hover:underline"
-            >
-              Edit details
-            </Link>
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <BillingField label="Billing name" value={billing.fullName} />
-            <BillingField label="Billing email" value={billing.email} />
-            <BillingField label="Contact number" value="Not provided" />
-            <BillingField label="Company name" value="Not provided" />
-            <BillingField label="Billing address" value={billing.address} className="sm:col-span-2" />
-            <BillingField label="City / Municipality" value="Not provided" />
-            <BillingField label="Province" value="Not provided" />
-            <BillingField label="Postal code" value="Not provided" />
-            <BillingField label="Country" value="Philippines" />
-            <BillingField label="TIN" value="Optional · Not provided" />
-          </div>
-        </Card>
+
 
         <Card className="bg-white p-5 shadow-none sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
