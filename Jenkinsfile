@@ -36,7 +36,11 @@ pipeline {
             steps {
                 sh '''
                     pnpm run lint
-                    pnpm run test --if-present
+                    if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+                        pnpm run test
+                    else
+                        echo "No test script configured; skipping tests."
+                    fi
                 '''
             }
         }
