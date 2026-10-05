@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import {
@@ -25,12 +25,13 @@ export function AuthDialog({
 }) {
   const [mode, setMode] = useState<AuthDialogMode>(initialMode);
 
-  useEffect(() => {
-    if (open) setMode(initialMode);
-  }, [open, initialMode]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) setMode(initialMode);
+    onOpenChange(nextOpen);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogClose onClick={() => onOpenChange(false)} />
         <DialogHeader>
