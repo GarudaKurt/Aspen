@@ -10,6 +10,7 @@ import {
   Smartphone,
   Trash2,
   WalletCards,
+  type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ const methodLabels: Record<PaymentMethodType, string> = {
   gcash: "GCash",
 };
 
-const methodIcons: Record<PaymentMethodType, typeof CreditCard> = {
+const methodIcons: Record<PaymentMethodType, LucideIcon> = {
   debit: CreditCard,
   credit: CreditCard,
   gcash: Smartphone,
