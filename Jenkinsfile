@@ -40,5 +40,10 @@ pipeline {
                 '''
             }
         }
+        stage('BUILD Front-End') {
+            steps {
+                echo "npm run dev"
+            }
+        }
     }
 }
