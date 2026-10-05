@@ -103,7 +103,9 @@ export function DashboardOverview() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map(([value, label, Icon]) => (
           <Card key={label} className="bg-white p-5 text-center shadow-none">
-            <Icon className="mx-auto mb-4 size-5 text-[#3c6355]" />
+            <span className="mx-auto mb-4 grid size-11 place-items-center rounded-2xl bg-emerald-50 text-[#3c6355]">
+              <Icon className="size-5" />
+            </span>
             <strong className="block text-3xl">{value}</strong>
             <span className="text-sm text-slate-500">{label}</span>
           </Card>
