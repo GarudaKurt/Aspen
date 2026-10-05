@@ -63,6 +63,9 @@ export function BillingDetailsPage() {
   const [methodType, setMethodType] = useState<PaymentMethodType>("debit");
   const [cardholder, setCardholder] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [nextBillingDate, setNextBillingDate] = useState<string | null>(null);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [topUpMethod, setTopUpMethod] = useState("");
 
@@ -70,11 +73,44 @@ export function BillingDetailsPage() {
     setMethodType("debit");
     setCardholder("");
     setAccountNumber("");
+    setCvv("");
+    setExpiry("");
   };
+
+  const formatCardNumber = (value: string) =>
+    value.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+
+  const formatExpiry = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+    return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  };
+
+  const isCardPayment = methodType === "debit" || methodType === "credit";
 
   const addMethod = () => {
     const compactNumber = accountNumber.replace(/\D/g, "");
-    if (!cardholder.trim() || compactNumber.length < 4) {
+    const compactCvv = cvv.replace(/\D/g, "");
+    const expiryMatch = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.exec(expiry);
+
+    if (!cardholder.trim() || compactNumber.length < (isCardPayment ? 16 : 4)) {
+      toast({
+        title: "Invalid payment details",
+        description: isCardPayment
+          ? "Enter a 16-digit card number."
+          : "Enter a valid GCash number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isCardPayment && (!expiryMatch || compactCvv.length < 3)) {
+      toast({
+        title: "Invalid card details",
+        description: "Enter a valid expiry date and a 3 or 4-digit CVV/CVC.",
+        variant: "destructive",
+      });
+      return;
+    }
       toast({
         title: "Complete payment details",
         description: "Enter a name and a valid payment account number.",
@@ -93,11 +129,24 @@ export function BillingDetailsPage() {
         isDefault: current.length === 0,
       },
     ]);
+    if (isCardPayment) {
+      const nextDate = new Date();
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      setNextBillingDate(
+        nextDate.toLocaleDateString(undefined, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+      );
+    }
     setAddOpen(false);
     resetMethodForm();
     toast({
-      title: "Payment method added",
-      description: `${methodLabels[methodType]} is ready to use.`,
+      title: isCardPayment ? "Payment successful" : "Payment method added",
+      description: isCardPayment
+        ? "Your payment method was saved for future billing."
+        : `${methodLabels[methodType]} is ready to use.`,
       variant: "success",
     });
   };
@@ -195,6 +244,12 @@ export function BillingDetailsPage() {
               <Check className="size-4" />
               No payment is due in this demo
             </div>
+            {nextBillingDate && (
+              <div className="mt-4 rounded-lg bg-[#f1f6f3] p-3 text-sm text-[#3c6355]">
+                <strong className="block">Next billing cycle</strong>
+                <span>{nextBillingDate}</span>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -285,8 +340,7 @@ export function BillingDetailsPage() {
         <SheetContent title="Add payment method" onClose={() => setAddOpen(false)}>
           <div className="space-y-5 p-5">
             <div>
-              <h2 className="text-xl font-semibold">Add payment method</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="text-sm text-slate-500">
                 Payment information is not submitted in this UI preview.
               </p>
             </div>
@@ -304,13 +358,48 @@ export function BillingDetailsPage() {
               <Input id="cardholder" value={cardholder} onChange={(event) => setCardholder(event.target.value)} placeholder="Juan Dela Cruz" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="account-number">Card or GCash number</Label>
-              <Input id="account-number" value={accountNumber} onChange={(event) => setAccountNumber(event.target.value)} inputMode="numeric" placeholder="Enter account number" />
+              <Label htmlFor="account-number">
+                {isCardPayment ? "Card number" : "GCash number"}
+              </Label>
+              <Input
+                id="account-number"
+                value={isCardPayment ? formatCardNumber(accountNumber) : accountNumber}
+                onChange={(event) => setAccountNumber(event.target.value)}
+                inputMode="numeric"
+                maxLength={isCardPayment ? 19 : undefined}
+                placeholder={isCardPayment ? "1234 5678 9012 3456" : "Enter GCash number"}
+              />
             </div>
+            {isCardPayment && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="expiry">Expiry date</Label>
+                  <Input
+                    id="expiry"
+                    value={expiry}
+                    onChange={(event) => setExpiry(formatExpiry(event.target.value))}
+                    inputMode="numeric"
+                    maxLength={5}
+                    placeholder="MM/YY"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cvv">CVV/CVC</Label>
+                  <Input
+                    id="cvv"
+                    value={cvv}
+                    onChange={(event) => setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="123"
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <SheetFooter>
             <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button type="button" onClick={addMethod} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">Save method</Button>
+            <Button type="button" onClick={addMethod} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">{isCardPayment ? "Pay Now" : "Save method"}</Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
