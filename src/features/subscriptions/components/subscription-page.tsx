@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
@@ -15,13 +16,13 @@ export function SubscriptionPage() {
     <main className="min-h-screen bg-white text-[#171817]">
       <header className="border-b border-[#e5e8e5]">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
-          <a href="/" className="flex items-center gap-2 rounded-md text-lg font-bold tracking-tight text-[#3c6355] outline-none transition-colors hover:text-[#2f5044] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 sm:text-xl" aria-label="Aspen home">
+          <Link href="/" className="flex items-center gap-2 rounded-md text-lg font-bold tracking-tight text-[#3c6355] outline-none transition-colors hover:text-[#2f5044] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 sm:text-xl" aria-label="Aspen home">
             <AspenLogo size={36} decorative className="size-9" />
             <span>Aspen</span>
-          </a>
-          <a href="/" className="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold text-[#3c6355] transition-colors hover:bg-[#f1f6f3]">
+          </Link>
+          <Link href="/" className="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold text-[#3c6355] transition-colors hover:bg-[#f1f6f3]">
             Back to Aspen
-          </a>
+          </Link>
         </div>
       </header>
 
