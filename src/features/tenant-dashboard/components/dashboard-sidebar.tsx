@@ -11,6 +11,7 @@ import {
   UserRound,
   ShoppingCart,
   ClipboardList,
+  WalletCards,
 } from "lucide-react";
 import {
   Sidebar,
@@ -69,6 +70,12 @@ const navItems: DashboardNavItem[] = [
     icon: "analytics",
     group: "business",
   },
+  {
+    label: "Billing",
+    href: "/tenant-dashboard/billing",
+    icon: "billing",
+    group: "business",
+  },
 ];
 
 const icons = {
@@ -80,6 +87,7 @@ const icons = {
   notifications: Bell,
   calendar: CalendarDays,
   analytics: ChartNoAxesColumn,
+  billing: WalletCards,
 };
 
 export function DashboardSidebar() {
