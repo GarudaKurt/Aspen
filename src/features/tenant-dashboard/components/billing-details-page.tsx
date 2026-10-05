@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   Banknote,
@@ -22,6 +23,7 @@ import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
 import { Switch } from "@/components/ui/switch";
 
+import { useListingStore } from "@/features/business-profile/store/onboarding.store";
 import { MobileDashboardNav } from "./dashboard-shell";
 
 type PaymentMethodType = "debit" | "credit" | "gcash";
@@ -57,6 +59,7 @@ const methodIcons: Record<PaymentMethodType, LucideIcon> = {
 };
 
 export function BillingDetailsPage() {
+  const billing = useListingStore((state) => state.billing);
   const [balance, setBalance] = useState(2500);
   const [methods, setMethods] = useState(initialMethods);
   const [addOpen, setAddOpen] = useState(false);
@@ -199,8 +202,8 @@ export function BillingDetailsPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card className="bg-[#3c6355] p-6 text-white shadow-none">
+        <div className="grid items-start gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <Card className="h-fit bg-[#3c6355] p-6 text-white shadow-none">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-white/75">Available balance</p>
@@ -284,6 +287,42 @@ export function BillingDetailsPage() {
             </div>
           </Card>
         </div>
+
+        <Card className="bg-white p-5 shadow-none sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">
+                Account profile
+              </p>
+              <h2 className="mt-1 text-xl font-semibold">Billing Information</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Details collected during your List Your Business setup.
+              </p>
+            </div>
+            <Link
+              href="/list-your-business/billing"
+              className="font-semibold text-[#3c6355] hover:underline"
+            >
+              Edit details
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="text-xs text-slate-500">Billing name</p>
+              <p className="mt-1 font-semibold">{billing.fullName || "Not provided"}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="text-xs text-slate-500">Billing email</p>
+              <p className="mt-1 break-words font-semibold">
+                {billing.email || "Not provided"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="text-xs text-slate-500">Billing address</p>
+              <p className="mt-1 font-semibold">{billing.address || "Not provided"}</p>
+            </div>
+          </div>
+        </Card>
 
         <Card className="bg-white p-5 shadow-none sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
