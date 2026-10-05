@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
+import { Switch } from "@/components/ui/switch";
 
 import { MobileDashboardNav } from "./dashboard-shell";
 
@@ -65,7 +66,8 @@ export function BillingDetailsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [cvv, setCvv] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [nextBillingDate, setNextBillingDate] = useState<string | null>(null);
+  const [nextBillingDate, setNextBillingDate] = useState("November 5, 2026");
+  const [autoRenew, setAutoRenew] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [topUpMethod, setTopUpMethod] = useState("");
 
@@ -86,6 +88,7 @@ export function BillingDetailsPage() {
   };
 
   const isCardPayment = methodType === "debit" || methodType === "credit";
+  const defaultMethod = methods.find((method) => method.isDefault);
 
   const addMethod = () => {
     const compactNumber = accountNumber.replace(/\D/g, "");
@@ -222,26 +225,53 @@ export function BillingDetailsPage() {
 
           <Card className="bg-white p-6 shadow-none">
             <div className="flex items-start gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-[#e8f5ef] text-[#3c6355]">
+              <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#3c6355]">
                 <Banknote className="size-5" />
               </span>
               <div>
-                <h2 className="font-semibold">Billing status</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Your billing profile is ready for setup.
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#587267]">
+                  Current subscription
+                </p>
+                <h2 className="mt-1 text-xl font-semibold">Professional plan</h2>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-slate-500">Monthly billing</p>
+                <p className="mt-1 font-semibold">₱999 / month</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Next billing date</p>
+                <p className="mt-1 font-semibold">{nextBillingDate}</p>
+              </div>
+            </div>
+            <div className="mt-5 rounded-xl border border-slate-200 p-4">
+              <p className="text-xs text-slate-500">Default payment method</p>
+              <p className="mt-1 font-semibold">
+                {defaultMethod
+                  ? `${defaultMethod.label} ${defaultMethod.detail}`
+                  : "No payment method selected"}
+              </p>
+            </div>
+            <div className="mt-5 flex items-start justify-between gap-4 rounded-xl bg-[#f1f6f3] p-4">
+              <div>
+                <p className="font-semibold">Auto-Renew Subscription</p>
+                <p className="mt-1 text-sm text-[#587267]">
+                  {autoRenew && defaultMethod
+                    ? `${defaultMethod.label} will be charged automatically each month.`
+                    : "Choose a default payment method to enable automatic billing."}
                 </p>
               </div>
+              <Switch
+                checked={autoRenew}
+                onCheckedChange={setAutoRenew}
+                aria-label="Auto-Renew Subscription"
+              />
             </div>
-            <div className="mt-6 flex items-center gap-2 text-sm font-medium text-[#3c6355]">
+            <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[#3c6355]">
               <Check className="size-4" />
-              No payment is due in this demo
+              Billing profile active
             </div>
-            {nextBillingDate && (
-              <div className="mt-4 rounded-lg bg-[#f1f6f3] p-3 text-sm text-[#3c6355]">
-                <strong className="block">Next billing cycle</strong>
-                <span>{nextBillingDate}</span>
-              </div>
-            )}
           </Card>
         </div>
 
