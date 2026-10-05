@@ -56,11 +56,7 @@ export function SubscriptionPage() {
               <p className="mt-4 min-h-12 text-left text-sm leading-5 text-[#7c8780]">{plan.description}</p>
               <Button
                 type="button"
-                onClick={
-                  plan.name === "Professional"
-                    ? () => router.push("/list-your-business")
-                    : undefined
-                }
+                onClick={() => router.push("/list-your-business")}
                 variant={plan.highlighted ? "default" : "outline"}
                 className={`mt-6 min-h-11 w-full rounded-xl ${plan.highlighted ? "bg-[#3c6355] text-white hover:bg-[#2f5044]" : "border-[#3c6355] text-[#3c6355] hover:bg-[#eef5f0]"}`}>
                 {plan.cta}
