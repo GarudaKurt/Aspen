@@ -36,7 +36,7 @@ pipeline {
                 echo "              Build Node.js"
                 echo "================================================="
                 sh '''
-                    pnpm install
+                    npm install
                 '''
             }
         }
