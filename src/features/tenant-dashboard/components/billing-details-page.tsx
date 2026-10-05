@@ -264,7 +264,17 @@ export function BillingDetailsPage() {
               </div>
               <Switch
                 checked={autoRenew}
-                onCheckedChange={setAutoRenew}
+                onCheckedChange={(checked) => {
+                  setAutoRenew(checked);
+                  toast({
+                    title: checked ? "Auto-renew enabled" : "Auto-renew disabled",
+                    description: checked
+                      ? "Your default payment method will be charged monthly."
+                      : "Monthly subscription payments now require manual action.",
+                    variant: "success",
+                  });
+                }}
+                disabled={!defaultMethod}
                 aria-label="Auto-Renew Subscription"
               />
             </div>
