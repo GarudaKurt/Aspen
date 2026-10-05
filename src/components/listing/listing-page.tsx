@@ -508,7 +508,7 @@ function ReviewStep() {
       title="Review and submit"
       description="Check every section before sending the application to the administrator."
     >
-      {["Business", "Services", "Identity"].map((section) => (
+      {["Business", "Services", "Identity", "Billing"].map((section) => (
         <Card
           key={section}
           className="rounded-lg border-[#d8dbd8] p-4 shadow-none"
