@@ -57,7 +57,7 @@ export function SubscriptionPage() {
               <Button
                 type="button"
                 onClick={
-                  plan.cta === "Choose Professional"
+                  plan.name === "Professional"
                     ? () => router.push("/list-your-business")
                     : undefined
                 }
