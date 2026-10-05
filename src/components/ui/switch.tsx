@@ -2,7 +2,7 @@
 
 import type { ButtonHTMLAttributes } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
 export function Switch({
   checked = false,
