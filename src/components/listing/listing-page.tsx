@@ -358,7 +358,7 @@ function IdentityStep({
             <SelectContent>
               <SelectItem value="National ID">National ID</SelectItem>
               <SelectItem value="Passport">Passport</SelectItem>
-              <SelectItem value="Driver's license">Driver's license</SelectItem>
+              <SelectItem value="Driver&apos;s license">Driver&apos;s license</SelectItem>
             </SelectContent>
           </Select>
         </FieldLabel>

@@ -766,7 +766,7 @@ function ConfirmationPage({
           </div>
           <h1 className="mt-6 text-3xl font-bold">Request sent</h1>
           <p className="mt-2 text-sm text-slate-500">
-            You'll get a message here and by email once {businessName} confirms
+            You&apos;ll get a message here and by email once {businessName} confirms
             your time.
           </p>
           <div className="mx-auto mt-6 max-w-md rounded-xl border p-5 text-left text-sm">

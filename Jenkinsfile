@@ -1,49 +1,61 @@
 pipeline {
-    agent {
-        label 'agent-aspen'
+    agent { label 'aspen-agent' }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '10'))
+        timeout(time: 20, unit: 'MINUTES')
+        disableConcurrentBuilds(abortPrevious: true)
     }
 
-    options { 
-        buildDiscarder(
-            logRotator(
-                numToKeepStr: '20',
-                artifactNumToKeepStr: '10'
-            )
-        )
-    }
-
-    envinronment {
+    environment {
         REPO_OWNER = 'GarudaKurt'
-        REPO_NAME = 'Aspen'
+        REPO_NAME  = 'Aspen'
+        IMAGE_NAME = 'aspen'
     }
 
-    stages{
+    stages {
         stage('PR Info') {
+            when { changeRequest() }
             steps {
-                echo "================================================="
-                echo "             Pull Request Info                   "
-                echo "================================================="
-                echo "PR Number:       #${env.CHANGE_ID}                "
-                echo "Title:           ${env.CHANGE_TITLE}              "
-                echo "Source:          ${env.CHANGE_BRANCH}             "
-                echo "Target:          ${env.CHANGE_TARGET}             "
-                echo "================================================="
+                echo "PR #${env.CHANGE_ID}: ${env.CHANGE_TITLE}"
+                echo "${env.CHANGE_BRANCH} -> ${env.CHANGE_TARGET}"
             }
         }
-        stages('BUILD') {
+
+        stage('Install') {
             steps {
-                echo "================================================="
-                echo "              Build Node.js"
-                echo "================================================="
                 sh '''
-                    pnpm install
+                    node -v
+                    pnpm -v
+                    pnpm install --frozen-lockfile
                 '''
             }
         }
-        stage('test') {
+
+        stage('Lint & Test') {
             steps {
-                echo "Testing CI/CD"
+                sh '''
+                    pnpm run lint
+                    if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+                        pnpm run test
+                    else
+                        echo "No test script configured; skipping tests."
+                    fi
+                '''
             }
         }
+
+        stage('Build Front-End') {
+            steps {
+                sh 'pnpm run build'
+            }
+        }
+
+        // Enable once `docker ps` works inside WSL
+        // stage('Docker Build') {
+        //     steps {
+        //         sh 'docker build -t ${IMAGE_NAME}:pr-${CHANGE_ID:-local}-${BUILD_NUMBER} .'
+        //     }
+        // }
     }
 }

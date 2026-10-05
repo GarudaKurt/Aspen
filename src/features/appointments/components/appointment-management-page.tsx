@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
@@ -176,22 +176,30 @@ export function AppointmentManagementPage({
   }, [appointments, dateFilter, query, statusFilter]);
 
   const pageCount = Math.ceil(visibleAppointments.length / APPOINTMENTS_PAGE_SIZE);
+  const safePage = Math.min(page, Math.max(pageCount, 1));
   const paginatedAppointments = useMemo(
     () =>
       visibleAppointments.slice(
-        (page - 1) * APPOINTMENTS_PAGE_SIZE,
-        page * APPOINTMENTS_PAGE_SIZE,
+        (safePage - 1) * APPOINTMENTS_PAGE_SIZE,
+        safePage * APPOINTMENTS_PAGE_SIZE,
       ),
-    [page, visibleAppointments],
+    [safePage, visibleAppointments],
   );
 
-  useEffect(() => {
+  const handleStatusFilterChange = (status: AppointmentStatusFilter) => {
+    setStatusFilter(status);
     setPage(1);
-  }, [dateFilter, query, statusFilter]);
+  };
 
-  useEffect(() => {
-    setPage((current) => Math.min(Math.max(current, 1), Math.max(pageCount, 1)));
-  }, [pageCount]);
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    setPage(1);
+  };
+
+  const handleDateFilterChange = (value: AppointmentDateFilter) => {
+    setDateFilter(value);
+    setPage(1);
+  };
 
   const updateStatus = (
     appointment: AppointmentRequest,
@@ -271,7 +279,7 @@ export function AppointmentManagementPage({
                 key={status}
                 type="button"
                 variant="ghost"
-                onClick={() => setStatusFilter(status)}
+                onClick={() => handleStatusFilterChange(status)}
                 className={`rounded-full px-3 ${statusFilter === status ? "bg-[#e8f5ef] text-[#3c6355]" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 {status}
@@ -284,7 +292,7 @@ export function AppointmentManagementPage({
               <span className="sr-only">Search customer or service</span>
               <input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => handleQueryChange(event.target.value)}
                 placeholder="Search customer or service"
                 className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-4 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
               />
@@ -293,7 +301,7 @@ export function AppointmentManagementPage({
               <span className="sr-only">Filter by date</span>
               <select
                 value={dateFilter}
-                onChange={(event) => setDateFilter(event.target.value as AppointmentDateFilter)}
+                onChange={(event) => handleDateFilterChange(event.target.value as AppointmentDateFilter)}
                 className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#3c6355]"
               >
                 <option value="all">All dates</option>
@@ -374,7 +382,7 @@ export function AppointmentManagementPage({
           )}
         </div>
         <AppointmentPagination
-          page={page}
+          page={safePage}
           totalItems={visibleAppointments.length}
           onPageChange={setPage}
         />
@@ -437,7 +445,7 @@ export function AppointmentManagementPage({
         <AlertDialogHeader>
           <AlertDialogTitle>Reject appointment?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will reject {pendingReject?.customerName}'s request. You can optionally include a reason.
+            This will reject {pendingReject?.customerName}&apos;s request. You can optionally include a reason.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="mt-4">

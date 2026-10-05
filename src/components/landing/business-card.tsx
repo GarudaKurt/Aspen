@@ -128,6 +128,7 @@ export function BusinessCard({
     <Card className="group min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
       <div
         onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={() => {
           pointerStart.current = null;
