@@ -8,7 +8,6 @@ import {
   Check,
   CreditCard,
   Download,
-  Ellipsis,
   Plus,
   ReceiptText,
   Smartphone,
@@ -584,12 +583,14 @@ function BillingDocument({ label }: { label: string }) {
     <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
       <ReceiptText className="size-4 shrink-0 text-[#3c6355]" />
       <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
-      <button
+      <Button
         type="button"
-        className="inline-flex items-center gap-1 text-sm font-semibold text-[#3c6355] hover:underline"
+        variant="ghost"
+        size="sm"
+        className="text-[#3c6355]"
       >
         View <ArrowUpRight className="size-3" />
-      </button>
+      </Button>
     </div>
   );
 }
