@@ -230,7 +230,8 @@ export function BillingDetailsPage() {
             </Button>
           </Card>
 
-\n        <Card className="bg-white p-5 shadow-none sm:p-6">
+
+        <Card className="bg-white p-5 shadow-none sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold">Billing Information</h2>
@@ -250,7 +251,9 @@ export function BillingDetailsPage() {
             <BillingField label="Billing email" value={billing.email} />
             <BillingField label="Billing address" value={billing.address} />
           </div>
-        </Card>\n          </div>\n          <Card className="bg-white p-6 shadow-none">
+        </Card>
+          </div>
+          <Card className="bg-white p-6 shadow-none">
             <div className="flex items-start gap-3">
               <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#3c6355]">
                 <Banknote className="size-5" />
