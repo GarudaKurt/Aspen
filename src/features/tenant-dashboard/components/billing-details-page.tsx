@@ -111,14 +111,6 @@ export function BillingDetailsPage() {
       });
       return;
     }
-      toast({
-        title: "Complete payment details",
-        description: "Enter a name and a valid payment account number.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setMethods((current) => [
       ...current.map((method) => ({ ...method, isDefault: false })),
       {
