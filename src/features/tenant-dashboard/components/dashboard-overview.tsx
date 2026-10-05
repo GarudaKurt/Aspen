@@ -103,7 +103,7 @@ export function DashboardOverview() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map(([value, label, Icon]) => (
           <Card key={label} className="bg-white p-5 text-center shadow-none">
-            <Icon className="mx-auto mb-4 size-5 text-[#8b5cf6]" />
+            <Icon className="mx-auto mb-4 size-5 text-[#3c6355]" />
             <strong className="block text-3xl">{value}</strong>
             <span className="text-sm text-slate-500">{label}</span>
           </Card>
@@ -125,11 +125,30 @@ export function DashboardOverview() {
           ))}
         </Card>
         <Card className="bg-white p-5 shadow-none">
-          <h2 className="text-lg font-semibold">Tips for you</h2>
-          <p className="mt-4 text-slate-600">
-            Providers who reply within an hour get booked 2× more often. Turn on
-            chat notifications to stay quick.
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Next Billing Cycle</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Your Professional plan renews on November 5, 2026.
+              </p>
+            </div>
+            <WalletCards className="size-5 text-[#3c6355]" />
+          </div>
+          <div className="mt-5 rounded-xl bg-[#f1f6f3] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#587267]">
+              Professional plan
+            </p>
+            <p className="mt-1 text-2xl font-bold text-[#3c6355]">₱999/month</p>
+            <p className="mt-1 text-sm text-[#587267]">
+              Auto-renewal is enabled.
+            </p>
+          </div>
+          <Link
+            href="/tenant-dashboard/billing"
+            className="mt-4 inline-flex font-semibold text-[#3c6355] hover:underline"
+          >
+            Manage billing
+          </Link>
         </Card>
       </div>
     </>
