@@ -1,19 +1,33 @@
 pipeline {
-    agent any
+    agent {
+        label 'agent-aspen'
+    }
+
+    options { 
+        buildDiscarder(
+            logRotator(
+                numToKeepStr: '20',
+                artifactNumToKeepStr: '10'
+            )
+        )
+    }
+
+    envinronment {
+        REPO_OWNER = 'GarudaKurt'
+        REPO_NAME = 'Aspen'
+    }
 
     stages{
-        stage('BUILD') {
+        stage('PR Info') {
             steps {
-                sh '''
-                    npm install
-                '''
-            }
-        }
-        stage('BUILD-APP') {
-            steps{
-                sh '''
-                    npm run dev
-                '''
+                echo "================================================="
+                echo "             Pull Request Info                   "
+                echo "================================================="
+                echo "PR Number:       #${env.CHANGE_ID}                "
+                echo "Title:           ${env.CHANGE_TITLE}              "
+                echo "Source:          ${env.CHANGE_BRANCH}             "
+                echo "Target:          ${env.CHANGE_TARGET}             "
+                echo "================================================="
             }
         }
     }
