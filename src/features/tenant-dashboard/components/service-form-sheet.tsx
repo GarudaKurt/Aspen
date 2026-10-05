@@ -37,7 +37,9 @@ export function ServiceFormSheet({
   const [photoError, setPhotoError] = useState("");
 
   useEffect(() => {
-    if (open)
+    if (open) {
+      // Reset the controlled sheet form whenever a service is opened for editing.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraft(
         service
           ? {
@@ -51,7 +53,10 @@ export function ServiceFormSheet({
             }
           : emptyDraft,
       );
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError("");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPhotoError("");
   }, [open, service]);
 
