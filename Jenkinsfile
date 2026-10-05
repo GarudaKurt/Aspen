@@ -12,7 +12,7 @@ pipeline {
         )
     }
 
-    envinronment {
+    environment {
         REPO_OWNER = 'GarudaKurt'
         REPO_NAME = 'Aspen'
     }
@@ -30,7 +30,7 @@ pipeline {
                 echo "================================================="
             }
         }
-        stages('BUILD') {
+        stage('BUILD') {
             steps {
                 echo "================================================="
                 echo "              Build Node.js"
