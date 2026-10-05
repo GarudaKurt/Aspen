@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'agent-aspen'
+        label 'aspen-agent'
     }
 
     options { 
