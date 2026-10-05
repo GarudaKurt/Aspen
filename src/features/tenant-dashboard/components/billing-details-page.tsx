@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  ArrowUpRight,
   Banknote,
   Check,
   CreditCard,
+  Download,
   Ellipsis,
   Plus,
+  ReceiptText,
   Smartphone,
   Trash2,
   WalletCards,
@@ -306,21 +309,17 @@ export function BillingDetailsPage() {
               Edit details
             </Link>
           </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-500">Billing name</p>
-              <p className="mt-1 font-semibold">{billing.fullName || "Not provided"}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-500">Billing email</p>
-              <p className="mt-1 break-words font-semibold">
-                {billing.email || "Not provided"}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-500">Billing address</p>
-              <p className="mt-1 font-semibold">{billing.address || "Not provided"}</p>
-            </div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <BillingField label="Billing name" value={billing.fullName} />
+            <BillingField label="Billing email" value={billing.email} />
+            <BillingField label="Contact number" value="Not provided" />
+            <BillingField label="Company name" value="Not provided" />
+            <BillingField label="Billing address" value={billing.address} className="sm:col-span-2" />
+            <BillingField label="City / Municipality" value="Not provided" />
+            <BillingField label="Province" value="Not provided" />
+            <BillingField label="Postal code" value="Not provided" />
+            <BillingField label="Country" value="Philippines" />
+            <BillingField label="TIN" value="Optional · Not provided" />
           </div>
         </Card>
 
@@ -392,19 +391,41 @@ export function BillingDetailsPage() {
           </div>
         </Card>
 
-        <Card className="bg-white p-5 shadow-none sm:p-6">
-          <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-[#f1f6f3] text-[#3c6355]">
-              <Ellipsis className="size-5" />
-            </span>
-            <div>
-              <h2 className="font-semibold">Payment support</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Debit Card, Credit Card, and GCash are available for this UI preview.
-              </p>
+        <div className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
+          <Card className="bg-white p-5 shadow-none sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold">Billing History</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Recent subscription payments and balance top-ups.
+                </p>
+              </div>
+              <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#3c6355]">
+                <ReceiptText className="size-5" />
+              </span>
             </div>
-          </div>
-        </Card>
+            <div className="mt-5 divide-y divide-slate-200">
+              <BillingTransaction date="Nov 5, 2026" description="Professional plan subscription" amount="₱999" method="GCash •••• 1234" status="Paid" />
+              <BillingTransaction date="Oct 5, 2026" description="Account balance top-up" amount="₱2,500" method="GCash •••• 1234" status="Completed" />
+            </div>
+          </Card>
+
+          <Card className="bg-white p-5 shadow-none sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold">Invoices & receipts</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Access your recent billing documents.
+                </p>
+              </div>
+              <Download className="size-5 text-[#3c6355]" />
+            </div>
+            <div className="mt-5 space-y-3">
+              <BillingDocument label="Professional plan · Nov 2026" />
+              <BillingDocument label="Balance top-up · Oct 2026" />
+            </div>
+          </Card>
+        </div>
       </div>
 
       <Sheet open={addOpen} onOpenChange={setAddOpen}>
@@ -507,5 +528,68 @@ export function BillingDetailsPage() {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+
+function BillingField({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`rounded-xl border border-slate-200 p-4 ${className}`}>
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 break-words font-semibold">{value || "Not provided"}</p>
+    </div>
+  );
+}
+
+function BillingTransaction({
+  date,
+  description,
+  amount,
+  method,
+  status,
+}: {
+  date: string;
+  description: string;
+  amount: string;
+  method: string;
+  status: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 py-4 first:pt-0 last:pb-0">
+      <span className="grid size-9 place-items-center rounded-lg bg-[#f1f6f3] text-[#3c6355]">
+        <ArrowUpRight className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">{description}</p>
+        <p className="text-sm text-slate-500">{date} · {method}</p>
+      </div>
+      <div className="text-right">
+        <p className="font-semibold">{amount}</p>
+        <p className="text-xs font-semibold text-[#3c6355]">{status}</p>
+      </div>
+    </div>
+  );
+}
+
+function BillingDocument({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+      <ReceiptText className="size-4 shrink-0 text-[#3c6355]" />
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 text-sm font-semibold text-[#3c6355] hover:underline"
+      >
+        View <ArrowUpRight className="size-3" />
+      </button>
+    </div>
   );
 }
