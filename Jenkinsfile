@@ -60,8 +60,9 @@ pipeline {
 
         stage('Check PR') {
             when {
-                expression {
-                    return env.CHANGE_ID != null
+                allOf {
+                    expression { return env.CHANGE_ID != null }
+                    expression { return env.CHANGE_TARGET == 'main' }
                 }
             }
 
@@ -73,6 +74,7 @@ pipeline {
                         passwordVariable: 'GITHUB_TOKEN'
                     )
                 ]) {
+                    // JSON is parsed with node, so jq is not required on the agent
                     sh '''
                         set -e
 
@@ -80,29 +82,36 @@ pipeline {
                         echo "                 Checking Pull Request"
                         echo "===================================================="
 
-                        curl -sS \
-                            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                            -H "Accept: application/vnd.github+json" \
-                            -H "X-GitHub-Api-Version: 2022-11-28" \
-                            "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${CHANGE_ID}" \
-                            > github_pr.json
+                        PR_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${CHANGE_ID}"
+
+                        get() { node -p "require('./github_pr.json').$1"; }
+
+                        # GitHub computes "mergeable" asynchronously; it is null right after a push
+                        for i in 1 2 3 4 5 6; do
+                            curl -sS \
+                                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                                -H "Accept: application/vnd.github+json" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                "${PR_URL}" > github_pr.json
+
+                            MERGEABLE=$(get mergeable)
+                            [ "$MERGEABLE" != "null" ] && break
+                            echo "Mergeable state not computed yet (attempt $i), retrying in 5s..."
+                            sleep 5
+                        done
 
                         echo "PR information:"
+                        echo "  number:          $(get number)"
+                        echo "  title:           $(get title)"
+                        echo "  state:           $(get state)"
+                        echo "  draft:           $(get draft)"
+                        echo "  mergeable:       ${MERGEABLE}"
+                        echo "  mergeable_state: $(get mergeable_state)"
+                        echo "  head:            $(get head.ref)"
+                        echo "  base:            $(get base.ref)"
 
-                        jq '{
-                            number,
-                            title,
-                            state,
-                            draft,
-                            mergeable,
-                            mergeable_state,
-                            head: .head.ref,
-                            base: .base.ref
-                        }' github_pr.json
-
-                        STATE=$(jq -r '.state' github_pr.json)
-                        DRAFT=$(jq -r '.draft' github_pr.json)
-                        MERGEABLE=$(jq -r '.mergeable' github_pr.json)
+                        STATE=$(get state)
+                        DRAFT=$(get draft)
 
                         if [ "$STATE" != "open" ]; then
                             echo "ERROR: PR is not open."
@@ -114,8 +123,8 @@ pipeline {
                             exit 1
                         fi
 
-                        if [ "$MERGEABLE" = "false" ]; then
-                            echo "ERROR: PR is not mergeable."
+                        if [ "$MERGEABLE" != "true" ]; then
+                            echo "ERROR: PR is not mergeable (mergeable=${MERGEABLE})."
                             exit 1
                         fi
 
@@ -124,10 +133,12 @@ pipeline {
                 }
             }
         }
+
         stage('Auto-Merge') {
             when {
-                expression {
-                    return env.CHANGE_ID != null
+                allOf {
+                    expression { return env.CHANGE_ID != null }
+                    expression { return env.CHANGE_TARGET == 'main' }
                 }
             }
 
@@ -167,14 +178,15 @@ pipeline {
 
                             echo "GitHub HTTP status: ${HTTP_CODE}"
                             echo "GitHub merge response:"
-                            jq . merge_response.json
+                            cat merge_response.json
+                            echo ""
 
                             if [ "${HTTP_CODE}" != "200" ]; then
                                 echo "ERROR: GitHub merge request failed."
                                 exit 1
                             fi
 
-                            MERGED=$(jq -r '.merged' merge_response.json)
+                            MERGED=$(node -p "require('./merge_response.json').merged")
 
                             if [ "${MERGED}" = "true" ]; then
                                 echo "PR #${CHANGE_ID} successfully merged."
