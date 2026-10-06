@@ -64,7 +64,7 @@ export function DashboardOverview() {
           A complete profile gets 3× more booking requests.
         </p>
       </section>
-      <Card className="mt-6 max-w-[940px] bg-white p-5 shadow-none">
+      <Card className="mt-6 w-full bg-white p-5 shadow-none">
         <div className="flex justify-between">
           <h2 className="font-semibold">Finish setting up</h2>
           <Link

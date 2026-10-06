@@ -198,7 +198,7 @@ export function DiscoverySearch({
   return (
     <section
       id="browse"
-      className="px-6 pb-12 pt-8 sm:px-10 sm:pb-16 sm:pt-10 lg:px-[130px]"
+      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px]"
     >
       <div className="mx-auto max-w-[1440px]">
         <h1 className="max-w-[780px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
