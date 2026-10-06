@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import {
   ArrowUpRight,
@@ -12,11 +11,12 @@ import {
   ReceiptText,
   Smartphone,
   Trash2,
-  WalletCards,
+  type LucideIcon,
   type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { emailSchema } from "@/shared/schemas/contact.schema";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
 import { Switch } from "@/components/ui/switch";
 
+import { useListingStore } from "@/features/business-profile/store/onboarding.store";
 import { useListingStore } from "@/features/business-profile/store/onboarding.store";
 import { MobileDashboardNav } from "./dashboard-shell";
 
@@ -62,19 +63,15 @@ const methodIcons: Record<PaymentMethodType, LucideIcon> = {
 
 export function BillingDetailsPage() {
   const billing = useListingStore((state) => state.billing);
-  const [balance, setBalance] = useState(2500);
   const [methods, setMethods] = useState(initialMethods);
   const [addOpen, setAddOpen] = useState(false);
-  const [topUpOpen, setTopUpOpen] = useState(false);
   const [methodType, setMethodType] = useState<PaymentMethodType>("debit");
   const [cardholder, setCardholder] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [cvv, setCvv] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [nextBillingDate, setNextBillingDate] = useState("November 5, 2026");
+  const [nextBillingDate] = useState("November 5, 2026");
   const [autoRenew, setAutoRenew] = useState(true);
-  const [topUpAmount, setTopUpAmount] = useState("");
-  const [topUpMethod, setTopUpMethod] = useState("");
 
   const resetMethodForm = () => {
     setMethodType("debit");
@@ -169,26 +166,7 @@ export function BillingDetailsPage() {
     toast({ title: "Payment method removed", variant: "success" });
   };
 
-  const topUp = () => {
-    const amount = Number(topUpAmount);
-    if (!Number.isFinite(amount) || amount <= 0 || !topUpMethod) {
-      toast({
-        title: "Complete top-up details",
-        description: "Choose a payment method and enter an amount greater than zero.",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    setBalance((current) => current + amount);
-    setTopUpAmount("");
-    setTopUpOpen(false);
-    toast({
-      title: "Balance top-up recorded",
-      description: `₱${amount.toLocaleString()} was added in this demo.`,
-      variant: "success",
-    });
-  };
 
   return (
     <>
@@ -204,55 +182,7 @@ export function BillingDetailsPage() {
           </p>
         </div>
 
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
-          <div className="space-y-4">
-
-          <Card className="h-fit bg-[#3c6355] p-6 text-white shadow-none">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm text-white/75">Available balance</p>
-                <p className="mt-3 text-4xl font-bold">₱{balance.toLocaleString()}</p>
-              </div>
-              <span className="grid size-12 place-items-center rounded-2xl bg-white/15">
-                <WalletCards className="size-6" />
-              </span>
-            </div>
-            <p className="mt-7 text-sm text-white/75">
-              Use your balance for future listing and account charges.
-            </p>
-            <Button
-              type="button"
-              onClick={() => setTopUpOpen(true)}
-              className="mt-5 bg-white text-[#3c6355] hover:bg-[#eef5f0]"
-            >
-              <Plus className="mr-2 size-4" />
-              Top up balance
-            </Button>
-          </Card>
-
-
-        <Card className="bg-white p-5 shadow-none sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Billing Information</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Details collected during your List Your Business setup.
-              </p>
-            </div>
-            <Link
-              href="/list-your-business/billing"
-              className="font-semibold text-[#3c6355] hover:underline"
-            >
-              Edit details
-            </Link>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <BillingField label="Billing name" value={billing.fullName} />
-            <BillingField label="Billing email" value={billing.email} />
-            <BillingField label="Billing address" value={billing.address} />
-          </div>
-        </Card>
-          </div>
+        <div className="grid gap-4">
           <Card className="bg-white p-6 shadow-none">
             <div className="flex items-start gap-3">
               <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#3c6355]">
@@ -320,69 +250,88 @@ export function BillingDetailsPage() {
         <Card className="bg-white p-5 shadow-none sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold">Payment methods</h2>
+              <h2 className="text-xl font-semibold">Billing Information</h2>
               <p className="mt-1 text-sm text-slate-500">
-                Add a debit card, credit card, or GCash account for future payments.
+                Keep the billing contact details for your provider account up to date.
               </p>
             </div>
-            <Button
-              type="button"
-              onClick={() => setAddOpen(true)}
-              className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
-            >
-              <Plus className="mr-2 size-4" />
-              Add payment method
-            </Button>
-          </div>
-
-          <div className="mt-6 space-y-3">
-            {methods.map((method) => {
-              const Icon = methodIcons[method.type];
-              return (
-                <div
-                  key={method.id}
-                  className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 p-4"
-                >
-                  <span className="grid size-10 place-items-center rounded-lg bg-[#f1f6f3] text-[#3c6355]">
-                    <Icon className="size-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold">{method.label}</p>
-                    <p className="text-sm text-slate-500">{method.detail}</p>
-                  </div>
-                  {method.isDefault ? (
-                    <span className="rounded-full bg-[#e8f5ef] px-3 py-1 text-xs font-semibold text-[#3c6355]">
-                      Default
-                    </span>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => makeDefault(method.id)}
-                      className="text-sm text-[#3c6355]"
-                    >
-                      Make default
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Remove ${method.label}`}
-                    onClick={() => removeMethod(method.id)}
-                    className="text-slate-500 hover:text-red-600"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              );
-            })}
-            {!methods.length && (
-              <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-                No payment methods added yet.
-              </div>
+            {!editingBilling && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setBillingDraft(billing);
+                  setBillingError("");
+                  setEditingBilling(true);
+                }}
+              >
+                Edit Billing Details
+              </Button>
             )}
           </div>
+          {editingBilling ? (
+            <div className="mt-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <BillingInput
+                  id="billing-name"
+                  label="Billing name"
+                  value={billingDraft.fullName}
+                  onChange={(value) => setBillingDraft((current) => ({ ...current, fullName: value }))}
+                />
+                <BillingInput
+                  id="billing-email"
+                  label="Billing email"
+                  type="email"
+                  value={billingDraft.email}
+                  onChange={(value) => setBillingDraft((current) => ({ ...current, email: value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="billing-address" className="text-sm font-medium">Billing address</label>
+                <textarea
+                  id="billing-address"
+                  value={billingDraft.address}
+                  onChange={(event) => setBillingDraft((current) => ({ ...current, address: event.target.value }))}
+                  className="min-h-24 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
+                  placeholder="Street, city, province"
+                />
+              </div>
+              {billingError && <p role="alert" className="text-sm text-red-600">{billingError}</p>}
+              <div className="flex flex-wrap justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => { setBillingDraft(billing); setBillingError(""); setEditingBilling(false); }}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (!billingDraft.fullName.trim() || !billingDraft.address.trim()) {
+                      setBillingError("Billing name and address are required.");
+                      return;
+                    }
+                    if (!emailSchema.safeParse(billingDraft.email).success) {
+                      setBillingError("Enter a valid billing email address.");
+                      return;
+                    }
+                    setBillingField("fullName", billingDraft.fullName.trim());
+                    setBillingField("email", billingDraft.email.trim());
+                    setBillingField("address", billingDraft.address.trim());
+                    setBillingError("");
+                    setEditingBilling(false);
+                    toast({ title: "Billing information updated", variant: "success" });
+                  }}
+                  className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                >
+                  Save Billing Details
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <BillingField label="Billing name" value={billing.fullName} />
+              <BillingField label="Billing email" value={billing.email} />
+              <BillingField label="Billing address" value={billing.address} />
+            </div>
+          )}
         </Card>
 
         <div className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
@@ -490,37 +439,6 @@ export function BillingDetailsPage() {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={topUpOpen} onOpenChange={setTopUpOpen}>
-        <SheetContent title="Top up balance" onClose={() => setTopUpOpen(false)}>
-          <div className="space-y-5 p-5">
-            <div>
-              <h2 className="text-xl font-semibold">Top up account balance</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Select a saved payment method and amount for this demo.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="top-up-method">Payment method</Label>
-              <Select value={topUpMethod} onValueChange={setTopUpMethod}>
-                <SelectTrigger id="top-up-method"><SelectValue placeholder="Choose a method" /></SelectTrigger>
-                <SelectContent>
-                  {methods.map((method) => (
-                    <SelectItem key={method.id} value={method.id}>{method.label} {method.detail}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="top-up-amount">Amount</Label>
-              <Input id="top-up-amount" value={topUpAmount} onChange={(event) => setTopUpAmount(event.target.value)} inputMode="decimal" placeholder="e.g. 1000" />
-            </div>
-          </div>
-          <SheetFooter>
-            <Button type="button" variant="outline" onClick={() => setTopUpOpen(false)}>Cancel</Button>
-            <Button type="button" onClick={topUp} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">Add balance</Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }
