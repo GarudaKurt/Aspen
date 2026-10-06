@@ -12,7 +12,6 @@ import {
   Smartphone,
   Trash2,
   type LucideIcon,
-  type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,6 @@ import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
 import { Switch } from "@/components/ui/switch";
 
-import { useListingStore } from "@/features/business-profile/store/onboarding.store";
 import { useListingStore } from "@/features/business-profile/store/onboarding.store";
 import { MobileDashboardNav } from "./dashboard-shell";
 
@@ -63,6 +61,7 @@ const methodIcons: Record<PaymentMethodType, LucideIcon> = {
 
 export function BillingDetailsPage() {
   const billing = useListingStore((state) => state.billing);
+  const setBillingField = useListingStore((state) => state.setBillingField);
   const [methods, setMethods] = useState(initialMethods);
   const [addOpen, setAddOpen] = useState(false);
   const [methodType, setMethodType] = useState<PaymentMethodType>("debit");
@@ -70,8 +69,11 @@ export function BillingDetailsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [cvv, setCvv] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [nextBillingDate] = useState("November 5, 2026");
+  const [nextBillingDate, setNextBillingDate] = useState("November 5, 2026");
   const [autoRenew, setAutoRenew] = useState(true);
+  const [editingBilling, setEditingBilling] = useState(false);
+  const [billingDraft, setBillingDraft] = useState(billing);
+  const [billingError, setBillingError] = useState("");
 
   const resetMethodForm = () => {
     setMethodType("debit");
@@ -332,6 +334,47 @@ export function BillingDetailsPage() {
               <BillingField label="Billing address" value={billing.address} />
             </div>
           )}
+        </Card>
+
+        <Card className="bg-white p-5 shadow-none sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold">Payment methods</h2>
+              <p className="mt-1 text-sm text-slate-500">Manage the methods available for subscription and account payments.</p>
+            </div>
+            <Button type="button" onClick={() => setAddOpen(true)} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">
+              <Plus className="mr-2 size-4" /> Add payment method
+            </Button>
+          </div>
+          <div className="mt-5 space-y-3">
+            {methods.length ? methods.map((method) => {
+              const MethodIcon = methodIcons[method.type];
+              return (
+                <div key={method.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 p-4">
+                  <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-[#3c6355]">
+                    <MethodIcon className="size-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold">{method.label}</p>
+                    <p className="text-sm text-slate-500">{method.detail}</p>
+                  </div>
+                  {method.isDefault && (
+                    <span className="rounded-full bg-[#f1f6f3] px-3 py-1 text-xs font-semibold text-[#3c6355]">Default</span>
+                  )}
+                  {!method.isDefault && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => makeDefault(method.id)} className="text-[#3c6355]">
+                      Make default
+                    </Button>
+                  )}
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeMethod(method.id)} aria-label={`Remove ${method.label}`}>
+                    <Trash2 className="size-4 text-red-600" />
+                  </Button>
+                </div>
+              );
+            }) : (
+              <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">No payment methods saved yet.</p>
+            )}
+          </div>
         </Card>
 
         <div className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
