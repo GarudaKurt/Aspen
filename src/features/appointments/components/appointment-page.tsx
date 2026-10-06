@@ -8,6 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
   Check,
+  ListChecks,
   ChevronLeft,
   PawPrint,
   UserRound,
@@ -44,7 +45,7 @@ type Step = { label: string; path: string; icon: LucideIcon };
 
 function createSteps(basePath: string): Step[] {
   return [
-    { label: "Service", path: basePath, icon: PawPrint },
+    { label: "Service", path: basePath, icon: ListChecks },
     {
       label: "Date and Time",
       path: `${basePath}/date-time`,

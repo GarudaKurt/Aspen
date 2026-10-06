@@ -2,6 +2,7 @@
 
 import { Check, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
@@ -10,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { subscriptionPlans } from "../data/plans";
 
 export function SubscriptionPage() {
+  const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
   return (
@@ -52,7 +54,11 @@ export function SubscriptionPage() {
                 <p className="mt-3 text-3xl font-bold text-[#3c6355]">{plan.price}<span className="ml-1 text-sm font-medium text-[#7c8780]">/month</span></p>
               </div>
               <p className="mt-4 min-h-12 text-left text-sm leading-5 text-[#7c8780]">{plan.description}</p>
-              <Button type="button" variant={plan.highlighted ? "default" : "outline"} className={`mt-6 min-h-11 w-full rounded-xl ${plan.highlighted ? "bg-[#3c6355] text-white hover:bg-[#2f5044]" : "border-[#3c6355] text-[#3c6355] hover:bg-[#eef5f0]"}`}>
+              <Button
+                type="button"
+                onClick={() => router.push("/list-your-business")}
+                variant={plan.highlighted ? "default" : "outline"}
+                className={`mt-6 min-h-11 w-full rounded-xl ${plan.highlighted ? "bg-[#3c6355] text-white hover:bg-[#2f5044]" : "border-[#3c6355] text-[#3c6355] hover:bg-[#eef5f0]"}`}>
                 {plan.cta}
               </Button>
               <ul className="mt-7 space-y-3 border-t border-[#e5eae6] pt-6 text-left text-sm text-[#5f6963]">

@@ -118,7 +118,7 @@ function MobileFavoritesAction({
 function ListBusinessAction({ onClick }: { onClick?: () => void }) {
   return (
     <Link
-      href="/list-your-business"
+      href="/subscriptions"
       onClick={onClick}
       className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40 md:inline-flex"
     >
@@ -327,7 +327,7 @@ export function SiteHeader({
               />
 
               <Link
-                href="/list-your-business"
+                href="/subscriptions"
                 onClick={closeMenus}
                 className="order-2 flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
               >

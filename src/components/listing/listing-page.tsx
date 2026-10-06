@@ -3,12 +3,13 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpenCheck,
   Building2,
   Check,
+  CreditCard,
   ChevronLeft,
   FileCheck2,
   ShieldCheck,
@@ -16,7 +17,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useListingStore } from "@/features/business-profile/store/onboarding.store";
+import { emailSchema } from "@/shared/schemas/contact.schema";
+import {
+  useListingStore,
+  type BillingDetails,
+} from "@/features/business-profile/store/onboarding.store";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,6 +46,7 @@ const steps: ListingStep[] = [
     icon: ShieldCheck,
   },
   { label: "Identity", path: "/list-your-business/identity", icon: UserRound },
+  { label: "Billing", path: "/list-your-business/billing", icon: CreditCard },
   { label: "Review", path: "/list-your-business/review", icon: BookOpenCheck },
 ];
 
@@ -61,12 +67,26 @@ export function ListingPage() {
   const toggleService = useListingStore((state) => state.toggleService);
   const uploadedFiles = useListingStore((state) => state.uploadedFiles);
   const setUploadedFile = useListingStore((state) => state.setUploadedFile);
+  const billing = useListingStore((state) => state.billing);
+  const setBillingField = useListingStore((state) => state.setBillingField);
+  const [billingErrors, setBillingErrors] = useState<Record<string, string>>({});
 
   const activeIndex = Math.max(
     0,
     steps.findIndex(({ path }) => pathname === path),
   );
   const goNext = () => {
+    if (activeIndex === 3) {
+      const nextErrors: Record<string, string> = {};
+      if (!billing.fullName.trim()) nextErrors.fullName = "Billing name is required.";
+      if (!billing.address.trim()) nextErrors.address = "Billing address is required.";
+      const emailResult = emailSchema.safeParse(billing.email);
+      if (!emailResult.success) {
+        nextErrors.email = "Enter a valid billing email address.";
+      }
+      setBillingErrors(nextErrors);
+      if (Object.keys(nextErrors).length) return;
+    }
     router.push(steps[Math.min(activeIndex + 1, steps.length - 1)].path);
   };
 
@@ -130,7 +150,17 @@ export function ListingPage() {
             {activeIndex === 2 && (
               <IdentityStep uploadedFiles={uploadedFiles} onFile={handleFile} />
             )}
-            {activeIndex === 3 && <ReviewStep />}
+            {activeIndex === 3 && (
+              <BillingStep
+                billing={billing}
+                errors={billingErrors}
+                onChange={(field, value) => {
+                  setBillingErrors((current) => ({ ...current, [field]: "" }));
+                  setBillingField(field, value);
+                }}
+              />
+            )}
+            {activeIndex === 4 && <ReviewStep />}
             <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 variant="ghost"
@@ -396,13 +426,89 @@ function IdentityStep({
   );
 }
 
+function BillingStep({
+  billing,
+  errors,
+  onChange,
+}: {
+  billing: BillingDetails;
+  errors: Record<string, string>;
+  onChange: <K extends keyof BillingDetails>(
+    field: K,
+    value: BillingDetails[K],
+  ) => void;
+}) {
+  return (
+    <FormSection
+      title="Billing details"
+      description="Provide the billing information we will use for your provider account."
+    >
+      <div className="rounded-lg border border-[#d8dbd8] bg-[#f7faf8] p-4 text-sm text-[#587267]">
+        No payment is collected in this step. Billing and plan activation will be
+        finalized after your listing is reviewed.
+      </div>
+      <FieldLabel label="Billing name">
+        <Input
+          value={billing.fullName}
+          onChange={(event) => onChange("fullName", event.target.value)}
+          placeholder="Your full name or registered business name"
+          aria-invalid={Boolean(errors.fullName)}
+        />
+        {errors.fullName && (
+          <span className="block text-xs font-normal text-red-600">{errors.fullName}</span>
+        )}
+      </FieldLabel>
+      <FieldLabel label="Billing email">
+        <Input
+          type="email"
+          value={billing.email}
+          onChange={(event) => onChange("email", event.target.value)}
+          placeholder="billing@example.com"
+          aria-invalid={Boolean(errors.email)}
+        />
+        {errors.email && (
+          <span className="block text-xs font-normal text-red-600">{errors.email}</span>
+        )}
+      </FieldLabel>
+      <FieldLabel label="Billing address">
+        <textarea
+          value={billing.address}
+          onChange={(event) => onChange("address", event.target.value)}
+          placeholder="Street, city, province"
+          aria-invalid={Boolean(errors.address)}
+          className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
+        />
+        {errors.address && (
+          <span className="block text-xs font-normal text-red-600">{errors.address}</span>
+        )}
+      </FieldLabel>
+      <FieldLabel label="Billing preference">
+        <Select
+          value={billing.method}
+          onValueChange={(value) =>
+            onChange("method", value as BillingDetails["method"])
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="invoice">Invoice after approval</SelectItem>
+            <SelectItem value="online">Pay online when billing is enabled</SelectItem>
+          </SelectContent>
+        </Select>
+      </FieldLabel>
+    </FormSection>
+  );
+}
+
 function ReviewStep() {
   return (
     <FormSection
       title="Review and submit"
       description="Check every section before sending the application to the administrator."
     >
-      {["Business", "Services", "Identity"].map((section) => (
+      {["Business", "Services", "Identity", "Billing"].map((section) => (
         <Card
           key={section}
           className="rounded-lg border-[#d8dbd8] p-4 shadow-none"
