@@ -26,6 +26,13 @@ export default async function BusinessProfileBySlugPage({
     coverPhoto: business.images?.[0]?.src ?? null,
     slug: business.slug,
     serviceCoverage: [business.services],
+    servicesOffered: business.servicesOffered?.map((service) => ({
+      id: service.id,
+      title: service.title,
+      category: service.category,
+      description: service.description,
+      price: service.price,
+    })),
     verified: true,
   };
 
