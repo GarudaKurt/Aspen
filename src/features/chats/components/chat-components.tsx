@@ -233,7 +233,7 @@ function MessageBubble({
   const [draft, setDraft] = useState(message.body);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const pointer = useRef({ x: 0, y: 0, horizontal: false, active: false });
+  const pointer = useRef({ x: 0, y: 0, axis: "none" as "none" | "vertical" | "horizontal", active: false });
 
   if (message.deleted) return <div className="flex justify-end"><p className="rounded-2xl bg-slate-100 px-4 py-2 text-sm italic text-slate-400">Message deleted</p></div>;
 
@@ -244,27 +244,62 @@ function MessageBubble({
   const offset = isActionsOpen ? -160 : dragX;
   const closeActions = () => { setDragX(0); onToggleActions(); };
 
-  return <div className="relative min-w-0 overflow-hidden" onPointerDown={(event) => { pointer.current = { x: event.clientX, y: event.clientY, horizontal: false, active: true }; }} onPointerMove={(event) => {
-    if (!pointer.current.active) return;
-    const dx = event.clientX - pointer.current.x;
-    const dy = event.clientY - pointer.current.y;
-    if (!pointer.current.horizontal && Math.abs(dy) > Math.abs(dx)) return;
-    if (Math.abs(dx) > 8) pointer.current.horizontal = true;
-    if (pointer.current.horizontal) {
+  return <div
+    className="relative min-w-0 touch-pan-y overflow-hidden"
+    onPointerDown={(event) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      pointer.current = {
+        x: event.clientX,
+        y: event.clientY,
+        axis: "none",
+        active: true,
+      };
+    }}
+    onPointerMove={(event) => {
+      if (!pointer.current.active) return;
+      const dx = event.clientX - pointer.current.x;
+      const dy = event.clientY - pointer.current.y;
+
+      if (pointer.current.axis === "none") {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+        pointer.current.axis =
+          Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+      }
+
+      if (pointer.current.axis !== "horizontal") {
+        pointer.current.active = false;
+        setDragging(false);
+        setDragX(0);
+        return;
+      }
+
+      event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
       setDragging(true);
       setDragX(Math.max(-160, Math.min(0, dx)));
-    }
-  }} onPointerUp={(event) => {
-    if (pointer.current.horizontal) {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
-      setDragging(false);
+    }}
+    onPointerUp={(event) => {
+      if (pointer.current.axis === "horizontal") {
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+        setDragging(false);
+        pointer.current.active = false;
+        pointer.current.axis = "none";
+        if (dragX < -60) onToggleActions();
+        else {
+          setDragX(0);
+          if (isActionsOpen) onToggleActions();
+        }
+      } else {
+        pointer.current.active = false;
+        pointer.current.axis = "none";
+      }
+    }}
+    onPointerCancel={() => {
       pointer.current.active = false;
-      if (dragX < -60) onToggleActions();
-      else { setDragX(0); if (isActionsOpen) onToggleActions(); }
-    }
-    pointer.current.active = false;
-  }} onPointerCancel={() => { pointer.current.active = false; setDragging(false); setDragX(0); }}>
+      pointer.current.axis = "none";
+      setDragging(false);
+      setDragX(0);
+    }}>
     <div className={`absolute inset-y-0 right-0 z-0 flex w-40 items-center justify-end gap-1 bg-slate-100 px-2 transition-opacity duration-150 ${isActionsOpen || dragging ? "visible opacity-100" : "invisible pointer-events-none opacity-0"}`}>
       <MessageActionButton icon={Check} label="Edit" onClick={() => { setDraft(message.body); setDragX(0); setEditing(true); onToggleActions(); }} />
       <MessageActionButton icon={Trash2} label="Delete" onClick={() => { setDragX(0); onToggleActions(); onDelete(message.id); }} />
