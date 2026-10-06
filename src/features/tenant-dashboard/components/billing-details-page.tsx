@@ -119,7 +119,7 @@ export function BillingDetailsPage() {
       return;
     }
     setMethods((current) => [
-      ...current.map((method) => ({ ...method, isDefault: false })),
+      ...current,
       {
         id: `${methodType}-${Date.now()}`,
         type: methodType,
