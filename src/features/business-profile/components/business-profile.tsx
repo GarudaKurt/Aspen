@@ -49,6 +49,13 @@ export type TenantProfileData = {
   address: string;
   description?: string;
   serviceCoverage?: string[];
+  servicesOffered?: Array<{
+    id: string;
+    title: string;
+    category: string;
+    description: string;
+    price: string;
+  }>;
   coverPhoto?: string | null;
   businessHours?: BusinessHoursDay[];
   slug?: string;
@@ -74,6 +81,8 @@ const defaultProvider: TenantProfileData = {
 const tabs = ["Overview", "Photos", "Services", "Reviews"];
 
 type ServiceItem = {
+  id?: string;
+  category?: string;
   title: string;
   description: string;
   price: string;
@@ -426,7 +435,7 @@ export function BusinessProfile({
             ) : activeTab === "Photos" ? (
               <PhotoGallery providerName={provider.name} />
             ) : activeTab === "Services" ? (
-              <ServicesPanel />
+              <ServicesPanel categories={getServiceCategories(provider)} />
             ) : activeTab === "Reviews" ? (
               <ReviewsPanel provider={provider} />
             ) : (
@@ -611,38 +620,66 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
   );
 }
 
-function ServicesPanel() {
+function getServiceCategories(provider: TenantProfileData): ServiceCategory[] {
+  if (!provider.servicesOffered) return serviceCategories;
+
+  const grouped = new Map<string, ServiceItem[]>();
+  provider.servicesOffered.forEach((service) => {
+    const items = grouped.get(service.category) ?? [];
+    items.push(service);
+    grouped.set(service.category, items);
+  });
+
+  return Array.from(grouped, ([label, services]) => ({ label, services }));
+}
+
+function ServicesPanel({ categories }: { categories: ServiceCategory[] }) {
   const [selectedCategory, setSelectedCategory] = useState(
-    serviceCategories[0].label,
+    categories[0]?.label ?? "",
   );
   const category =
-    serviceCategories.find(({ label }) => label === selectedCategory) ??
-    serviceCategories[0];
+    categories.find(({ label }) => label === selectedCategory) ??
+    categories[0];
+
+  if (!categories.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-[#d8d8d5] p-8 text-sm text-[#777b78]">
+        No services are currently listed for this business.
+      </div>
+    );
+  }
+
+  const showSelector = categories.length > 1;
 
   return (
     <div className="space-y-6">
-      <div className="max-w-sm">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#777b78]">
-          Service type
-        </p>
-        <Select value={selectedCategory} onValueChange={(value) => {
-                if (value !== null) setSelectedCategory(value);
-              }}>
-          <SelectTrigger
-            aria-label="Choose a service type"
-            className="h-11 rounded-xl border-[#d8d8d5] bg-white text-sm font-semibold text-[#3c6355] shadow-none"
+      {showSelector && (
+        <div className="max-w-sm">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#777b78]">
+            Service type
+          </p>
+          <Select
+            value={selectedCategory}
+            onValueChange={(value) => {
+              if (value !== null) setSelectedCategory(value);
+            }}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {serviceCategories.map(({ label }) => (
-              <SelectItem key={label} value={label}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+            <SelectTrigger
+              aria-label="Choose a service type"
+              className="h-11 rounded-xl border-[#d8d8d5] bg-white text-sm font-semibold text-[#3c6355] shadow-none"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(({ label }) => (
+                <SelectItem key={label} value={label}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="rounded-xl border border-[#e5e6e4] bg-white px-4 sm:px-6">
         <div className="border-b border-[#e5e6e4] py-4">
@@ -655,7 +692,7 @@ function ServicesPanel() {
         </div>
         <div className="divide-y divide-[#e5e6e4]">
           {category.services.map((service) => (
-            <ServiceItemRow key={service.title} {...service} />
+            <ServiceItemRow key={service.id ?? service.title} {...service} />
           ))}
         </div>
       </div>
