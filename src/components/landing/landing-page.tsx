@@ -17,7 +17,7 @@ export function LandingPage() {
   return (
     <main id="top" className="min-h-screen bg-white text-[#111111]">
       <SiteHeader />
-      <div className="mx-auto max-w-[1440px] px-6 pt-10 sm:px-10 lg:px-[130px]">
+      <div className="mx-auto max-w-[1440px] px-6 pt-8 sm:px-10 sm:pt-10 lg:px-[130px]">
         <p className="text-sm font-semibold text-[#c5714e] sm:text-base">
           Now lived in Cebu, Manila and other cities.
         </p>
