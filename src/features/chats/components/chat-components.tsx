@@ -242,8 +242,6 @@ function MessageBubble({
   if (!sent) return <div className="flex min-w-0 justify-start"><div className="w-fit min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-800"><p className="break-words [overflow-wrap:anywhere]">{message.body}</p><span className="mt-1 block text-[10px] opacity-70">{message.timestamp}</span></div></div>;
 
   const offset = isActionsOpen ? -160 : dragX;
-  const closeActions = () => { setDragX(0); onToggleActions(); };
-
   return <div
     className="relative min-w-0 touch-pan-y overflow-hidden"
     onPointerDown={(event) => {
