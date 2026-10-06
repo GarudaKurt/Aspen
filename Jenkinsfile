@@ -188,4 +188,22 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo "Pipeline completed successfully."
+        }
+
+        failure {
+            echo "Pipeline failed — PR will not be merged."
+        }
+
+        always {
+            script {
+                if (env.NODE_NAME) {
+                    cleanWs()
+                }
+            }
+        }
+    }
 }
