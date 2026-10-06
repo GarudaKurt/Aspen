@@ -487,6 +487,33 @@ export function BillingDetailsPage() {
 }
 
 
+function BillingInput({
+  id,
+  label,
+  value,
+  type = "text",
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  type?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="bg-white"
+      />
+    </div>
+  );
+}
+
 function BillingField({
   label,
   value,
