@@ -27,7 +27,7 @@ export function BusinessDirectory({
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   return (
     <section className="py-12 sm:py-16">
-      <div className="mx-auto max-w-[1440px] px-6 sm:px-10 lg:px-[130px]">
+      <div className="mx-auto max-w-[1440px] px-6 sm:px-10 lg:px-[130px] 2xl:max-w-[1680px] 2xl:px-16">
         <h2 className="text-3xl font-bold tracking-[-0.03em] text-[#3c6355] sm:text-4xl">
           All businesses
         </h2>

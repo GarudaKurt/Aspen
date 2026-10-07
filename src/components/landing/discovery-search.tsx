@@ -198,20 +198,20 @@ export function DiscoverySearch({
   return (
     <section
       id="browse"
-      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px]"
+      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px]"
     >
-      <div className="mx-auto max-w-[1440px]">
-        <h1 className="max-w-[900px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
-          Trusted pet care, found in minutes
+      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
+        <h1 className="max-w-[1000px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
+          Trusted pet care, found in <br className="hidden sm:block" /> minutes
         </h1>
-        <p className="mt-4 max-w-[760px] text-lg leading-6 text-[#242524] sm:text-xl">
+        <p className="mt-4 max-w-[820px] text-lg leading-6 text-[#242524] sm:text-xl">
           Vet clinics, groomers, boarding and supply shops near you
           <br className="hidden sm:block" /> browse real profiles and book
           straight from the listing.
         </p>
         <form
           onSubmit={submitSearch}
-          className="relative z-20 mt-7 flex w-full max-w-[860px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
+          className="relative z-20 mt-7 flex w-full max-w-[960px] 2xl:max-w-[1040px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
         >
           <div className="flex min-h-[64px] min-w-0 flex-[2_1_0%] items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
@@ -238,7 +238,7 @@ export function DiscoverySearch({
             Search
           </Button>
         </form>
-        <div className="mt-6 flex w-full max-w-[920px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:justify-items-start xl:grid-cols-4 lg:gap-2 lg:overflow-visible">
+        <div className="mt-6 flex w-full max-w-[1040px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:justify-items-start xl:grid-cols-4 lg:gap-2 lg:overflow-visible">
           {serviceCategories.map(({ label, icon: Icon }) => {
             const isActive = selectedCategory === label;
 

@@ -11,7 +11,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-[#fafaf9] text-[#171817]">
-        <header className="mx-auto flex max-w-[1440px] items-center justify-between border-b border-slate-200 px-5 py-6 sm:px-8">
+        <header className="mx-auto flex max-w-[1440px] items-center 2xl:max-w-[1920px] justify-between border-b border-slate-200 px-5 py-6 sm:px-8">
           <Link href="/tenant-dashboard" className="inline-flex items-center gap-2 text-2xl font-bold">
             <AspenLogo size={36} decorative />
             <span>Aspen</span>
@@ -26,9 +26,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
         </header>
-        <div className="mx-auto flex max-w-[1440px]">
+        <div className="mx-auto flex max-w-[1440px] 2xl:max-w-[1920px]">
           <DashboardSidebar />
-          <main className="min-w-0 flex-1 p-5 sm:p-8">{children}</main>
+          <main className="min-w-0 flex-1 p-5 sm:p-8 xl:p-10 2xl:p-14">{children}</main>
         </div>
       </div>
     </SidebarProvider>
