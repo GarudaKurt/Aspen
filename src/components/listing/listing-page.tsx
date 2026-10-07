@@ -113,7 +113,6 @@ export function ListingPage() {
             <AspenLogo size={28} decorative />
             <span>Aspen</span>
           </Link>
-          <span className="w-16" aria-hidden="true" />
         </header>
 
         <div className="py-8 sm:py-10">
