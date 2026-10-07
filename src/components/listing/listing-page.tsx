@@ -206,9 +206,9 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
   return (
     <nav
       aria-label="Listing progress"
-      className="overflow-x-auto pb-2 lg:overflow-visible"
+      className="w-full max-w-full overflow-hidden pb-2 lg:overflow-visible"
     >
-      <ol className="flex min-w-max items-start gap-0 lg:block lg:min-w-0">
+      <ol className="flex w-full items-start justify-between gap-0 lg:block lg:min-w-0">
         {steps.map(({ label, path, icon: Icon }, index) => {
           const isCurrent = index === activeIndex;
           const isComplete = index < activeIndex;
@@ -218,25 +218,25 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
           return (
             <li
               key={label}
-              className="relative flex flex-1 items-start lg:block lg:pb-6"
+              className="relative flex min-w-0 flex-1 items-start lg:block lg:pb-6"
             >
               <Link
                 href={path}
                 aria-current={isCurrent ? "step" : undefined}
-                className={`group relative z-10 flex min-w-[78px] flex-col items-center gap-2 text-center text-xs lg:flex-row lg:items-center lg:gap-2 lg:text-left ${isReached ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}
+                className={`group relative z-10 flex min-w-0 flex-1 flex-col items-center gap-1 text-center text-[10px] sm:gap-2 sm:text-xs lg:flex-row lg:items-center lg:gap-2 lg:text-left ${isReached ? "text-[#3c6355]" : "text-[#a0a4a1]"}`}
               >
                 <span
-                  className={`relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 ${isCurrent ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : isComplete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
+                  className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors duration-200 sm:size-9 ${isCurrent ? "border-[#3c6355] text-[#3c6355] ring-4 ring-[#3c6355]/10" : isComplete ? "border-emerald-600 bg-emerald-50 text-emerald-600" : "border-[#cfd2cf] text-[#a0a4a1]"}`}
                 >
                   {isComplete ? (
-                    <Check size={16} strokeWidth={2.5} />
+                    <Check size={14} strokeWidth={2.5} className="sm:size-4" />
                   ) : (
-                    <Icon size={16} />
+                    <Icon size={14} className="sm:size-4" />
                   )}
                 </span>
-                <span className="hidden sm:block lg:block">
-                  <span className="block font-semibold">{label}</span>
-                  <span className="block text-[9px] text-[#a0a4a1]">
+                <span className="mt-1 block min-w-0 max-w-[4.5rem] truncate sm:mt-0 sm:max-w-none lg:text-left">
+                  <span className="block truncate font-semibold">{label}</span>
+                  <span className="hidden text-[9px] text-[#a0a4a1] sm:block">
                     {isCurrent
                       ? "Current step"
                       : isComplete
@@ -248,7 +248,7 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
               {hasNext && (
                 <span
                   aria-hidden="true"
-                  className={`absolute z-0 bg-[#cfd2cf] transition-colors duration-200 ${isComplete ? "bg-emerald-600" : ""} left-[calc(50%+18px)] right-0 top-4 h-0.5 lg:left-4 lg:right-auto lg:top-9 lg:h-auto lg:w-0.5 lg:-translate-x-1/2 lg:bottom-0`}
+                  className={`absolute z-0 bg-[#cfd2cf] transition-colors duration-200 ${isComplete ? "bg-emerald-600" : ""} left-[calc(50%+16px)] right-[-50%] top-4 h-0.5 sm:left-[calc(50%+18px)] sm:top-4 lg:left-4 lg:right-auto lg:top-9 lg:h-auto lg:w-0.5 lg:-translate-x-1/2 lg:bottom-0`}
                 />
               )}
             </li>
