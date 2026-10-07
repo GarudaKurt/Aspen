@@ -3,7 +3,7 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowLeft,
   Check,
@@ -510,7 +510,7 @@ function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
   const pageStart = (currentPage - 1) * reviewsPerPage;
   const visibleReviews = reviews.slice(pageStart, pageStart + reviewsPerPage);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSubmitReview || !rating || !comment.trim()) return;
 
