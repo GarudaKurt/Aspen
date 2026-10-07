@@ -99,7 +99,7 @@ export function ListingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-white px-4 py-10 text-[#171817] sm:px-8 sm:py-8 lg:px-12">
       <div className="mx-auto max-w-[1040px]">
         <header className="flex items-center justify-between border-b border-[#dededb] pb-5">
           <Link
@@ -134,7 +134,7 @@ export function ListingPage() {
 
         <div className="grid gap-8 lg:grid-cols-[150px_minmax(0,1fr)] lg:items-start">
           <ListingStepper activeIndex={activeIndex} />
-          <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
+          <Card className="rounded-xl border-[#d7d8d5] bg-white p-6 shadow-none sm:p-8">
             {activeIndex === 0 && (
               <BusinessStep
                 providerType={providerType}
@@ -161,7 +161,7 @@ export function ListingPage() {
               />
             )}
             {activeIndex === 4 && <ReviewStep />}
-            <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-10 flex flex-col gap-4 border-t border-[#e1e2df] pt-6 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 variant="ghost"
                 type="button"
@@ -171,15 +171,7 @@ export function ListingPage() {
                 <ChevronLeft size={16} />
                 {activeIndex === 0 ? "Back to search" : "Back"}
               </Button>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => router.push("/")}
-                  className="border-[#cfd2cf] bg-white"
-                >
-                  Save and exit
-                </Button>
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <Button
                   type="button"
                   onClick={
@@ -187,11 +179,19 @@ export function ListingPage() {
                       ? () => router.push("/#top")
                       : goNext
                   }
-                  className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                  className="order-1 min-h-11 w-full px-4 sm:order-none sm:w-40 bg-[#3c6355] text-white hover:bg-[#2f5044]"
                 >
                   {activeIndex === steps.length - 1
                     ? "Submit application"
                     : "Save and continue"}
+                </Button>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => router.push("/")}
+                  className="order-2 min-h-11 w-full px-4 sm:order-none sm:w-40 border-[#cfd2cf] bg-white"
+                >
+                  Save and exit
                 </Button>
               </div>
             </div>
