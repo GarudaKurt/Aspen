@@ -208,7 +208,11 @@ export function BusinessCard({
           </div>
         )}
       </div>
-      <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
+      <Link
+        href={slug ? `/business-profile/${slug}` : href}
+        aria-label={`Open ${businessName} profile`}
+        className="block space-y-1 p-2 outline-none transition-colors hover:bg-[#f7faf8] focus-visible:bg-[#f7faf8] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3c6355] sm:space-y-1.5 sm:p-2"
+      >
         <p className="text-[10px] text-[#8d918f]">{location}</p>
         <h3 className="truncate text-base font-medium text-[#242524]">
           {businessName}
@@ -218,20 +222,12 @@ export function BusinessCard({
           <span>{rating}</span>
           <span className="text-[#d9d9d7]">•</span>
           <span>{services}</span>
-          <Link
-            href={slug ? `/business-profile/${slug}` : href}
-            aria-label={`View ${businessName} profile`}
-            className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold text-[#3c6355] transition-colors hover:bg-[#eaf0ed] hover:text-[#2f5044] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]/50 sm:text-xs"
-          >
-            View profile
-            <ArrowRight size={13} aria-hidden="true" />
-          </Link>
         </div>
         <p className="text-sm leading-5 text-[#8d918f]">
           Starts at{" "}
           <span className="font-semibold text-[#242524]">{priceStarts}</span>
         </p>
-      </div>
+      </Link>
     </Card>
   );
 }
