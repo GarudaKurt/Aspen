@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, MapPin, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
@@ -209,22 +209,22 @@ export function BusinessCard({
         )}
       </div>
       <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
-        <p className="text-[10px] text-[#8d918f]">{location}</p>
-        <h3 className="truncate text-base font-medium text-[#242524]">
-          {businessName}
-        </h3>
-        <div className="flex items-center gap-2 whitespace-nowrap text-sm text-[#9a9c9b]">
+        <p className="flex min-w-0 items-center gap-1 text-[10px] text-[#8d918f]"><MapPin size={12} className="shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="truncate">{location}</span></p>
+        <Link
+          href={slug ? `/business-profile/${slug}` : href}
+          aria-label={`View ${businessName} profile`}
+          title="View business profile"
+          className="group/name inline-flex max-w-full cursor-pointer rounded-sm text-base font-medium text-[#242524] outline-none transition-colors hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+        >
+          <h3 className="truncate underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
+            {businessName}
+          </h3>
+        </Link>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#9a9c9b]">
           <Star size={13} fill="#ffd000" strokeWidth={0} />
           <span>{rating}</span>
           <span className="text-[#d9d9d7]">•</span>
           <span>{services}</span>
-          <Link
-            href={slug ? `/business-profile/${slug}` : href}
-            aria-label={`View ${businessName} details`}
-            className="ml-auto flex shrink-0 items-center justify-center rounded-full text-[#ff8b2c] transition-colors hover:text-[#e67a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8b2c]/50"
-          >
-            <ArrowUpRight size={16} />
-          </Link>
         </div>
         <p className="text-sm leading-5 text-[#8d918f]">
           Starts at{" "}
