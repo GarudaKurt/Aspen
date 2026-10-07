@@ -211,7 +211,7 @@ export function DiscoverySearch({
         </p>
         <form
           onSubmit={submitSearch}
-          className="relative z-20 mt-7 flex w-full max-w-[680px] 2xl:max-w-[720px] flex-col overflow-hidden rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center sm:overflow-visible"
+          className="relative z-20 mt-7 flex w-full max-w-[680px] 2xl:max-w-[720px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
         >
           <div className="flex min-h-[64px] min-w-0 flex-[2_1_0%] items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
@@ -232,7 +232,7 @@ export function DiscoverySearch({
             variant="ghost"
             type="submit"
             aria-label="Search"
-            className="flex h-auto min-h-[52px] w-full items-center justify-start gap-3 rounded-none border-t border-[#e6e5e1] bg-transparent px-5 text-base font-semibold text-[#2c2c2c] transition-colors hover:bg-[#f3f3f2] hover:text-[#3c6355] sm:mx-2 sm:my-2 sm:h-11 sm:min-h-[44px] sm:w-auto sm:shrink-0 sm:justify-center sm:gap-2 sm:rounded-xl sm:border-0 sm:px-4"
+            className="flex h-auto min-h-[52px] w-full items-center justify-start gap-3 overflow-hidden rounded-b-2xl border-t border-[#e6e5e1] bg-transparent px-5 text-base font-semibold text-[#2c2c2c] transition-colors hover:bg-[#f3f3f2] hover:text-[#3c6355] sm:mx-2 sm:my-2 sm:h-11 sm:min-h-[44px] sm:w-auto sm:shrink-0 sm:justify-center sm:gap-2 sm:rounded-xl sm:border-0 sm:px-4"
           >
             <ArrowUpRight size={20} strokeWidth={1.8} className="shrink-0" />
             Search
