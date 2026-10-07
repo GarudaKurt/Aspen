@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { ArrowLeft, ArrowRight, Heart, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, MapPin, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
@@ -209,7 +209,7 @@ export function BusinessCard({
         )}
       </div>
       <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
-        <p className="text-[10px] text-[#8d918f]">{location}</p>
+        <p className="flex min-w-0 items-center gap-1 text-[10px] text-[#8d918f]"><MapPin size={12} className="shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="truncate">{location}</span></p>
         <Link
           href={slug ? `/business-profile/${slug}` : href}
           aria-label={`View ${businessName} profile`}
