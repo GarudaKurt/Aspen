@@ -148,7 +148,7 @@ export function SiteHeader({
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-[#d8d8d8] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-12 xl:px-[70px] 2xl:max-w-[1680px] 2xl:gap-8 2xl:px-16">
+        <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-12 xl:px-[70px] 2xl:max-w-none 2xl:gap-10 2xl:px-20">
           <Link
             href="/"
             onClick={closeMenus}
