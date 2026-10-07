@@ -211,7 +211,7 @@ export function DiscoverySearch({
         </p>
         <form
           onSubmit={submitSearch}
-          className="relative z-20 mt-7 flex w-full max-w-[680px] 2xl:max-w-[720px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
+          className="relative z-20 mt-7 flex w-full max-w-[680px] 2xl:max-w-[720px] flex-col overflow-hidden rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center sm:overflow-visible"
         >
           <div className="flex min-h-[64px] min-w-0 flex-[2_1_0%] items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
