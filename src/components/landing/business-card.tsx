@@ -214,7 +214,7 @@ export function BusinessCard({
           href={slug ? `/business-profile/${slug}` : href}
           aria-label={`View ${businessName} profile`}
           title="View business profile"
-          className="group/name inline-flex max-w-full cursor-pointer rounded-sm text-base font-medium text-[#242524] outline-none transition-colors hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+          className="group/name inline-flex max-w-full cursor-pointer rounded-sm text-base font-medium text-[#242524] outline-none transition-colors active:bg-[#eaf0ed] active:text-[#3c6355] active:underline hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
         >
           <h3 className="truncate underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
             {businessName}
