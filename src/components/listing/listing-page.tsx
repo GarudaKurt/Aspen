@@ -165,12 +165,12 @@ export function ListingPage() {
                 variant="ghost"
                 type="button"
                 onClick={goBack}
-                className="justify-start px-0 text-[#242524] hover:bg-transparent hover:text-[#3c6355]"
+                className="order-3 justify-start px-0 text-[#242524] hover:bg-transparent hover:text-[#3c6355] sm:order-none"
               >
                 <ChevronLeft size={16} />
                 {activeIndex === 0 ? "Back to search" : "Back"}
               </Button>
-              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <div className="order-1 flex w-full flex-col gap-3 sm:order-none sm:w-auto sm:flex-row">
                 <Button
                   type="button"
                   onClick={
@@ -296,10 +296,10 @@ function BusinessStep({
         label="Business description"
         hint="Describe your experience and what makes your service distinctive."
       >
-        <textarea className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
+        <textarea className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
       </FieldLabel>
       <FieldLabel label="Business address">
-        <textarea className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
+        <textarea className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
       </FieldLabel>
     </FormSection>
   );
@@ -354,7 +354,7 @@ function ServicesStep({
         </FieldLabel>
       </div>
       <FieldLabel label="Service summary">
-        <textarea className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
+        <textarea className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
       </FieldLabel>
       <FieldLabel label="Facebook page" hint="Optional">
         <Input placeholder="https://facebook.com/your-business" />
@@ -475,7 +475,7 @@ function BillingStep({
           onChange={(event) => onChange("address", event.target.value)}
           placeholder="Street, city, province"
           aria-invalid={Boolean(errors.address)}
-          className="min-h-24 w-full rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
+          className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
         />
         {errors.address && (
           <span className="block text-xs font-normal text-red-600">{errors.address}</span>

@@ -314,12 +314,12 @@ export function AppointmentPage({
                   variant="ghost"
                   type="button"
                   onClick={back}
-                  className="justify-start px-0 hover:bg-transparent hover:text-[#3c6355]"
+                  className="order-3 justify-start px-0 hover:bg-transparent hover:text-[#3c6355] sm:order-none"
                 >
                   <ChevronLeft size={16} />
                   {activeIndex === 0 ? "Back to search" : "Back"}
                 </Button>
-                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <div className="order-1 flex w-full flex-col gap-3 sm:order-none sm:w-auto sm:flex-row">
                   <Button
                     type="button"
                     onClick={next}
