@@ -17,10 +17,12 @@ export function LandingPage() {
   return (
     <main id="top" className="min-h-screen bg-white text-[#111111]">
       <SiteHeader />
-      <div className="mx-auto max-w-[1440px] px-6 pt-8 sm:px-10 sm:pt-10 lg:px-[130px] 2xl:max-w-[1680px] 2xl:px-16">
-        <p className="text-sm font-semibold text-[#c5714e] sm:text-base">
+      <div className="px-6 pt-8 sm:px-10 sm:pt-10 lg:px-[130px] 2xl:px-16">
+        <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
+          <p className="text-sm font-semibold text-[#c5714e] sm:text-base">
           Now lived in Cebu, Manila and other cities.
-        </p>
+          </p>
+        </div>
       </div>
       <DiscoverySearch
         query={query}
