@@ -198,9 +198,9 @@ export function DiscoverySearch({
   return (
     <section
       id="browse"
-      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px]"
+      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px] min-[1600px]:max-w-none min-[1600px]:px-0"
     >
-      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
+      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px] min-[1600px]:px-16">
         <h1 className="max-w-[1000px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
           Trusted pet care, found in <br className="hidden sm:block" /> minutes
         </h1>
@@ -224,7 +224,7 @@ export function DiscoverySearch({
             />
           </div>
           <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
-          <div className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:w-[230px] sm:border-t-0">
+          <div className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:w-[230px] min-[1600px]:w-[200px] sm:border-t-0">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
             <CityCombobox key={city} city={city} onCityChange={onCityChange} />
           </div>
