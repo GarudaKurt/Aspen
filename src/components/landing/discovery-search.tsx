@@ -198,9 +198,9 @@ export function DiscoverySearch({
   return (
     <section
       id="browse"
-      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px]"
+      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px] min-[1600px]:!max-w-none min-[1600px]:!px-0"
     >
-      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
+      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px] min-[1600px]:px-14">
         <h1 className="max-w-[1000px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
           Trusted pet care, found in <br className="hidden sm:block" /> minutes
         </h1>
@@ -211,7 +211,7 @@ export function DiscoverySearch({
         </p>
         <form
           onSubmit={submitSearch}
-          className="relative z-20 mt-7 flex w-full max-w-[960px] 2xl:max-w-[1040px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
+          className="relative z-20 mt-7 flex w-full max-w-[680px] 2xl:max-w-[1040px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
         >
           <div className="flex min-h-[64px] min-w-0 flex-[2_1_0%] items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
@@ -224,7 +224,7 @@ export function DiscoverySearch({
             />
           </div>
           <div className="mx-4 hidden h-9 w-px bg-[#e6e5e1] sm:block" />
-          <div className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:w-[230px] sm:border-t-0">
+          <div className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e5e1] px-5 text-[#444743] sm:w-[230px] min-[1600px]:w-[200px] sm:border-t-0">
             <MapPin size={18} strokeWidth={1.4} className="shrink-0" />
             <CityCombobox key={city} city={city} onCityChange={onCityChange} />
           </div>
@@ -238,7 +238,7 @@ export function DiscoverySearch({
             Search
           </Button>
         </form>
-        <div className="mt-6 flex w-full max-w-[1040px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:justify-items-start xl:grid-cols-4 lg:gap-2 lg:overflow-visible">
+        <div className="mt-6 grid w-fit max-w-full grid-cols-[repeat(3,max-content)] justify-items-start gap-x-15 gap-y-2">
           {serviceCategories.map(({ label, icon: Icon }) => {
             const isActive = selectedCategory === label;
 
@@ -249,7 +249,7 @@ export function DiscoverySearch({
                 key={label}
                 onClick={() => setSelectedCategory(label)}
                 aria-pressed={isActive}
-                className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-5 py-2.5 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
+                className={`inline-flex h-auto items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-4 py-2 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
               >
                 <Icon size={22} strokeWidth={1.8} className="shrink-0" />
                 {label}
