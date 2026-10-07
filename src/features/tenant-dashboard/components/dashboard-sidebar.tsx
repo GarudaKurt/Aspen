@@ -100,7 +100,7 @@ export function DashboardSidebar() {
   ] as const;
 
   return (
-    <Sidebar className="lg:relative">
+    <Sidebar className={`lg:relative ${open ? "2xl:w-72" : ""}`}>
       <SidebarContent
         className={`transition-[padding] duration-200 ${open ? "p-3 lg:p-5" : "p-2 lg:p-2"}`}
       >
