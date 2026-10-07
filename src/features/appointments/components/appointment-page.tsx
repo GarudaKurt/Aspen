@@ -236,7 +236,6 @@ export function AppointmentPage({
               <AspenLogo size={28} decorative />
               <span>Aspen</span>
             </Link>
-            <span className="w-16" aria-hidden="true" />
           </header>
           <div className="py-8 sm:py-10">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#c5714e]">
