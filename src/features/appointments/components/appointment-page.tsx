@@ -221,7 +221,7 @@ export function AppointmentPage({
 
   return (
     <>
-      <main className="min-h-screen bg-white px-4 py-8 text-[#171817] sm:px-8 lg:px-12">
+      <main className="min-h-screen bg-white px-4 py-10 text-[#171817] sm:px-8 sm:py-8 lg:px-12">
         <div className="mx-auto max-w-[1040px]">
           <header className="flex items-center justify-between border-b border-[#dededb] pb-5">
             <button
@@ -263,7 +263,7 @@ export function AppointmentPage({
               />
               <AppointmentStepper activeIndex={activeIndex} steps={steps} />
             </div>
-            <Card className="rounded-xl border-[#d7d8d5] bg-white p-5 shadow-none sm:p-8">
+            <Card className="rounded-xl border-[#d7d8d5] bg-white p-6 shadow-none sm:p-8">
               {activeIndex === 0 && (
                 <ServiceStep
                   services={services}
@@ -309,7 +309,7 @@ export function AppointmentPage({
                   {error}
                 </p>
               )}
-              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#e1e2df] pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-10 flex flex-col gap-4 border-t border-[#e1e2df] pt-6 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   variant="ghost"
                   type="button"
@@ -319,7 +319,16 @@ export function AppointmentPage({
                   <ChevronLeft size={16} />
                   {activeIndex === 0 ? "Back to search" : "Back"}
                 </Button>
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                  <Button
+                    type="button"
+                    onClick={next}
+                    className="order-1 min-h-11 w-full px-4 sm:order-none sm:w-40 bg-[#3c6355] text-white hover:bg-[#2f5044]"
+                  >
+                    {activeIndex === steps.length - 1
+                      ? "Request appointment"
+                      : "Save and continue"}
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -330,17 +339,9 @@ export function AppointmentPage({
                           : "/",
                       )
                     }
+                    className="order-2 min-h-11 w-full px-4 sm:order-none sm:w-40"
                   >
                     Save and exit
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={next}
-                    className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
-                  >
-                    {activeIndex === steps.length - 1
-                      ? "Request appointment"
-                      : "Save and continue"}
                   </Button>
                 </div>
               </div>
@@ -823,7 +824,7 @@ function FormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="space-y-5">
+    <section className="space-y-6 sm:space-y-5">
       <div>
         <h2 className="text-lg font-bold">{title}</h2>
         <p className="mt-1 text-sm leading-5 text-[#777b78]">{description}</p>
