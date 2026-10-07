@@ -98,6 +98,19 @@ type ReviewData = {
   starRating: number;
   comment: string;
   photos?: string[];
+  verified?: boolean;
+};
+
+type MockCustomerAccount = {
+  id: string;
+  name: string;
+  completedBusinessSlugs: string[];
+};
+
+const mockCustomerAccount: MockCustomerAccount = {
+  id: "mock-customer-001",
+  name: "Maya Dela Cruz",
+  completedBusinessSlugs: ["kalinga-animal-hospital"],
 };
 
 const mockReviews: ReviewData[] = [
@@ -107,6 +120,7 @@ const mockReviews: ReviewData[] = [
     comment:
       "Staff were gentle with my very anxious cat. Dr. Reyes explained everything clearly before the procedure.",
     photos: ["/kalinga-anima-hospital.png"],
+    verified: true,
   },
   {
     name: "Daniel R.",
@@ -114,6 +128,7 @@ const mockReviews: ReviewData[] = [
     comment:
       "Very professional team and a smooth appointment from check-in to follow-up.",
     photos: ["/kalinga-anima-hospital.png"],
+    verified: true,
   },
   {
     name: "Andrea M.",
@@ -480,17 +495,41 @@ function ProfileSection({
 
 function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
   const reviewsPerPage = 5;
-  const totalPages = Math.max(
-    1,
-    Math.ceil(mockReviews.length / reviewsPerPage),
-  );
+  const [reviews, setReviews] = useState(mockReviews);
   const [reviewPage, setReviewPage] = useState(1);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [reviewPhotos, setReviewPhotos] = useState<string[]>([]);
+  const [submitted, setSubmitted] = useState(false);
+  const canSubmitReview = Boolean(
+    provider.slug &&
+      mockCustomerAccount.completedBusinessSlugs.includes(provider.slug),
+  );
+  const totalPages = Math.max(1, Math.ceil(reviews.length / reviewsPerPage));
   const currentPage = Math.min(reviewPage, totalPages);
   const pageStart = (currentPage - 1) * reviewsPerPage;
-  const visibleReviews = mockReviews.slice(
-    pageStart,
-    pageStart + reviewsPerPage,
-  );
+  const visibleReviews = reviews.slice(pageStart, pageStart + reviewsPerPage);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmitReview || !rating || !comment.trim()) return;
+
+    setReviews((current) => [
+      {
+        name: mockCustomerAccount.name,
+        starRating: rating,
+        comment: comment.trim(),
+        photos: reviewPhotos,
+        verified: true,
+      },
+      ...current,
+    ]);
+    setRating(0);
+    setComment("");
+    setReviewPhotos([]);
+    setReviewPage(1);
+    setSubmitted(true);
+  };
 
   return (
     <div className="rounded-2xl border border-[#d8d8d5] bg-white p-4 shadow-sm sm:p-6">
@@ -512,7 +551,102 @@ function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
           from verified visits
         </p>
       </div>
-      <div className="space-y-3">
+
+      <section className="mt-6 rounded-xl border border-[#e5e6e4] bg-[#fafcfb] p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-bold text-[#272927]">
+              Share your experience
+            </h3>
+            {canSubmitReview ? (
+              <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-[#69716c]">
+                    Your rating
+                  </p>
+                  <div className="flex items-center gap-1" aria-label="Choose a rating">
+                    {Array.from({ length: 5 }, (_, index) => {
+                      const value = index + 1;
+                      return (
+                        <Button
+                          key={value}
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                          aria-pressed={rating === value}
+                          onClick={() => setRating(value)}
+                          className="size-9 rounded-full text-[#c7cdca] hover:bg-[#eef5f0] hover:text-[#3c6355]"
+                        >
+                          <Star
+                            size={18}
+                            fill={value <= rating ? "currentColor" : "none"}
+                            className={value <= rating ? "text-[#d6794f]" : ""}
+                          />
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <textarea
+                  value={comment}
+                  onChange={(event) => setComment(event.target.value)}
+                  placeholder="Tell other pet owners about your visit."
+                  aria-label="Write your review"
+                  className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none transition focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
+                />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[#cfd4d1] px-3 text-xs font-semibold text-[#3c6355] transition-colors hover:bg-[#f2f5f3]">
+                      <ImagePlus size={16} />
+                      Add photos
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="sr-only"
+                        onChange={(event) => {
+                          const files = Array.from(event.target.files ?? []).slice(0, 3);
+                          setReviewPhotos(files.map((file) => URL.createObjectURL(file)));
+                        }}
+                      />
+                    </label>
+                    {reviewPhotos.map((photo, index) => (
+                      <Image
+                        key={`${photo}-${index}`}
+                        src={photo}
+                        alt={`Selected review photo ${index + 1}`}
+                        width={40}
+                        height={40}
+                        className="size-10 rounded-md object-cover"
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={!rating || !comment.trim()}
+                    className="w-full bg-[#3c6355] text-white hover:bg-[#2f5044] sm:w-auto"
+                  >
+                    Submit review
+                  </Button>
+                </div>
+                {submitted && (
+                  <p role="status" className="text-xs font-semibold text-[#3c6355]">
+                    Your mock verified review was added to this preview.
+                  </p>
+                )}
+              </form>
+            ) : (
+              <p className="mt-2 text-xs leading-5 text-[#777b78]">
+                Complete a service with this business before submitting a review
+                or uploading review photos.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-5 space-y-3">
         {visibleReviews.map((review) => (
           <ReviewItem key={`${review.name}-${review.comment}`} {...review} />
         ))}
@@ -524,9 +658,7 @@ function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
               <PaginationPrevious
                 aria-label="Previous reviews"
                 disabled={currentPage === 1}
-                onClick={() =>
-                  setReviewPage((page) => Math.max(1, page - 1))
-                }
+                onClick={() => setReviewPage((page) => Math.max(1, page - 1))}
               />
             </PaginationItem>
             <PaginationItem>
@@ -550,8 +682,13 @@ function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
   );
 }
 
-function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
-  const [reviewPhotos, setReviewPhotos] = useState(photos);
+function ReviewItem({
+  name,
+  starRating,
+  comment,
+  photos = [],
+  verified = true,
+}: ReviewData) {
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -565,7 +702,15 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-[#272927]">{name}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-bold text-[#272927]">{name}</p>
+            {verified && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <Check size={11} />
+                Verified customer
+              </span>
+            )}
+          </div>
           <div
             className="mt-1 flex gap-0.5 text-[#ffd000]"
             aria-label={`${starRating} out of 5 stars`}
@@ -582,35 +727,20 @@ function ReviewItem({ name, starRating, comment, photos = [] }: ReviewData) {
           <p className="mt-2 text-xs leading-5 text-[#929492] sm:text-sm">
             {comment}
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {reviewPhotos.map((photo, index) => (
-              <Image
-                key={`${photo}-${index}`}
-                src={photo}
-                alt={`${name} review photo ${index + 1}`}
-                width={72}
-                height={72}
-                className="size-16 rounded-lg object-cover"
-              />
-            ))}
-            <label className="inline-flex size-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-[#cfd4d1] text-[#3c6355] transition-colors hover:bg-[#f2f5f3]">
-              <ImagePlus size={18} />
-              <span className="sr-only">Upload a photo with your review</span>
-              <input
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file)
-                    setReviewPhotos((current) => [
-                      ...current,
-                      URL.createObjectURL(file),
-                    ]);
-                }}
-              />
-            </label>
-          </div>
+          {photos.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {photos.map((photo, index) => (
+                <Image
+                  key={`${photo}-${index}`}
+                  src={photo}
+                  alt={`${name} review photo ${index + 1}`}
+                  width={72}
+                  height={72}
+                  className="size-16 rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
         </div>
         <time className="ml-auto shrink-0 text-[10px] text-[#929492]">
           2 weeks ago
