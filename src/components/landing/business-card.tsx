@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
@@ -213,17 +213,18 @@ export function BusinessCard({
         <h3 className="truncate text-base font-medium text-[#242524]">
           {businessName}
         </h3>
-        <div className="flex items-center gap-2 whitespace-nowrap text-sm text-[#9a9c9b]">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#9a9c9b]">
           <Star size={13} fill="#ffd000" strokeWidth={0} />
           <span>{rating}</span>
           <span className="text-[#d9d9d7]">•</span>
           <span>{services}</span>
           <Link
             href={slug ? `/business-profile/${slug}` : href}
-            aria-label={`View ${businessName} details`}
-            className="ml-auto flex shrink-0 items-center justify-center rounded-full text-[#ff8b2c] transition-colors hover:text-[#e67a1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff8b2c]/50"
+            aria-label={`View ${businessName} profile`}
+            className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold text-[#3c6355] transition-colors hover:bg-[#eaf0ed] hover:text-[#2f5044] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]/50 sm:text-xs"
           >
-            <ArrowUpRight size={16} />
+            View profile
+            <ArrowRight size={13} aria-hidden="true" />
           </Link>
         </div>
         <p className="text-sm leading-5 text-[#8d918f]">
