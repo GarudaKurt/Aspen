@@ -357,14 +357,14 @@ export function SiteHeader({
                   })}
                 </div>
               ) : (
-                <div className="order-3 space-y-2 pt-2">
+                <div className="order-3 flex flex-col items-center gap-2 pt-2">
                   <button
                     type="button"
                     onClick={() => {
                       closeMenus();
                       setSignInOpen(true);
                     }}
-                    className="flex min-h-11 items-center gap-3 rounded-lg border border-[#d8d8d8] px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                    className="flex min-h-11 w-full max-w-xs items-center justify-center gap-3 rounded-lg border border-[#d8d8d8] px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     <UserRound size={18} aria-hidden="true" />
                     Sign in
@@ -375,7 +375,7 @@ export function SiteHeader({
                       closeMenus();
                       setCreateAccountOpen(true);
                     }}
-                    className="flex min-h-11 items-center justify-center rounded-lg bg-[#3c6355] px-3 text-base font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                    className="flex min-h-11 w-full max-w-xs items-center justify-center rounded-lg bg-[#3c6355] px-3 text-base font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
                   </button>
