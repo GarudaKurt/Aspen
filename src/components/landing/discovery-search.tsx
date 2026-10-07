@@ -211,7 +211,7 @@ export function DiscoverySearch({
         </p>
         <form
           onSubmit={submitSearch}
-          className="relative z-20 mt-7 flex w-full max-w-[960px] 2xl:max-w-[1040px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
+          className="relative z-20 mt-7 flex w-full max-w-[680px] 2xl:max-w-[1040px] flex-col overflow-visible rounded-2xl border border-[#c8c8c5] bg-white sm:h-[62px] sm:flex-row sm:items-center"
         >
           <div className="flex min-h-[64px] min-w-0 flex-[2_1_0%] items-center gap-3 px-5 text-[#8e918e]">
             <Search size={20} strokeWidth={1.3} className="shrink-0" />
@@ -238,7 +238,7 @@ export function DiscoverySearch({
             Search
           </Button>
         </form>
-        <div className="mt-6 flex w-full max-w-[1040px] gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-3 lg:justify-items-start xl:grid-cols-4 lg:gap-2 lg:overflow-visible">
+        <div className="mt-6 grid w-fit max-w-full grid-cols-[repeat(3,max-content)] justify-items-start gap-x-15 gap-y-2">
           {serviceCategories.map(({ label, icon: Icon }) => {
             const isActive = selectedCategory === label;
 
@@ -249,7 +249,7 @@ export function DiscoverySearch({
                 key={label}
                 onClick={() => setSelectedCategory(label)}
                 aria-pressed={isActive}
-                className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-5 py-2.5 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
+                className={`inline-flex h-auto items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-4 py-2 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
               >
                 <Icon size={22} strokeWidth={1.8} className="shrink-0" />
                 {label}
