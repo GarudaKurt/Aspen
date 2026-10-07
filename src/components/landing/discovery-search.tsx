@@ -238,7 +238,7 @@ export function DiscoverySearch({
             Search
           </Button>
         </form>
-        <div className="mt-6 grid w-fit max-w-full grid-cols-[repeat(3,max-content)] justify-items-start gap-x-15 gap-y-2">
+        <div className="mt-6 flex max-w-full gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:w-fit lg:grid-cols-[repeat(3,max-content)] lg:justify-items-start lg:gap-x-15 lg:gap-y-2 lg:overflow-visible">
           {serviceCategories.map(({ label, icon: Icon }) => {
             const isActive = selectedCategory === label;
 
@@ -249,7 +249,7 @@ export function DiscoverySearch({
                 key={label}
                 onClick={() => setSelectedCategory(label)}
                 aria-pressed={isActive}
-                className={`inline-flex h-auto items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-4 py-2 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
+                className={`inline-flex h-auto shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-4 py-2 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
               >
                 <Icon size={22} strokeWidth={1.8} className="shrink-0" />
                 {label}
