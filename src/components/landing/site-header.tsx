@@ -148,7 +148,7 @@ export function SiteHeader({
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-[#d8d8d8] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-12 xl:px-[70px]">
+        <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:gap-4 sm:px-8 lg:px-12 xl:px-[70px] 2xl:max-w-[1680px] 2xl:gap-8 2xl:px-16">
           <Link
             href="/"
             onClick={closeMenus}
@@ -167,7 +167,7 @@ export function SiteHeader({
           )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <div className="flex items-center gap-1 sm:gap-2 md:ml-6 lg:ml-10">
+            <div className="flex items-center gap-1 sm:gap-2 md:ml-6 lg:ml-10 2xl:ml-16 2xl:gap-3">
               <div className="hidden sm:block">
                 <FavoritesAction favoriteCount={favoriteCount} />
               </div>
@@ -273,7 +273,7 @@ export function SiteHeader({
                   </div>
                 </>
               ) : (
-                <div className="hidden items-center gap-1 sm:flex">
+                <div className="hidden items-center gap-1 sm:flex 2xl:gap-2">
                   <button
                     type="button"
                     onClick={() => setSignInOpen(true)}
@@ -284,7 +284,7 @@ export function SiteHeader({
                   <button
                     type="button"
                     onClick={() => setCreateAccountOpen(true)}
-                    className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                    className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white 2xl:px-5" outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
                   </button>
