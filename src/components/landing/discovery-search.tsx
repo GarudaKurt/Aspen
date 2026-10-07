@@ -200,7 +200,7 @@ export function DiscoverySearch({
       id="browse"
       className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px]"
     >
-      <div className="mx-auto max-w-[1440px]">
+      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
         <h1 className="max-w-[1000px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
           Trusted pet care, found in minutes
         </h1>
