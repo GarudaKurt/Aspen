@@ -208,15 +208,18 @@ export function BusinessCard({
           </div>
         )}
       </div>
-      <Link
-        href={slug ? `/business-profile/${slug}` : href}
-        aria-label={`Open ${businessName} profile`}
-        className="block space-y-1 p-2 outline-none transition-colors hover:bg-[#f7faf8] focus-visible:bg-[#f7faf8] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3c6355] sm:space-y-1.5 sm:p-2"
-      >
+      <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
         <p className="text-[10px] text-[#8d918f]">{location}</p>
-        <h3 className="truncate text-base font-medium text-[#242524]">
-          {businessName}
-        </h3>
+        <Link
+          href={slug ? `/business-profile/${slug}` : href}
+          aria-label={`View ${businessName} profile`}
+          title="View business profile"
+          className="group/name inline-flex max-w-full cursor-pointer rounded-sm text-base font-medium text-[#242524] outline-none transition-colors hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+        >
+          <h3 className="truncate underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
+            {businessName}
+          </h3>
+        </Link>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#9a9c9b]">
           <Star size={13} fill="#ffd000" strokeWidth={0} />
           <span>{rating}</span>
@@ -227,7 +230,7 @@ export function BusinessCard({
           Starts at{" "}
           <span className="font-semibold text-[#242524]">{priceStarts}</span>
         </p>
-      </Link>
+      </div>
     </Card>
   );
 }
