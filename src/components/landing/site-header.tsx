@@ -284,7 +284,7 @@ export function SiteHeader({
                   <button
                     type="button"
                     onClick={() => setCreateAccountOpen(true)}
-                    className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white 2xl:px-5" outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+                    className="rounded-full bg-[#3c6355] px-4 py-2 text-sm font-semibold text-white 2xl:px-5 outline-none transition-colors hover:bg-[#315447] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
                   >
                     Create account
                   </button>
