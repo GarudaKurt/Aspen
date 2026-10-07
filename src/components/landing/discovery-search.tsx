@@ -202,7 +202,7 @@ export function DiscoverySearch({
     >
       <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
         <h1 className="max-w-[1000px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">
-          Trusted pet care, found in minutes
+          Trusted pet care, found in <br className="hidden sm:block" /> minutes
         </h1>
         <p className="mt-4 max-w-[820px] text-lg leading-6 text-[#242524] sm:text-xl">
           Vet clinics, groomers, boarding and supply shops near you
