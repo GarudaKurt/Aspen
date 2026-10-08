@@ -29,7 +29,6 @@ import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TimePicker } from "@/components/ui/time-picker";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MobileDashboardNav } from "./dashboard-shell";
 import {
   initialTenantProfile,
@@ -764,31 +763,36 @@ export function ProfileView() {
         </AlertDialogFooter>
       </AlertDialog>
 
-      <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
-        <SheetContent
-          title="Public profile preview"
-          onClose={() => setPreviewOpen(false)}
-          className={previewMaximized ? "max-w-none" : ""}
-          headerActions={
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setPreviewMaximized((current) => !current)}
-              aria-label={
-                previewMaximized ? "Minimize preview" : "Maximize preview"
-              }
-              title={previewMaximized ? "Minimize preview" : "Maximize preview"}
-            >
-              {previewMaximized ? <Minimize2 /> : <Maximize2 />}
-            </Button>
-          }
-        >
-          <div className="min-h-full bg-white">
+      {previewOpen && (
+        <Card className={`mt-5 overflow-hidden bg-white p-0 shadow-none ${previewMaximized ? "max-w-none" : ""}`}>
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">
+                Public profile preview
+              </p>
+              <h2 className="mt-1 text-xl font-semibold">{profile.name}</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setPreviewMaximized((current) => !current)}
+                aria-label={previewMaximized ? "Minimize preview" : "Maximize preview"}
+                title={previewMaximized ? "Minimize preview" : "Maximize preview"}
+              >
+                {previewMaximized ? <Minimize2 /> : <Maximize2 />}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setPreviewOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+          <div className="bg-white p-2 sm:p-4">
             <BusinessProfile provider={profile} preview />
           </div>
-        </SheetContent>
-      </Sheet>
+        </Card>
+      )}
     </>
   );
 }
