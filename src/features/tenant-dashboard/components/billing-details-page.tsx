@@ -20,7 +20,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
 import { Switch } from "@/components/ui/switch";
 
@@ -414,26 +413,47 @@ export function BillingDetailsPage() {
         </div>
       </div>
 
-      <Sheet open={addOpen} onOpenChange={setAddOpen}>
-        <SheetContent title="Add payment method" onClose={() => setAddOpen(false)}>
-          <div className="space-y-5 p-5">
+      {addOpen && (
+        <Card className="overflow-hidden bg-white p-0 shadow-none">
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
             <div>
-              <p className="text-sm text-slate-500">
-                Payment information is not submitted in this UI preview.
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">
+                Payment methods
               </p>
+              <h2 className="mt-1 text-xl font-semibold">Add payment method</h2>
             </div>
-            <Label htmlFor="payment-type">Payment type</Label>
-            <Select value={methodType} onValueChange={(value) => setMethodType(value as PaymentMethodType)}>
-              <SelectTrigger id="payment-type"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="debit">Debit Card</SelectItem>
-                <SelectItem value="credit">Credit Card</SelectItem>
-                <SelectItem value="gcash">GCash</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>
+              Close
+            </Button>
+          </div>
+          <div className="space-y-5 p-5 sm:p-6">
+            <p className="text-sm text-slate-500">
+              Payment information is not submitted in this UI preview.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="payment-type">Payment type</Label>
+              <Select
+                value={methodType}
+                onValueChange={(value) => setMethodType(value as PaymentMethodType)}
+              >
+                <SelectTrigger id="payment-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="debit">Debit Card</SelectItem>
+                  <SelectItem value="credit">Credit Card</SelectItem>
+                  <SelectItem value="gcash">GCash</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="cardholder">Name on account</Label>
-              <Input id="cardholder" value={cardholder} onChange={(event) => setCardholder(event.target.value)} placeholder="Juan Dela Cruz" />
+              <Input
+                id="cardholder"
+                value={cardholder}
+                onChange={(event) => setCardholder(event.target.value)}
+                placeholder="Juan Dela Cruz"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="account-number">
@@ -466,7 +486,9 @@ export function BillingDetailsPage() {
                   <Input
                     id="cvv"
                     value={cvv}
-                    onChange={(event) => setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                    onChange={(event) =>
+                      setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))
+                    }
                     inputMode="numeric"
                     maxLength={4}
                     placeholder="123"
@@ -475,12 +497,20 @@ export function BillingDetailsPage() {
               </div>
             )}
           </div>
-          <SheetFooter>
-            <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button type="button" onClick={addMethod} className="bg-[#3c6355] text-white hover:bg-[#2f5044]">{isCardPayment ? "Pay Now" : "Save method"}</Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 p-5 sm:flex-row sm:justify-end sm:p-6">
+            <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={addMethod}
+              className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
+            >
+              {isCardPayment ? "Pay Now" : "Save method"}
+            </Button>
+          </div>
+        </Card>
+      )}
 
     </>
   );
