@@ -21,7 +21,7 @@ const emptyDraft: ServiceDraft = {
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 5 * 1024 * 1024;
 
-export function ServiceFormSheet({
+export function ServiceFormPanel({
   open,
   service,
   onClose,
@@ -38,7 +38,7 @@ export function ServiceFormSheet({
 
   useEffect(() => {
     if (open) {
-      // Reset the controlled sheet form whenever a service is opened for editing.
+      // Reset the controlled page form whenever a service is opened for editing.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraft(
         service
