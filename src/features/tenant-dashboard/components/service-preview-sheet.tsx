@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ServicePhotoCarousel } from "./service-photo-carousel";
 import type { ServiceItem } from "../types";
 
@@ -15,7 +16,9 @@ export function ServicePreviewPanel({
   if (!service) return null;
 
   return (
-    <Card className="mt-6 overflow-hidden bg-white p-0 shadow-none">
+    <Dialog open={Boolean(service)} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <DialogContent className="max-w-2xl p-0">
+        <Card className="overflow-hidden border-0 bg-white p-0 shadow-none">
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">Customer preview</p>
@@ -66,6 +69,8 @@ export function ServicePreviewPanel({
               Close preview
             </Button>
           </div>
-    </Card>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
