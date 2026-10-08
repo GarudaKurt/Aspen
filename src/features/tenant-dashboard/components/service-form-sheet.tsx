@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
+import { Card } from "@/components/ui/card";
 import { ServicePhotoPicker } from "./service-photo-picker";
 import type { ServiceItem, ServiceStatus } from "../types";
 
@@ -121,14 +121,19 @@ export function ServiceFormSheet({
     });
   };
 
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onOpenChange={(value) => !value && onClose()}>
-      <SheetContent
-        title={service ? "Edit service" : "Add service"}
-        onClose={onClose}
-      >
-        <form onSubmit={submit} className="flex flex-1 flex-col">
-          <div className="space-y-5 p-5">
+    <Card className="mt-6 overflow-hidden bg-white p-0 shadow-none">
+      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">Service listing</p>
+          <h2 className="mt-1 text-xl font-semibold">{service ? "Edit service" : "Add service"}</h2>
+        </div>
+        <Button type="button" variant="ghost" onClick={onClose}>Close</Button>
+      </div>
+        <form onSubmit={submit} className="flex flex-col">
+          <div className="space-y-5 p-5 sm:p-6">
             <div>
               <Label htmlFor="service-title">Service name</Label>
               <Input
@@ -213,7 +218,7 @@ export function ServiceFormSheet({
               </p>
             )}
           </div>
-          <SheetFooter>
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 p-5 sm:flex-row sm:justify-end sm:p-6">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
@@ -223,9 +228,8 @@ export function ServiceFormSheet({
             >
               Save service
             </Button>
-          </SheetFooter>
+          </div>
         </form>
-      </SheetContent>
-    </Sheet>
+    </Card>
   );
 }
