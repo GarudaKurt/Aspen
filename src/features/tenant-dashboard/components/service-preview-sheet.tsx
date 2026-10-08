@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Card } from "@/components/ui/card";
 import { ServicePhotoCarousel } from "./service-photo-carousel";
 import type { ServiceItem } from "../types";
 
@@ -12,11 +12,18 @@ export function ServicePreviewSheet({
   service: ServiceItem | null;
   onClose: () => void;
 }) {
+  if (!service) return null;
+
   return (
-    <Sheet open={Boolean(service)} onOpenChange={(open) => !open && onClose()}>
-      {service && (
-        <SheetContent title="Customer preview" onClose={onClose}>
-          <div className="p-5">
+    <Card className="mt-6 overflow-hidden bg-white p-0 shadow-none">
+      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">Customer preview</p>
+          <h2 className="mt-1 text-xl font-semibold">{service.title}</h2>
+        </div>
+        <Button type="button" variant="ghost" onClick={onClose}>Close</Button>
+      </div>
+          <div className="p-5 sm:p-6">
             <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
               <ServicePhotoCarousel
                 photos={service.photos}
@@ -49,18 +56,16 @@ export function ServicePreviewSheet({
               This is how customers will see this service.
             </p>
           </div>
-          <div className="mt-auto border-t p-5">
+          <div className="border-t p-5 sm:p-6">
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full sm:w-auto"
               onClick={onClose}
             >
               Close preview
             </Button>
           </div>
-        </SheetContent>
-      )}
-    </Sheet>
+    </Card>
   );
 }
