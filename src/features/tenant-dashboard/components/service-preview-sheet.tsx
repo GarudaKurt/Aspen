@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ServicePhotoCarousel } from "./service-photo-carousel";
 import type { ServiceItem } from "../types";
 
-export function ServicePreviewSheet({
+export function ServicePreviewPanel({
   service,
   onClose,
 }: {
