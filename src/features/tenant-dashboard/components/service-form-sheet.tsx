@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ServicePhotoPicker } from "./service-photo-picker";
 import type { ServiceItem, ServiceStatus } from "../types";
 
@@ -124,7 +125,9 @@ export function ServiceFormPanel({
   if (!open) return null;
 
   return (
-    <Card className="mt-6 overflow-hidden bg-white p-0 shadow-none">
+    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <DialogContent className="max-w-2xl p-0">
+        <Card className="overflow-hidden border-0 bg-white p-0 shadow-none">
       <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">Service listing</p>
@@ -230,6 +233,8 @@ export function ServiceFormPanel({
             </Button>
           </div>
         </form>
-    </Card>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
