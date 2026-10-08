@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { TimePicker } from "@/components/ui/time-picker";
 import { MobileDashboardNav } from "./dashboard-shell";
@@ -763,8 +764,9 @@ export function ProfileView() {
         </AlertDialogFooter>
       </AlertDialog>
 
-      {previewOpen && (
-        <Card className={`mt-5 overflow-hidden bg-white p-0 shadow-none ${previewMaximized ? "max-w-none" : ""}`}>
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-6xl p-0">
+          <Card className={`mt-5 overflow-hidden bg-white p-0 shadow-none ${previewMaximized ? "max-w-none" : ""}`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3c6355]">
@@ -791,8 +793,9 @@ export function ProfileView() {
           <div className="bg-white p-2 sm:p-4">
             <BusinessProfile provider={profile} preview />
           </div>
-        </Card>
-      )}
+          </Card>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
