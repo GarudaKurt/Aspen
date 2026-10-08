@@ -67,12 +67,13 @@ export function BusinessCard({
   const cardImages = images;
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
-  const [previousImage, setPreviousImage] = useState<number | null>(null);
-  const [isImageTransitioning, setIsImageTransitioning] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const transitionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toggleFavorite = () => setIsFavorite((current) => !current);
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+  const pointerStart = useRef<{
+    x: number;
+    y: number;
+    axis: "horizontal" | "vertical" | null;
+  } | null>(null);
 
   if (isLoading) {
     return <BusinessCardSkeleton />;
@@ -84,16 +85,9 @@ export function BusinessCard({
     const normalizedIndex =
       (nextIndex + cardImages.length) % cardImages.length;
 
-    if (normalizedIndex === activeImage) return;
-
-    setPreviousImage(activeImage);
-    setActiveImage(normalizedIndex);
-    setIsImageTransitioning(true);
-    if (transitionTimeout.current) clearTimeout(transitionTimeout.current);
-    transitionTimeout.current = setTimeout(() => {
-      setIsImageTransitioning(false);
-      setPreviousImage(null);
-    }, 300);
+    if (normalizedIndex !== activeImage) {
+      setActiveImage(normalizedIndex);
+    }
   };
 
   const moveImage = (direction: number) => {
@@ -102,7 +96,11 @@ export function BusinessCard({
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    pointerStart.current = { x: event.clientX, y: event.clientY };
+    pointerStart.current = {
+      x: event.clientX,
+      y: event.clientY,
+      axis: null,
+    };
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -112,11 +110,13 @@ export function BusinessCard({
     const horizontalDistance = Math.abs(event.clientX - start.x);
     const verticalDistance = Math.abs(event.clientY - start.y);
 
-    // Once movement is clearly vertical, hand the gesture back to the page.
-    if (
-      verticalDistance > 8 &&
-      verticalDistance > horizontalDistance
-    ) {
+    if (!start.axis && Math.max(horizontalDistance, verticalDistance) >= 10) {
+      start.axis =
+        horizontalDistance > verticalDistance ? "horizontal" : "vertical";
+    }
+
+    // Lock vertical gestures to the page before they can become carousel swipes.
+    if (start.axis === "vertical") {
       pointerStart.current = null;
     }
   };
@@ -129,7 +129,9 @@ export function BusinessCard({
     const verticalDistance = Math.abs(event.clientY - start.y);
     const horizontalDistance = Math.abs(horizontalDelta);
     const isHorizontalSwipe =
-      horizontalDistance >= 40 && horizontalDistance > verticalDistance * 1.2;
+      start.axis === "horizontal" &&
+      horizontalDistance >= 48 &&
+      horizontalDistance > verticalDistance * 1.25;
 
     if (hasImages && isHorizontalSwipe) {
       moveImage(horizontalDelta > 0 ? -1 : 1);
@@ -152,27 +154,14 @@ export function BusinessCard({
         className="relative aspect-[1.35] cursor-grab touch-pan-y select-none overflow-visible bg-[#d5e9e6] active:cursor-grabbing"
       >
         {currentImage && (
-          <>
-            <Image
-              draggable={false}
-              src={currentImage.src}
-              alt={`${currentImage.alt ?? businessName} view ${activeImage + 1}`}
-              fill
-              sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
-              className={`z-0 select-none rounded-sm object-cover transition-[object-position] duration-300 ${currentImage.position ?? ""}`}
-            />
-            {previousImage !== null && (
-              <Image
-                draggable={false}
-                src={cardImages[previousImage].src}
-                alt=""
-                aria-hidden="true"
-                fill
-                sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
-                className={`absolute inset-0 z-10 select-none rounded-sm object-cover transition-opacity duration-300 ${isImageTransitioning ? "opacity-100" : "opacity-0"} ${cardImages[previousImage].position ?? ""}`}
-              />
-            )}
-          </>
+          <Image
+            draggable={false}
+            src={currentImage.src}
+            alt={`${currentImage.alt ?? businessName} view ${activeImage + 1}`}
+            fill
+            sizes="(min-width: 1280px) 25vw, (min-width: 560px) 50vw, 100vw"
+            className={`select-none rounded-sm object-cover ${currentImage.position ?? ""}`}
+          />
         )}
         {hasImages && (
           <>
