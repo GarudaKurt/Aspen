@@ -17,8 +17,8 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ServiceFormSheet } from "./service-form-sheet";
-import { ServicePreviewSheet } from "./service-preview-sheet";
+import { ServiceFormPanel } from "./service-form-sheet";
+import { ServicePreviewPanel } from "./service-preview-sheet";
 import type { ServiceAnalytics, ServiceItem } from "../types";
 
 type ServiceDraft = Omit<ServiceItem, "id">;
@@ -311,8 +311,8 @@ export function ServicesView({
         </div>
       </Card>
 
-      <ServiceFormSheet open={formOpen} service={editing} onClose={() => setFormOpen(false)} onSave={save} />
-      <ServicePreviewSheet service={previewing} onClose={() => setPreviewing(null)} />
+      <ServiceFormPanel open={formOpen} service={editing} onClose={() => setFormOpen(false)} onSave={save} />
+      <ServicePreviewPanel service={previewing} onClose={() => setPreviewing(null)} />
 
       <AlertDialog open={Boolean(pendingDelete)} onOpenChange={(open) => !open && setPendingDelete(null)}>
         <AlertDialogHeader>
