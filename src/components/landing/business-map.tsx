@@ -1,6 +1,6 @@
 "use client";
 
-import maplibregl, {
+import {
   type Map as MapLibreMap,
   type Marker as MapLibreMarker,
   type Popup as MapLibrePopup,
@@ -179,8 +179,8 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
       return;
     }
 
-    Promise.resolve(maplibregl)
-      .then((maplibregl) => {
+    import("maplibre-gl")
+      .then(({ default: maplibregl }) => {
         if (cancelled || !mapElementRef.current) return;
 
         mapRef.current?.remove();
