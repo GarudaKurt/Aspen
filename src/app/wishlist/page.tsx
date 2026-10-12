@@ -212,18 +212,18 @@ export default function WishlistPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-[#69736d]">
-                  {selectedSlugs.length} selected
+                  {selectedBusinesses.length} selected
                 </span>
                 <Button
                   type="button"
-                  disabled={selectedSlugs.length < 2}
+                  disabled={selectedBusinesses.length < 2}
                   onClick={compareSelected}
                   className="gap-2 bg-[#3c6355] text-white hover:bg-[#2f5044]"
                 >
                   <ArrowLeftRight className="size-4" />
                   Compare selected
                 </Button>
-                {selectedSlugs.length > 0 && (
+                {selectedBusinesses.length > 0 && (
                   <Button
                     type="button"
                     variant="ghost"
