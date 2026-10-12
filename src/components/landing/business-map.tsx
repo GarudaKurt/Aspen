@@ -10,6 +10,29 @@ import { MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { BusinessCardProps } from "./business-card";
 
+type MapLibreBounds = ReturnType<MapLibreMap["getBounds"]>;
+
+const openFreeMapStyle = "https://tiles.openfreemap.org/styles/liberty";
+
+const fallbackMapStyle = {
+  version: 8,
+  sources: {
+    openstreetmap: {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+    },
+  },
+  layers: [
+    {
+      id: "openstreetmap",
+      type: "raster",
+      source: "openstreetmap",
+    },
+  ],
+} as const;
+
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
   selectedCity: string;
@@ -186,7 +209,7 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         mapRef.current?.remove();
         const map = new maplibregl.Map({
           container: mapElementRef.current,
-          style: "https://tiles.openfreemap.org/styles/liberty",
+          style: openFreeMapStyle,
           center: cityCoordinates["cebu city"],
           zoom: 10,
           attributionControl: true,
@@ -196,6 +219,15 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         });
         mapRef.current = map;
         map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+        let fallbackApplied = false;
+        let mapLoaded = false;
+        const handleMapError = () => {
+          if (mapLoaded || fallbackApplied) return;
+          fallbackApplied = true;
+          map.setStyle(fallbackMapStyle);
+        };
+        map.on("error", handleMapError);
 
         const positionedBusinesses = businesses
           .map((business) => ({
@@ -301,10 +333,14 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
           renderVisibleMarkers();
         };
 
-        map.once("load", initializeMap);
+        map.once("load", () => {
+          mapLoaded = true;
+          initializeMap();
+        });
         map.on("moveend", renderVisibleMarkers);
 
         return () => {
+          map.off("error", handleMapError);
           map.off("moveend", renderVisibleMarkers);
           activeMarkers.forEach((marker) => marker.remove());
           activePopups.forEach((popup) => popup.remove());
