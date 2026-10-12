@@ -3,7 +3,6 @@
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -80,11 +79,6 @@ export function BusinessCard({
     const message = added ? "Added to wishlist" : "Removed from wishlist";
     setFavoriteNotice(message);
     window.setTimeout(() => setFavoriteNotice(""), 2200);
-    toast({
-      title: added ? "Added to your wishlist." : "Removed from your wishlist.",
-      description: businessName,
-      variant: "success",
-    });
   };
   const pointerStart = useRef<{
     x: number;
