@@ -37,6 +37,7 @@ const fallbackMapStyle: StyleSpecification = {
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
   selectedCity: string;
+  compact?: boolean;
 };
 
 type PositionedBusiness = {
@@ -85,8 +86,11 @@ function escapeHtml(value: string) {
 }
 
 function getCoordinates(business: BusinessCardProps) {
-  const city = business.location.split(",")[0]?.trim().toLowerCase();
-  return cityCoordinates[city] ?? null;
+  const location = business.location.toLowerCase();
+  const matchingCity = Object.keys(cityCoordinates).find((city) =>
+    location.includes(city),
+  );
+  return matchingCity ? cityCoordinates[matchingCity] : null;
 }
 
 function getRating(value: string) {
@@ -190,7 +194,11 @@ function isWithinBounds(
   );
 }
 
-export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
+export function BusinessMap({
+  businesses,
+  selectedCity,
+  compact = false,
+}: BusinessMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
 
@@ -391,7 +399,7 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
   }, [businesses, selectedCity]);
 
   return (
-    <section className="px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16">
+    <section className={compact ? "p-0" : "px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16"}>
       <style>{`
         .aspen-map-pin { display:grid; place-items:center; width:38px; height:38px; padding:0; border:3px solid #fff; border-radius:9999px 9999px 9999px 4px; background:#3c6355; color:#fff; cursor:pointer; transform:rotate(-45deg); box-shadow:0 2px 8px rgba(23,24,23,.28); transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
         .aspen-map-pin__glyph { display:grid; place-items:center; width:22px; height:22px; transform:rotate(45deg); font-size:12px; font-weight:700; }
@@ -403,8 +411,8 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) { min-width:24px; min-height:24px; padding:0; }
         .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) button { display:block; width:24px; height:24px; }
       `}</style>
-      <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className={compact ? "w-full" : "mx-auto max-w-[1440px] 2xl:max-w-[1680px]"}>
+        <div className={compact ? "hidden" : "mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"}>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5714e]">
               Explore by location
@@ -423,15 +431,17 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         </div>
 
         {businesses.length ? (
-          <div className="relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm">
+          <div className={compact ? "relative h-36 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm" : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"}>
             <div
               ref={mapElementRef}
               aria-label="Interactive map of matching pet-service businesses"
-              className="h-[360px] w-full sm:h-[440px]"
+              className={compact ? "h-full w-full" : "h-[360px] w-full sm:h-[440px]"}
             />
-            <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] text-[#69736d] shadow-sm">
-              Pan the map to discover businesses in nearby cities.
-            </p>
+            {!compact && (
+              <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] text-[#69736d] shadow-sm">
+                Pan the map to discover businesses in nearby cities.
+              </p>
+            )}
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-[#d8d8d8] bg-[#faf9f6] px-6 py-14 text-center">

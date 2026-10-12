@@ -1,15 +1,15 @@
 "use client";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
+import { BusinessMap } from "@/components/landing/business-map";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowLeft,
   Check,
   Heart,
   ImagePlus,
-  MapPin,
   MessageCircle,
   Share2,
   Star,
@@ -270,6 +270,26 @@ export function BusinessProfile({
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);
   const displayedAmenities = provider.amenities ?? amenityOptions.slice(0, 3);
+  const mapBusiness = useMemo(
+    () => ({
+      businessName: provider.name,
+      location: provider.address,
+      rating: provider.rating,
+      services: provider.category,
+      priceStarts: provider.servicesOffered?.[0]?.price ?? "Contact for pricing",
+      slug: provider.slug,
+      images: provider.coverPhoto ? [{ src: provider.coverPhoto }] : [],
+    }),
+    [
+      provider.address,
+      provider.category,
+      provider.coverPhoto,
+      provider.name,
+      provider.rating,
+      provider.servicesOffered,
+      provider.slug,
+    ],
+  );
 
   return (
     <main className="min-h-screen bg-white px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
@@ -452,9 +472,12 @@ export function BusinessProfile({
                 </ProfileSection>
 
                 <ProfileSection title="Location">
-                  <div className="flex h-36 max-w-[520px] items-center justify-center rounded-xl bg-[#e7e7e7] text-sm text-[#555957]">
-                    <MapPin size={18} className="mr-2 text-[#ef4444]" />
-                    {provider.address} — map preview
+                  <div className="max-w-[520px]">
+                    <BusinessMap
+                      businesses={[mapBusiness]}
+                      selectedCity="All Cities"
+                      compact
+                    />
                   </div>
                 </ProfileSection>
               </>
