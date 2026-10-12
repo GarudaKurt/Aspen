@@ -41,6 +41,10 @@ export function AuthForm({
   onForgotPassword?: () => void;
   onCreateAccount?: () => void;
   onSignIn?: () => void;
+  onSubmitSuccess?: (values: {
+    email: string;
+    password: string;
+  }) => boolean | Promise<boolean> | void;
 }) {
   const [values, setValues] = useState<AuthValues>({
     email: "",
