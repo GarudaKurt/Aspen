@@ -18,10 +18,6 @@ export function ProviderLoginPage() {
           </div>
           <h1 className="text-3xl font-bold">Let&apos;s sign you in.</h1>
           <p className="mt-2 text-sm text-[#69736d]">Welcome back.</p>
-          <p className="mt-6 rounded-lg bg-[#eef7f1] p-3 text-xs leading-5 text-[#587267]">
-            Sign in to manage your business, services, appointments, and provider
-            settings.
-          </p>
           <AuthForm
             mode="login"
             onSubmitSuccess={async ({ email, password }) => {
