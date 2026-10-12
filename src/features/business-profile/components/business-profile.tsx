@@ -10,7 +10,6 @@ import {
   Check,
   Heart,
   ImagePlus,
-  MapPin,
   MessageCircle,
   Share2,
   Star,
