@@ -17,7 +17,7 @@ export function ProviderLoginPage() {
             <AspenLogo size={52} className="size-[52px]" />
           </div>
           <h1 className="text-3xl font-bold">Let&apos;s sign you in.</h1>
-          <p className="mt-2 text-sm text-[#69736d]">Welcome back.</p>
+          <p className="mt-2 mb-6 text-sm text-[#69736d]">Welcome back.</p>
           <AuthForm
             mode="login"
             onSubmitSuccess={async ({ email, password }) => {
