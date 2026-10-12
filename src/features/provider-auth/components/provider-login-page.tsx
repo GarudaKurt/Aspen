@@ -1,20 +1,19 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useProviderAuthStore, mockProviderCredentials } from "../provider-auth.store";
 import { AuthForm } from "@/features/auth/components/auth-form";
 import { AspenLogo } from "@/components/brand/aspen-logo";
 
 export function ProviderLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const login = useProviderAuthStore((state) => state.login);
 
   return (
     <main className="min-h-screen bg-[#f7faf8] px-4 py-8 text-[#171817] sm:px-6 sm:py-12">
       <div className="mx-auto w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <AspenLogo size={52} className="size-13" />
+          <AspenLogo size={52} className="size-[52px]" />
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#c5714e]">
             Provider access
           </p>
@@ -37,7 +36,11 @@ export function ProviderLoginPage() {
                 return false;
               }
               login();
-              router.replace(searchParams.get("next") || "/tenant-dashboard");
+              const nextPath =
+                typeof window !== "undefined"
+                  ? new URLSearchParams(window.location.search).get("next")
+                  : null;
+              router.replace(nextPath || "/tenant-dashboard");
               return true;
             }}
           />
