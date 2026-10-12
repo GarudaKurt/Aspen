@@ -405,12 +405,12 @@ export function BusinessMap({
   return (
     <section className={compact ? "p-0" : "px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16"}>
       <style>{`
-        .aspen-map-pin { display:grid; place-items:center; width:16px; height:16px; padding:0; border:1px solid #fff; border-radius:9999px 9999px 9999px 4px; background:#3c6355; color:#fff; cursor:pointer; transform:rotate(-45deg); box-shadow:0 2px 8px rgba(23,24,23,.28); transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
-        .aspen-map-pin__glyph { display:grid; place-items:center; width:11px; height:11px; transform:rotate(45deg); font-size:8px; font-weight:700; }
-        .aspen-map-pin--compact { width:16px; height:16px; border-width:1px; }
-        .aspen-map-pin--compact .aspen-map-pin__glyph { width:11px; height:11px; font-size:8px; }
-        .aspen-map-pin--compact .aspen-map-pin__glyph svg { width:9px; height:9px; }
-        .aspen-map-pin__glyph svg { width:9px; height:9px; }
+        .aspen-map-pin { display:grid; place-items:center; width:18px; height:18px; padding:0; border:1px solid #fff; border-radius:9999px 9999px 9999px 4px; background:#3c6355; color:#fff; cursor:pointer; transform:rotate(-45deg); box-shadow:0 2px 8px rgba(23,24,23,.28); transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
+        .aspen-map-pin__glyph { display:grid; place-items:center; width:12px; height:12px; transform:rotate(45deg); font-size:8px; font-weight:700; }
+        .aspen-map-pin--compact { width:18px; height:18px; border-width:1px; }
+        .aspen-map-pin--compact .aspen-map-pin__glyph { width:12px; height:12px; font-size:8px; }
+        .aspen-map-pin--compact .aspen-map-pin__glyph svg { width:10px; height:10px; }
+        .aspen-map-pin__glyph svg { width:10px; height:10px; }
         .aspen-map-pin:hover, .aspen-map-pin:focus-visible { background:#315447; transform:rotate(-45deg) scale(1.12); box-shadow:0 4px 12px rgba(23,24,23,.35); outline:3px solid rgba(60,99,85,.28); outline-offset:2px; }
         .maplibregl-popup-content-wrapper, .maplibregl-popup-tip { border:1px solid #dfe8e2; }
         .maplibregl-ctrl-group button { color:#3c6355; }
