@@ -86,8 +86,11 @@ function escapeHtml(value: string) {
 }
 
 function getCoordinates(business: BusinessCardProps) {
-  const city = business.location.split(",")[0]?.trim().toLowerCase();
-  return cityCoordinates[city] ?? null;
+  const location = business.location.toLowerCase();
+  const matchingCity = Object.keys(cityCoordinates).find((city) =>
+    location.includes(city),
+  );
+  return matchingCity ? cityCoordinates[matchingCity] : null;
 }
 
 function getRating(value: string) {
