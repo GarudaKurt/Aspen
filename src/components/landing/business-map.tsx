@@ -274,7 +274,7 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         const map = new maplibregl.Map({
           container: mapElementRef.current,
           style: "https://tiles.openfreemap.org/styles/liberty",
-          center: cityCoordinates.cebuCity,
+          center: cityCoordinates["cebu city"],
           zoom: 10,
           attributionControl: true,
           dragRotate: false,
