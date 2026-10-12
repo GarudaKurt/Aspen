@@ -296,7 +296,12 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
               .setLngLat(group.coordinates)
               .addTo(map);
 
-            const popup = new Popup({ maxWidth: "260px" })
+            const popup = new Popup({
+              maxWidth: "280px",
+              closeButton: true,
+              closeOnClick: true,
+              offset: 18,
+            })
               .setHTML(
                 group.businesses.length > 1
                   ? getClusterPopupContent(group)
@@ -304,7 +309,15 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
               )
               .setLngLat(group.coordinates);
 
-            markerElement.addEventListener("click", () => {
+            marker.setPopup(popup);
+            markerElement.addEventListener("click", (event) => {
+              event.stopPropagation();
+              activePopups.forEach((openPopup, openKey) => {
+                if (openKey !== key) {
+                  openPopup.remove();
+                  activePopups.delete(openKey);
+                }
+              });
               popup.addTo(map);
               activePopups.set(key, popup);
             });
