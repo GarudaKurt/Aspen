@@ -438,7 +438,7 @@ export function BusinessMap({
         </div>
 
         {businesses.length ? (
-          <div className={compact ? "relative h-36 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm" : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"}>
+          <div className={compact ? "relative h-48 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm sm:h-56" : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"}>
             <div
               ref={mapElementRef}
               aria-label="Interactive map of matching pet-service businesses"
