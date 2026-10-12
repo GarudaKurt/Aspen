@@ -2,12 +2,15 @@
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./dashboard-sidebar";
+import { useProviderAuthStore } from "@/features/provider-auth/provider-auth.store";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const logout = useProviderAuthStore((state) => state.logout);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-[#fafaf9] text-[#171817]">
@@ -16,7 +19,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <AspenLogo size={36} decorative />
             <span>Aspen</span>
           </Link>
-          <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2">
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2">
+            <div className="flex items-center gap-3 px-1">
+
             <span className="grid size-9 place-items-center rounded-full bg-[#b78a68] text-sm font-semibold text-white">
               PS
             </span>
@@ -24,6 +29,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <strong className="block leading-4">PawSpot</strong>
               <small className="text-slate-500">Service provider</small>
             </span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              aria-label="Sign out of provider dashboard"
+              title="Sign out"
+              className="text-[#3c6355]"
+            >
+              <LogOut />
+            </Button>
           </div>
         </header>
         <div className="mx-auto flex max-w-[1440px] 2xl:max-w-[1920px]">

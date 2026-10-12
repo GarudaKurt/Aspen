@@ -3,14 +3,16 @@
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { ArrowLeft, ArrowRight, Heart, MapPin, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import type { PointerEvent } from "react";
+import type { PointerEvent, ReactNode } from "react";
 import type { BusinessService } from "@/domain/business";
+import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
 export type BusinessCardImage = {
   src: string;
@@ -29,6 +31,7 @@ export interface BusinessCardProps {
   images?: BusinessCardImage[];
   href?: string;
   isLoading?: boolean;
+  actions?: ReactNode;
 }
 
 export function BusinessCardSkeleton() {
@@ -63,12 +66,26 @@ export function BusinessCard({
   images = [],
   href = "#",
   isLoading = false,
+  actions,
 }: BusinessCardProps) {
   const cardImages = images;
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const toggleFavorite = () => setIsFavorite((current) => !current);
+  const [favoriteNotice, setFavoriteNotice] = useState("");
+  const isFavorite = useFavoritesStore((state) => state.isFavorite(slug));
+  const toggleFavoriteState = useFavoritesStore((state) => state.toggleFavorite);
+  const toggleFavorite = () => {
+    if (!slug) return;
+    const added = toggleFavoriteState(slug);
+    const message = added ? "Added to wishlist" : "Removed from wishlist";
+    setFavoriteNotice(message);
+    window.setTimeout(() => setFavoriteNotice(""), 2200);
+    toast({
+      title: added ? "Added to your wishlist." : "Removed from your wishlist.",
+      description: businessName,
+      variant: "success",
+    });
+  };
   const pointerStart = useRef<{
     x: number;
     y: number;
@@ -201,6 +218,14 @@ export function BusinessCard({
           aria-pressed={isFavorite}
           className={`absolute bottom-[-15px] right-[2px] z-10 flex size-8 items-center justify-center rounded-full border border-[#3c6355] bg-white/95 text-[#3c6355] shadow-sm ring-2 ring-white transition-colors duration-200 transform-none active:transform-none focus:transform-none hover:bg-white ${isFavorite ? "bg-[#3c6355] text-white" : ""}`}
         >
+          {favoriteNotice && (
+            <span
+              role="status"
+              className="pointer-events-none absolute right-10 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#3c6355] shadow-lg ring-1 ring-[#dfe8e2]"
+            >
+              {favoriteNotice}
+            </span>
+          )}
           <Heart
             size={12}
             fill={isFavorite ? "currentColor" : "none"}
@@ -248,6 +273,7 @@ export function BusinessCard({
           Starts at{" "}
           <span className="font-semibold text-[#242524]">{priceStarts}</span>
         </p>
+        {actions && <div className="pt-1">{actions}</div>}
       </div>
     </Card>
   );

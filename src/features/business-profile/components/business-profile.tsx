@@ -32,6 +32,8 @@ import {
   type BusinessHoursDay,
 } from "../business-hours";
 import { Card } from "@/components/ui/card";
+import { toast } from "@/components/ui/toast";
+import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 import {
   Select,
   SelectContent,
@@ -253,8 +255,17 @@ export function BusinessProfile({
   preview = false,
 }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
-  const [isFavorite, setIsFavorite] = useState(false);
-  const toggleFavorite = () => setIsFavorite((current) => !current);
+  const isFavorite = useFavoritesStore((state) => state.isFavorite(provider.slug));
+  const toggleFavoriteState = useFavoritesStore((state) => state.toggleFavorite);
+  const toggleFavorite = () => {
+    if (!provider.slug) return;
+    const added = toggleFavoriteState(provider.slug);
+    toast({
+      title: added ? "Added to your wishlist." : "Removed from your wishlist.",
+      description: provider.name,
+      variant: "success",
+    });
+  };
   const coverPhoto = provider.coverPhoto ?? null;
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);

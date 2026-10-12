@@ -35,11 +35,16 @@ export function AuthForm({
   onForgotPassword,
   onCreateAccount,
   onSignIn,
+  onSubmitSuccess,
 }: {
   mode: AuthMode;
   onForgotPassword?: () => void;
   onCreateAccount?: () => void;
   onSignIn?: () => void;
+  onSubmitSuccess?: (values: {
+    email: string;
+    password: string;
+  }) => boolean | Promise<boolean> | void;
 }) {
   const [values, setValues] = useState<AuthValues>({
     email: "",
@@ -57,11 +62,13 @@ export function AuthForm({
   );
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationError, setVerificationError] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const isForgotMode = mode === "forgot";
 
   const update = (field: keyof AuthValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: "" }));
+    setSubmitError("");
   };
 
   const validate = (emailOverride?: string) => {
@@ -105,6 +112,17 @@ export function AuthForm({
     setLoading(true);
     await new Promise((resolve) => window.setTimeout(resolve, 450));
     setLoading(false);
+
+    if (mode === "login" && onSubmitSuccess) {
+      const accepted = await onSubmitSuccess({
+        email: values.email,
+        password: values.password,
+      });
+      if (accepted === false) {
+        setSubmitError("These provider credentials are not recognized.");
+        return;
+      }
+    }
 
     if (mode === "signup") {
       setShowConfirmation(true);
@@ -327,6 +345,12 @@ export function AuthForm({
             )}
             </div>
           </div>
+        )}
+
+        {submitError && (
+          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            {submitError}
+          </p>
         )}
 
         <Button type="submit" disabled={loading} className="h-11 w-full bg-[#3c6355] text-white hover:bg-[#2f5044]">

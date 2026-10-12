@@ -21,6 +21,7 @@ import { AuthDialog } from "@/features/auth/components/auth-dialog";
 import { CreateAccountDialog } from "@/features/auth/components/create-account-dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
 type SiteHeaderProps = {
   /**
@@ -74,7 +75,7 @@ function FavoritesAction({
 }) {
   return (
     <Link
-      href="/#browse"
+      href="/wishlist"
       onClick={onClick}
       aria-label={`Saved businesses${favoriteCount ? ` (${favoriteCount})` : ""}`}
       className="relative inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#eaf0ed] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
@@ -99,7 +100,7 @@ function MobileFavoritesAction({
 }) {
   return (
     <Link
-      href="/#browse"
+      href="/wishlist"
       onClick={onClick}
       aria-label={`Saved businesses${favoriteCount ? ` (${favoriteCount})` : ""}`}
       className="order-1 flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#242524] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
@@ -134,7 +135,7 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
-  const favoriteCount = 0;
+  const favoriteCount = useFavoritesStore((state) => state.favoriteSlugs.length);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [createAccountOpen, setCreateAccountOpen] = useState(false);

@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import { DashboardShell } from "@/features/tenant-dashboard/components/dashboard-shell";
+import { ProviderAuthGuard } from "@/features/provider-auth/components/provider-auth-guard";
 
 export default function TenantDashboardLayout({ children }: { children: ReactNode }) {
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <ProviderAuthGuard>
+      <DashboardShell>{children}</DashboardShell>
+    </ProviderAuthGuard>
+  );
 }
