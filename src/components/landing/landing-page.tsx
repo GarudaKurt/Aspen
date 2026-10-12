@@ -15,7 +15,7 @@ import { filterBusinesses } from "./business-filtering";
 export function LandingPage() {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
-  const [city, setCity] = useState("Cebu City");
+  const [city, setCity] = useState("All Cities");
   const [serviceCategory, setServiceCategory] = useState("All Services");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
