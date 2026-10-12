@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, ArrowRight, Heart, MapPin, Star } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import type { PointerEvent } from "react";
+import type { PointerEvent, ReactNode } from "react";
 import type { BusinessService } from "@/domain/business";
 import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
@@ -31,6 +31,7 @@ export interface BusinessCardProps {
   images?: BusinessCardImage[];
   href?: string;
   isLoading?: boolean;
+  actions?: ReactNode;
 }
 
 export function BusinessCardSkeleton() {
@@ -65,6 +66,7 @@ export function BusinessCard({
   images = [],
   href = "#",
   isLoading = false,
+  actions,
 }: BusinessCardProps) {
   const cardImages = images;
   const hasImages = cardImages.length > 0;
@@ -271,6 +273,7 @@ export function BusinessCard({
           Starts at{" "}
           <span className="font-semibold text-[#242524]">{priceStarts}</span>
         </p>
+        {actions && <div className="pt-1">{actions}</div>}
       </div>
     </Card>
   );
