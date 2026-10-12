@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Check, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
 import { BusinessCard } from "./business-card";
 import { mockBusinesses } from "./mock-businesses";
+import { filterBusinesses } from "./business-filtering";
 
 const serviceFilters = [
   "Vet clinics",
@@ -17,14 +17,21 @@ const serviceFilters = [
 export function BusinessDirectory({
   query,
   city,
+  selectedFilters,
+  onSelectedFiltersChange,
 }: {
   query: string;
   city: string;
+  selectedFilters: string[];
+  onSelectedFiltersChange: (filters: string[]) => void;
 }) {
-  const hasResults =
-    !query ||
-    "kalinga animal hospital vet clinics".includes(query.toLowerCase());
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const businesses = filterBusinesses(
+    mockBusinesses,
+    query,
+    city,
+    selectedFilters,
+  );
+
   return (
     <section className="py-12 sm:py-16">
       <div className="mx-auto max-w-[1440px] px-6 sm:px-10 lg:px-[130px] 2xl:max-w-[1680px] 2xl:px-16">
@@ -46,20 +53,25 @@ export function BusinessDirectory({
             <div className="mt-4 space-y-2">
               {serviceFilters.map((filter) => {
                 const isSelected = selectedFilters.includes(filter);
+
                 return (
                   <Button
                     variant="ghost"
                     type="button"
                     key={filter}
                     onClick={() =>
-                      setSelectedFilters((current) =>
-                        current.includes(filter)
-                          ? current.filter((item) => item !== filter)
-                          : [...current, filter],
+                      onSelectedFiltersChange(
+                        isSelected
+                          ? selectedFilters.filter((item) => item !== filter)
+                          : [...selectedFilters, filter],
                       )
                     }
                     aria-pressed={isSelected}
-                    className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold capitalize transition-colors ${isSelected ? "border-[#3c6355] bg-[#3c6355] text-white hover:bg-[#3c6355] hover:text-white" : "border-[#343634] bg-white text-[#202220] hover:border-[#3c6355] hover:bg-[#3c6355] hover:text-white"}`}
+                    className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold capitalize transition-colors ${
+                      isSelected
+                        ? "border-[#3c6355] bg-[#3c6355] text-white hover:bg-[#3c6355] hover:text-white"
+                        : "border-[#343634] bg-white text-[#202220] hover:border-[#3c6355] hover:bg-[#3c6355] hover:text-white"
+                    }`}
                   >
                     {isSelected && <Check size={15} />}
                     {filter}
@@ -69,7 +81,7 @@ export function BusinessDirectory({
               <Button
                 variant="ghost"
                 type="button"
-                onClick={() => setSelectedFilters([])}
+                onClick={() => onSelectedFiltersChange([])}
                 className="mt-2 w-full rounded-full border border-[#343634] bg-white px-4 py-2 text-sm font-semibold text-[#202220] transition-colors hover:border-[#3c6355] hover:bg-[#3c6355] hover:text-white"
               >
                 Clear Filters
@@ -78,12 +90,12 @@ export function BusinessDirectory({
           </aside>
           <div>
             <div className="mb-5 flex flex-wrap justify-between gap-2 text-sm text-[#818682]">
-              <span>{hasResults ? "10 businesses" : "0 businesses"}</span>
+              <span>{businesses.length} businesses</span>
               <span>{city}</span>
             </div>
-            {hasResults ? (
+            {businesses.length ? (
               <div className="grid grid-cols-1 gap-5 min-[560px]:grid-cols-2 xl:grid-cols-3">
-                {mockBusinesses.map((business, index) => (
+                {businesses.map((business, index) => (
                   <BusinessCard
                     key={`${business.businessName}-${index}`}
                     {...business}
@@ -92,7 +104,8 @@ export function BusinessDirectory({
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-[#d8d8d8] p-10 text-center text-sm text-[#777b78]">
-                No businesses matched “{query}”. Try another search.
+                No businesses matched your current filters. Try another city,
+                search term, or service.
               </div>
             )}
           </div>
