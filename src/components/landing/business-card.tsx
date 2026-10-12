@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,6 +12,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent } from "react";
 import type { BusinessService } from "@/domain/business";
+import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
 export type BusinessCardImage = {
   src: string;
@@ -67,8 +69,17 @@ export function BusinessCard({
   const cardImages = images;
   const hasImages = cardImages.length > 0;
   const [activeImage, setActiveImage] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const toggleFavorite = () => setIsFavorite((current) => !current);
+  const isFavorite = useFavoritesStore((state) => state.isFavorite(slug));
+  const toggleFavoriteState = useFavoritesStore((state) => state.toggleFavorite);
+  const toggleFavorite = () => {
+    if (!slug) return;
+    const added = toggleFavoriteState(slug);
+    toast({
+      title: added ? "Added to your wishlist." : "Removed from your wishlist.",
+      description: businessName,
+      variant: "success",
+    });
+  };
   const pointerStart = useRef<{
     x: number;
     y: number;
