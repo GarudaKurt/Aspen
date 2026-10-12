@@ -181,21 +181,60 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
             } => Boolean(item.coordinates),
           );
 
-        const points = positionedBusinesses.map((item) => item.coordinates);
+        const groupedBusinesses = new Map<
+          string,
+          { coordinates: [number, number]; businesses: BusinessCardProps[] }
+        >();
 
         positionedBusinesses.forEach(({ business, coordinates }) => {
+          const key = coordinates.join(",");
+          const group = groupedBusinesses.get(key);
+
+          if (group) {
+            group.businesses.push(business);
+          } else {
+            groupedBusinesses.set(key, { coordinates, businesses: [business] });
+          }
+        });
+
+        const points = Array.from(groupedBusinesses.values()).map(
+          (group) => group.coordinates,
+        );
+
+        groupedBusinesses.forEach(({ businesses: grouped, coordinates }) => {
+          const isCluster = grouped.length > 1;
+          const markerLabel = isCluster ? String(grouped.length) : "●";
+          const popupContent = isCluster
+            ? `<div style="width:240px;font-family:inherit;color:#171817;">
+                <strong style="display:block;color:#3c6355;">${grouped.length} businesses nearby</strong>
+                <div style="display:grid;gap:8px;margin-top:10px;">
+                  ${grouped
+                    .map(
+                      (business) => `<a href="/business-profile/${encodeURIComponent(
+                        business.slug ?? "",
+                      )}" style="color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">${escapeHtml(
+                        business.businessName,
+                      )}</a>`,
+                    )
+                    .join("")}
+                </div>
+              </div>`
+            : getPopupContent(grouped[0]);
+
           leaflet
             .marker(coordinates, {
               icon: leaflet.divIcon({
                 className: "aspen-map-marker",
-                html: '<span style="display:grid;place-items:center;width:34px;height:34px;border:3px solid white;border-radius:9999px;background:#3c6355;color:white;box-shadow:0 2px 8px rgba(23,24,23,.28);font-size:16px;">●</span>',
+                html: `<span style="display:grid;place-items:center;width:34px;height:34px;border:3px solid white;border-radius:9999px;background:#3c6355;color:white;box-shadow:0 2px 8px rgba(23,24,23,.28);font-size:${isCluster ? "12px" : "16px"};font-weight:700;">${markerLabel}</span>`,
                 iconSize: [34, 34],
                 iconAnchor: [17, 17],
               }),
-              title: business.businessName,
+              title: isCluster
+                ? `${grouped.length} businesses nearby`
+                : grouped[0].businessName,
             })
             .addTo(map)
-            .bindPopup(getPopupContent(business), { maxWidth: 260 });
+            .bindPopup(popupContent, { maxWidth: 260 });
         });
 
         if (points.length === 1) {
