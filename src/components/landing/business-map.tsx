@@ -210,6 +210,7 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         const {
           Map: MapConstructor,
           Marker,
+          AttributionControl,
           NavigationControl,
           Popup,
           setWorkerUrl,
@@ -224,13 +225,17 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
           style: openFreeMapStyle,
           center: cityCoordinates["cebu city"],
           zoom: 10,
-          attributionControl: true,
+          attributionControl: false,
           dragRotate: false,
           pitchWithRotate: false,
           touchPitch: false,
         });
         mapRef.current = map;
         map.addControl(new NavigationControl(), "top-right");
+        map.addControl(
+          new AttributionControl({ compact: true }),
+          "bottom-right",
+        );
 
         let fallbackApplied = false;
         let mapLoaded = false;
