@@ -399,6 +399,9 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
         .aspen-map-pin:hover, .aspen-map-pin:focus-visible { background:#315447; transform:rotate(-45deg) scale(1.12); box-shadow:0 4px 12px rgba(23,24,23,.35); outline:3px solid rgba(60,99,85,.28); outline-offset:2px; }
         .maplibregl-popup-content-wrapper, .maplibregl-popup-tip { border:1px solid #dfe8e2; }
         .maplibregl-ctrl-group button { color:#3c6355; }
+        .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner { display:none !important; }
+        .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) { min-width:24px; min-height:24px; padding:0; }
+        .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) button { display:block; width:24px; height:24px; }
       `}</style>
       <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
