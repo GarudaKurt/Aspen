@@ -204,14 +204,22 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
     }
 
     import("maplibre-gl")
-      .then(({ default: maplibregl }) => {
+      .then((maplibregl) => {
         if (cancelled || !mapElementRef.current) return;
 
-        maplibregl.setWorkerUrl(
+        const {
+          Map: MapConstructor,
+          Marker,
+          NavigationControl,
+          Popup,
+          setWorkerUrl,
+        } = maplibregl;
+
+        setWorkerUrl(
           new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString(),
         );
         mapRef.current?.remove();
-        const map = new maplibregl.Map({
+        const map = new MapConstructor({
           container: mapElementRef.current,
           style: openFreeMapStyle,
           center: cityCoordinates["cebu city"],
@@ -222,7 +230,7 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
           touchPitch: false,
         });
         mapRef.current = map;
-        map.addControl(new maplibregl.NavigationControl(), "top-right");
+        map.addControl(new NavigationControl(), "top-right");
 
         let fallbackApplied = false;
         let mapLoaded = false;
@@ -284,11 +292,11 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
               group.businesses[0],
               group.businesses.length,
             );
-            const marker = new maplibregl.Marker({ element: markerElement })
+            const marker = new Marker({ element: markerElement })
               .setLngLat(group.coordinates)
               .addTo(map);
 
-            const popup = new maplibregl.Popup({ maxWidth: "260px" })
+            const popup = new Popup({ maxWidth: "260px" })
               .setHTML(
                 group.businesses.length > 1
                   ? getClusterPopupContent(group)
