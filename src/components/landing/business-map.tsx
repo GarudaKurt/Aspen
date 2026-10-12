@@ -109,6 +109,7 @@ function getCategoryKey(business: BusinessCardProps) {
 function createMarkerElement(
   business: BusinessCardProps,
   count: number,
+  compact = false,
 ) {
   const isCluster = count > 1;
   const glyph = isCluster
@@ -117,7 +118,9 @@ function createMarkerElement(
   const element = document.createElement("button");
 
   element.type = "button";
-  element.className = "aspen-map-pin";
+  element.className = compact
+    ? "aspen-map-pin aspen-map-pin--compact"
+    : "aspen-map-pin";
   element.title = isCluster
     ? `${count} nearby businesses`
     : business.businessName;
@@ -304,6 +307,7 @@ export function BusinessMap({
             const markerElement = createMarkerElement(
               group.businesses[0],
               group.businesses.length,
+              compact,
             );
             const marker = new Marker({ element: markerElement })
               .setLngLat(group.coordinates)
@@ -396,14 +400,17 @@ export function BusinessMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [businesses, selectedCity]);
+  }, [businesses, compact, selectedCity]);
 
   return (
     <section className={compact ? "p-0" : "px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16"}>
       <style>{`
-        .aspen-map-pin { display:grid; place-items:center; width:38px; height:38px; padding:0; border:3px solid #fff; border-radius:9999px 9999px 9999px 4px; background:#3c6355; color:#fff; cursor:pointer; transform:rotate(-45deg); box-shadow:0 2px 8px rgba(23,24,23,.28); transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
-        .aspen-map-pin__glyph { display:grid; place-items:center; width:22px; height:22px; transform:rotate(45deg); font-size:12px; font-weight:700; }
-        .aspen-map-pin__glyph svg { width:18px; height:18px; }
+        .aspen-map-pin { display:grid; place-items:center; width:22px; height:22px; padding:0; border:1px solid #fff; border-radius:9999px 9999px 9999px 4px; background:#3c6355; color:#fff; cursor:pointer; transform:rotate(-45deg); box-shadow:0 2px 8px rgba(23,24,23,.28); transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
+        .aspen-map-pin__glyph { display:grid; place-items:center; width:14px; height:14px; transform:rotate(45deg); font-size:9px; font-weight:700; }
+        .aspen-map-pin--compact { width:22px; height:22px; border-width:1px; }
+        .aspen-map-pin--compact .aspen-map-pin__glyph { width:14px; height:14px; font-size:9px; }
+        .aspen-map-pin--compact .aspen-map-pin__glyph svg { width:12px; height:12px; }
+        .aspen-map-pin__glyph svg { width:12px; height:12px; }
         .aspen-map-pin:hover, .aspen-map-pin:focus-visible { background:#315447; transform:rotate(-45deg) scale(1.12); box-shadow:0 4px 12px rgba(23,24,23,.35); outline:3px solid rgba(60,99,85,.28); outline-offset:2px; }
         .maplibregl-popup-content-wrapper, .maplibregl-popup-tip { border:1px solid #dfe8e2; }
         .maplibregl-ctrl-group button { color:#3c6355; }
@@ -431,7 +438,7 @@ export function BusinessMap({
         </div>
 
         {businesses.length ? (
-          <div className={compact ? "relative h-36 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm" : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"}>
+          <div className={compact ? "relative h-48 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm sm:h-56" : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"}>
             <div
               ref={mapElementRef}
               aria-label="Interactive map of matching pet-service businesses"
