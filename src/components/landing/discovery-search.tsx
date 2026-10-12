@@ -23,9 +23,12 @@ type DiscoverySearchProps = {
   onQueryChange: (query: string) => void;
   onCityChange: (city: string) => void;
   onSearch: (query: string) => void;
+  serviceCategory: string;
+  onServiceCategoryChange: (category: string) => void;
 };
 
 const cities = [
+  "All Cities",
   "Cebu City",
   "Mandaue City",
   "Lapu-Lapu City",
@@ -187,8 +190,9 @@ export function DiscoverySearch({
   onQueryChange,
   onCityChange,
   onSearch,
+  serviceCategory,
+  onServiceCategoryChange,
 }: DiscoverySearchProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -240,14 +244,14 @@ export function DiscoverySearch({
         </form>
         <div className="mt-6 flex max-w-full gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:w-fit lg:grid-cols-[repeat(3,max-content)] lg:justify-items-start lg:gap-x-15 lg:gap-y-2 lg:overflow-visible">
           {serviceCategories.map(({ label, icon: Icon }) => {
-            const isActive = selectedCategory === label;
+            const isActive = serviceCategory === label;
 
             return (
               <Button
                 variant="ghost"
                 type="button"
                 key={label}
-                onClick={() => setSelectedCategory(label)}
+                onClick={() => onServiceCategoryChange(label)}
                 aria-pressed={isActive}
                 className={`inline-flex h-auto shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-transparent px-4 py-2 text-base font-semibold text-[#2c2c2c] hover:bg-transparent hover:!text-[#3c6355] sm:text-lg ${isActive ? "border-[#3c6355] !text-[#3c6355]" : ""}`}
               >
