@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -62,6 +63,7 @@ type AppointmentPageProps = {
   businessLocation?: string;
   businessCategory?: string;
   businessRating?: string;
+  businessImage?: string | null;
   services?: BusinessService[];
 };
 const timeSlots: Record<Period, string[]> = {
@@ -94,6 +96,7 @@ export function AppointmentPage({
   businessLocation = "Kalayaan Ave, QC",
   businessCategory = "Vet Clinic",
   businessRating = "4.9",
+  businessImage,
   services = [],
 }: AppointmentPageProps = {}) {
   const pathname = usePathname();
@@ -259,6 +262,7 @@ export function AppointmentPage({
                 location={businessLocation}
                 category={businessCategory}
                 rating={businessRating}
+                image={businessImage}
               />
               <AppointmentStepper activeIndex={activeIndex} steps={steps} />
             </div>
@@ -405,16 +409,30 @@ function ProviderCard({
   location,
   category,
   rating,
+  image,
 }: {
   name: string;
   location: string;
   category: string;
   rating: string;
+  image?: string | null;
 }) {
   return (
     <Card className="mb-6 border-0 bg-[#f1f2f8] p-4 shadow-none">
-      <div className="grid size-11 place-items-center rounded-lg bg-[#3c6355] text-white">
-        ＋
+      <div className="relative size-16 overflow-hidden rounded-xl bg-[#eaf0ed]">
+        {image ? (
+          <Image
+            src={image}
+            alt={`${name} profile`}
+            fill
+            sizes="64px"
+            className="object-cover"
+          />
+        ) : (
+          <span className="grid h-full place-items-center text-lg font-semibold text-[#3c6355]">
+            {name.slice(0, 1).toUpperCase()}
+          </span>
+        )}
       </div>
       <h2 className="mt-3 text-sm font-bold">{name}</h2>
       <p className="text-[10px] text-slate-500">
