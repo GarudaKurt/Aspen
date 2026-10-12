@@ -12,17 +12,14 @@ export function ProviderLoginPage() {
   return (
     <main className="min-h-screen bg-[#f7faf8] px-4 py-8 text-[#171817] sm:px-6 sm:py-12">
       <div className="mx-auto w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center text-center">
+        <div className="mb-8 flex justify-center">
           <AspenLogo size={52} className="size-[52px]" />
-          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#c5714e]">
-            Provider access
-          </p>
-          <h1 className="mt-2 text-3xl font-bold">Let&apos;s sign you in.</h1>
-          <p className="mt-2 text-sm text-[#69736d]">Welcome back.</p>
         </div>
 
         <section className="rounded-2xl border border-[#dfe8e2] bg-white p-5 shadow-sm sm:p-8">
-          <p className="mb-6 rounded-lg bg-[#eef7f1] p-3 text-xs leading-5 text-[#587267]">
+          <h1 className="text-3xl font-bold">Let&apos;s sign you in.</h1>
+          <p className="mt-2 text-sm text-[#69736d]">Welcome back.</p>
+          <p className="mt-6 rounded-lg bg-[#eef7f1] p-3 text-xs leading-5 text-[#587267]">
             Sign in to manage your business, services, appointments, and provider
             settings.
           </p>
