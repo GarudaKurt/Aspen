@@ -4,6 +4,7 @@ import {
   type Map as MapLibreMap,
   type Marker as MapLibreMarker,
   type Popup as MapLibrePopup,
+  type StyleSpecification,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPin } from "lucide-react";
@@ -14,7 +15,7 @@ type MapLibreBounds = ReturnType<MapLibreMap["getBounds"]>;
 
 const openFreeMapStyle = "https://tiles.openfreemap.org/styles/liberty";
 
-const fallbackMapStyle = {
+const fallbackMapStyle: StyleSpecification = {
   version: 8,
   sources: {
     openstreetmap: {
@@ -31,7 +32,7 @@ const fallbackMapStyle = {
       source: "openstreetmap",
     },
   ],
-} as const;
+};
 
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
