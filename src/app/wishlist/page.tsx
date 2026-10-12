@@ -14,7 +14,7 @@ import {
 import { SiteHeader } from "@/components/landing/site-header";
 import { BusinessCard } from "@/components/landing/business-card";
 import { mockBusinesses } from "@/components/landing/mock-businesses";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -298,9 +298,14 @@ export default function WishlistPage() {
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#777b78]">
               Save businesses from the heart button on any card and they will appear here.
             </p>
-            <Button asChild className="mt-6 bg-[#3c6355] text-white hover:bg-[#2f5044]">
-              <Link href="/#browse">Explore pet services</Link>
-            </Button>
+            <Link
+              href="/#browse"
+              className={buttonVariants({
+                className: "mt-6 bg-[#3c6355] text-white hover:bg-[#2f5044]",
+              })}
+            >
+              Explore pet services
+            </Link>
           </div>
         )}
       </section>
@@ -405,14 +410,25 @@ export default function WishlistPage() {
                           >
                             <X className="size-3.5" /> Remove
                           </Button>
-                          <Button asChild size="sm" className="bg-[#3c6355] text-white hover:bg-[#2f5044]">
-                            <Link href={`/business-profile/${slug}`}>View profile</Link>
-                          </Button>
-                          <Button asChild size="sm" variant="outline" className="border-[#cbdad1] text-[#3c6355]">
-                            <Link href={`/business-profile/${slug}/request-appointment`}>
-                              Request appointment
-                            </Link>
-                          </Button>
+                          <Link
+                            href={`/business-profile/${slug}`}
+                            className={buttonVariants({
+                              size: "sm",
+                              className: "bg-[#3c6355] text-white hover:bg-[#2f5044]",
+                            })}
+                          >
+                            View profile
+                          </Link>
+                          <Link
+                            href={`/business-profile/${slug}/request-appointment`}
+                            className={buttonVariants({
+                              size: "sm",
+                              variant: "outline",
+                              className: "border-[#cbdad1] text-[#3c6355]",
+                            })}
+                          >
+                            Request appointment
+                          </Link>
                         </div>
                       </div>
                     </article>
