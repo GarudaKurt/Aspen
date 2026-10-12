@@ -207,6 +207,9 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
       .then(({ default: maplibregl }) => {
         if (cancelled || !mapElementRef.current) return;
 
+        maplibregl.setWorkerUrl(
+          new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString(),
+        );
         mapRef.current?.remove();
         const map = new maplibregl.Map({
           container: mapElementRef.current,
