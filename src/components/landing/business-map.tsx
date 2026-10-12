@@ -7,13 +7,21 @@ import type { BusinessCardProps } from "./business-card";
 type LeafletMarker = {
   addTo: (map: LeafletMap) => LeafletMarker;
   bindPopup: (content: string, options?: Record<string, unknown>) => LeafletMarker;
+  remove: () => void;
+};
+
+type LeafletBounds = {
+  contains: (point: [number, number]) => boolean;
 };
 
 type LeafletMap = {
   fitBounds: (bounds: unknown, options?: Record<string, unknown>) => LeafletMap;
+  getBounds: () => LeafletBounds;
+  invalidateSize: () => void;
+  on: (event: string, handler: () => void) => LeafletMap;
+  off: (event: string, handler: () => void) => LeafletMap;
   remove: () => void;
   setView: (center: [number, number], zoom: number) => LeafletMap;
-  invalidateSize: () => void;
 };
 
 type LeafletNamespace = {
@@ -38,6 +46,17 @@ declare global {
 
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
+  selectedCity: string;
+};
+
+type PositionedBusiness = {
+  business: BusinessCardProps;
+  coordinates: [number, number];
+};
+
+type MarkerGroup = {
+  coordinates: [number, number];
+  businesses: BusinessCardProps[];
 };
 
 const cityCoordinates: Record<string, [number, number]> = {
@@ -48,6 +67,14 @@ const cityCoordinates: Record<string, [number, number]> = {
   "naga city": [10.2089, 123.758],
   "carcar city": [10.1061, 123.6402],
   "danao city": [10.5207, 124.027],
+};
+
+const markerGlyphs: Record<string, string> = {
+  veterinary: '<path d="M10 2v6H4v4h6v6h4v-6h6V8h-6V2z" />',
+  grooming: '<path d="m8 8 8 8M16 8l-8 8M6.5 6.5a2.5 2.5 0 1 0-5 0c0 2 2.5 4 2.5 4s2.5-2 2.5-4ZM22.5 6.5a2.5 2.5 0 1 1-5 0c0 2 2.5 4 2.5 4s2.5-2 2.5-4Z" />',
+  boarding: '<path d="m3 11 9-8 9 8v9H3zM9 20v-5h6v5M8 11h.01M12 11h.01M16 11h.01" />',
+  "pet supplies": '<path d="M7 8V6a5 5 0 0 1 10 0v2M5 8h14l1 13H4zM9 12h6" />',
+  training: '<circle cx="8" cy="7" r="2.2"/><circle cx="16" cy="7" r="2.2"/><circle cx="5" cy="13" r="2"/><circle cx="19" cy="13" r="2"/><path d="M8 18c1.5-2 6.5-2 8 0v2H8z" />',
 };
 
 function escapeHtml(value: string) {
@@ -70,6 +97,32 @@ function getCoordinates(business: BusinessCardProps) {
 
 function getRating(value: string) {
   return value.split(" ")[0] ?? value;
+}
+
+function getCategoryKey(business: BusinessCardProps) {
+  const value = business.services.toLowerCase();
+  if (value.includes("vet") || value.includes("veter")) return "veterinary";
+  if (value.includes("groom")) return "grooming";
+  if (value.includes("board")) return "boarding";
+  if (value.includes("supply")) return "pet supplies";
+  return "training";
+}
+
+function getMarkerIcon(leaflet: LeafletNamespace, business: BusinessCardProps, count: number) {
+  const isCluster = count > 1;
+  const glyph = isCluster ? '<path d="M7 7h10v10H7zM4 10H2v10h10v-2M10 4V2h10v10h-2" />' : markerGlyphs[getCategoryKey(business)];
+  const label = isCluster ? String(count) : "";
+
+  return leaflet.divIcon({
+    className: "aspen-map-marker",
+    html: `<span class="aspen-map-pin" title="${escapeHtml(
+      isCluster ? `${count} nearby businesses` : business.businessName,
+    )}">
+      <span class="aspen-map-pin__glyph">${label}<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</svg></span>
+    </span>`,
+    iconSize: [38, 46],
+    iconAnchor: [19, 46],
+  });
 }
 
 function getPopupContent(business: BusinessCardProps) {
@@ -97,6 +150,25 @@ function getPopupContent(business: BusinessCardProps) {
   `;
 }
 
+function getClusterPopupContent(group: MarkerGroup) {
+  return `
+    <div style="width:240px;font-family:inherit;color:#171817;">
+      <strong style="display:block;color:#3c6355;">${group.businesses.length} businesses nearby</strong>
+      <div style="display:grid;gap:8px;margin-top:10px;">
+        ${group.businesses
+          .map(
+            (business) => `<a href="/business-profile/${encodeURIComponent(
+              business.slug ?? "",
+            )}" style="color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">${escapeHtml(
+              business.businessName,
+            )}</a>`,
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
 function loadLeaflet() {
   if (window.L) return Promise.resolve(window.L);
 
@@ -112,9 +184,11 @@ function loadLeaflet() {
 
     if (existingScript) {
       existingScript.addEventListener("load", finish, { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Leaflet failed to load.")), {
-        once: true,
-      });
+      existingScript.addEventListener(
+        "error",
+        () => reject(new Error("Leaflet failed to load.")),
+        { once: true },
+      );
       return;
     }
 
@@ -129,14 +203,16 @@ function loadLeaflet() {
     script.async = true;
     script.dataset.aspenLeaflet = "true";
     script.addEventListener("load", finish, { once: true });
-    script.addEventListener("error", () => reject(new Error("Leaflet failed to load.")), {
-      once: true,
-    });
+    script.addEventListener(
+      "error",
+      () => reject(new Error("Leaflet failed to load.")),
+      { once: true },
+    );
     document.body.appendChild(script);
   });
 }
 
-export function BusinessMap({ businesses }: BusinessMapProps) {
+export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
 
@@ -173,18 +249,10 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
             coordinates: getCoordinates(business),
           }))
           .filter(
-            (
-              item,
-            ): item is {
-              business: BusinessCardProps;
-              coordinates: [number, number];
-            } => Boolean(item.coordinates),
+            (item): item is PositionedBusiness => Boolean(item.coordinates),
           );
 
-        const groupedBusinesses = new Map<
-          string,
-          { coordinates: [number, number]; businesses: BusinessCardProps[] }
-        >();
+        const groupedBusinesses = new Map<string, MarkerGroup>();
 
         positionedBusinesses.forEach(({ business, coordinates }) => {
           const key = coordinates.join(",");
@@ -197,52 +265,78 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
           }
         });
 
-        const points = Array.from(groupedBusinesses.values()).map(
-          (group) => group.coordinates,
-        );
+        const markerGroups = Array.from(groupedBusinesses.values());
+        const activeMarkers = new Map<string, LeafletMarker>();
 
-        groupedBusinesses.forEach(({ businesses: grouped, coordinates }) => {
-          const isCluster = grouped.length > 1;
-          const markerLabel = isCluster ? String(grouped.length) : "●";
-          const popupContent = isCluster
-            ? `<div style="width:240px;font-family:inherit;color:#171817;">
-                <strong style="display:block;color:#3c6355;">${grouped.length} businesses nearby</strong>
-                <div style="display:grid;gap:8px;margin-top:10px;">
-                  ${grouped
-                    .map(
-                      (business) => `<a href="/business-profile/${encodeURIComponent(
-                        business.slug ?? "",
-                      )}" style="color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">${escapeHtml(
-                        business.businessName,
-                      )}</a>`,
-                    )
-                    .join("")}
-                </div>
-              </div>`
-            : getPopupContent(grouped[0]);
+        const renderVisibleMarkers = () => {
+          const visibleGroups = markerGroups.filter((group) =>
+            map.getBounds().contains(group.coordinates),
+          );
+          const visibleKeys = new Set(
+            visibleGroups.map((group) => group.coordinates.join(",")),
+          );
 
-          leaflet
-            .marker(coordinates, {
-              icon: leaflet.divIcon({
-                className: "aspen-map-marker",
-                html: `<span style="display:grid;place-items:center;width:34px;height:34px;border:3px solid white;border-radius:9999px;background:#3c6355;color:white;box-shadow:0 2px 8px rgba(23,24,23,.28);font-size:${isCluster ? "12px" : "16px"};font-weight:700;">${markerLabel}</span>`,
-                iconSize: [34, 34],
-                iconAnchor: [17, 17],
-              }),
-              title: isCluster
-                ? `${grouped.length} businesses nearby`
-                : grouped[0].businessName,
-            })
-            .addTo(map)
-            .bindPopup(popupContent, { maxWidth: 260 });
-        });
+          activeMarkers.forEach((marker, key) => {
+            if (!visibleKeys.has(key)) {
+              marker.remove();
+              activeMarkers.delete(key);
+            }
+          });
 
-        if (points.length === 1) {
-          map.setView(points[0], 13);
-        } else if (points.length > 1) {
-          map.fitBounds(leaflet.latLngBounds(points), { padding: [30, 30] });
+          visibleGroups.forEach((group) => {
+            const key = group.coordinates.join(",");
+            if (activeMarkers.has(key)) return;
+
+            const marker = leaflet
+              .marker(group.coordinates, {
+                icon: getMarkerIcon(leaflet, group.businesses[0], group.businesses.length),
+                title:
+                  group.businesses.length > 1
+                    ? `${group.businesses.length} businesses nearby`
+                    : group.businesses[0].businessName,
+              })
+              .addTo(map)
+              .bindPopup(
+                group.businesses.length > 1
+                  ? getClusterPopupContent(group)
+                  : getPopupContent(group.businesses[0]),
+                { maxWidth: 260 },
+              );
+
+            activeMarkers.set(key, marker);
+          });
+        };
+
+        const handleMapMove = () => renderVisibleMarkers();
+        map.on("moveend", handleMapMove);
+
+        const normalizedCity = selectedCity.trim().toLowerCase();
+        const selectedCenter = cityCoordinates[normalizedCity];
+
+        if (normalizedCity === "all cities") {
+          if (markerGroups.length === 1) {
+            map.setView(markerGroups[0].coordinates, 13);
+          } else if (markerGroups.length > 1) {
+            map.fitBounds(
+              leaflet.latLngBounds(markerGroups.map((group) => group.coordinates)),
+              { padding: [30, 30] },
+            );
+          }
+        } else if (selectedCenter) {
+          map.setView(selectedCenter, 13);
+        } else if (markerGroups.length) {
+          map.setView(markerGroups[0].coordinates, 12);
         }
-        window.setTimeout(() => map.invalidateSize(), 50);
+
+        window.setTimeout(() => {
+          map.invalidateSize();
+          renderVisibleMarkers();
+        }, 50);
+
+        return () => {
+          map.off("moveend", handleMapMove);
+          map.remove();
+        };
       })
       .catch(() => {
         if (!cancelled && mapElementRef.current) {
@@ -255,10 +349,19 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [businesses]);
+  }, [businesses, selectedCity]);
 
   return (
     <section className="px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16">
+      <style>{`
+        .aspen-map-marker { background: transparent; border: 0; }
+        .aspen-map-pin { display: grid; place-items: center; width: 38px; height: 38px; color: #fff; background: #3c6355; border: 3px solid #fff; border-radius: 9999px 9999px 9999px 4px; transform: rotate(-45deg); box-shadow: 0 2px 8px rgba(23,24,23,.28); transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
+        .aspen-map-pin__glyph { display: grid; place-items: center; width: 22px; height: 22px; transform: rotate(45deg); font-size: 12px; font-weight: 700; }
+        .aspen-map-pin__glyph svg { width: 18px; height: 18px; }
+        .aspen-map-marker:hover .aspen-map-pin { background: #315447; transform: rotate(-45deg) scale(1.12); box-shadow: 0 4px 12px rgba(23,24,23,.35); }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { border: 1px solid #dfe8e2; }
+        .leaflet-control-zoom a { color: #3c6355 !important; }
+      `}</style>
       <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px]">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -274,7 +377,7 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
           </div>
           <div className="flex items-center gap-2 text-xs text-[#69736d]">
             <MapPin className="size-4 text-[#3c6355]" />
-            {businesses.length} matching {businesses.length === 1 ? "business" : "businesses"}
+            {businesses.length} available {businesses.length === 1 ? "business" : "businesses"}
           </div>
         </div>
 
@@ -286,7 +389,7 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
               className="h-[360px] w-full sm:h-[440px]"
             />
             <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] text-[#69736d] shadow-sm">
-              Map positions use development coordinates for mock businesses.
+              Pan the map to discover businesses in nearby cities.
             </p>
           </div>
         ) : (
@@ -296,7 +399,7 @@ export function BusinessMap({ businesses }: BusinessMapProps) {
               No businesses match these filters
             </h3>
             <p className="mt-2 text-sm text-[#777b78]">
-              Try another city, search term, or service category to explore the map.
+              Try another search term or service category to explore the map.
             </p>
           </div>
         )}
