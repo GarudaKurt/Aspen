@@ -28,6 +28,7 @@ type DiscoverySearchProps = {
 };
 
 const cities = [
+  "All Cities",
   "Cebu City",
   "Mandaue City",
   "Lapu-Lapu City",
