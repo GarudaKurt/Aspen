@@ -29,6 +29,16 @@ export function LandingPage() {
       ),
     [city, selectedFilters, submittedQuery],
   );
+  const mapBusinesses = useMemo(
+    () =>
+      filterBusinesses(
+        mockBusinesses,
+        submittedQuery,
+        "All Cities",
+        selectedFilters,
+      ),
+    [selectedFilters, submittedQuery],
+  );
 
   const updateServiceFilters = (filters: string[]) => {
     setSelectedFilters(filters);
@@ -64,7 +74,7 @@ export function LandingPage() {
         onSelectedFiltersChange={updateServiceFilters}
       />
       <OwnerCta />
-      <BusinessMap businesses={filteredBusinesses} />
+      <BusinessMap businesses={mapBusinesses} selectedCity={city} />
       <SiteFooter />
       <section id="how-it-works" className="sr-only" aria-label="How it works">
         <span>Discover trusted pet services near you.</span>
