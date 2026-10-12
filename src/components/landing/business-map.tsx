@@ -1,57 +1,14 @@
 "use client";
 
+import maplibregl, {
+  type Map as MapLibreMap,
+  type Marker as MapLibreMarker,
+  type Popup as MapLibrePopup,
+} from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { BusinessCardProps } from "./business-card";
-
-type MapLibreBounds = {
-  getEast: () => number;
-  getNorth: () => number;
-  getSouth: () => number;
-  getWest: () => number;
-};
-
-type MapLibreMap = {
-  addControl: (control: unknown, position?: string) => MapLibreMap;
-  fitBounds: (
-    bounds: [[number, number], [number, number]],
-    options?: Record<string, unknown>,
-  ) => MapLibreMap;
-  getBounds: () => MapLibreBounds;
-  on: (event: string, handler: () => void) => MapLibreMap;
-  off: (event: string, handler: () => void) => MapLibreMap;
-  once: (event: string, handler: () => void) => MapLibreMap;
-  remove: () => void;
-  resize: () => void;
-  setCenter: (center: [number, number]) => MapLibreMap;
-  setZoom: (zoom: number) => MapLibreMap;
-};
-
-type MapLibreMarker = {
-  remove: () => void;
-  setLngLat: (coordinates: [number, number]) => MapLibreMarker;
-  addTo: (map: MapLibreMap) => MapLibreMarker;
-};
-
-type MapLibrePopup = {
-  remove: () => void;
-  setHTML: (html: string) => MapLibrePopup;
-  setLngLat: (coordinates: [number, number]) => MapLibrePopup;
-  addTo: (map: MapLibreMap) => MapLibrePopup;
-};
-
-type MapLibreNamespace = {
-  Map: new (options: Record<string, unknown>) => MapLibreMap;
-  Marker: new (options: Record<string, unknown>) => MapLibreMarker;
-  Popup: new (options?: Record<string, unknown>) => MapLibrePopup;
-  NavigationControl: new () => unknown;
-};
-
-declare global {
-  interface Window {
-    maplibregl?: MapLibreNamespace;
-  }
-}
 
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
@@ -196,50 +153,6 @@ function getClusterPopupContent(group: MarkerGroup) {
   `;
 }
 
-function loadMapLibre() {
-  if (window.maplibregl) return Promise.resolve(window.maplibregl);
-
-  return new Promise<MapLibreNamespace>((resolve, reject) => {
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[data-aspen-maplibre="true"]',
-    );
-
-    const finish = () => {
-      if (window.maplibregl) resolve(window.maplibregl);
-      else reject(new Error("MapLibre failed to initialize."));
-    };
-
-    if (existingScript) {
-      existingScript.addEventListener("load", finish, { once: true });
-      existingScript.addEventListener(
-        "error",
-        () => reject(new Error("MapLibre failed to load.")),
-        { once: true },
-      );
-      return;
-    }
-
-    const stylesheet = document.createElement("link");
-    stylesheet.rel = "stylesheet";
-    stylesheet.href =
-      "https://unpkg.com/maplibre-gl@6.13.0/dist/maplibre-gl.css";
-    stylesheet.dataset.aspenMaplibre = "true";
-    document.head.appendChild(stylesheet);
-
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/maplibre-gl@6.13.0/dist/maplibre-gl.js";
-    script.async = true;
-    script.dataset.aspenMaplibre = "true";
-    script.addEventListener("load", finish, { once: true });
-    script.addEventListener(
-      "error",
-      () => reject(new Error("MapLibre failed to load.")),
-      { once: true },
-    );
-    document.body.appendChild(script);
-  });
-}
-
 function isWithinBounds(
   bounds: MapLibreBounds,
   coordinates: [number, number],
@@ -266,7 +179,7 @@ export function BusinessMap({ businesses, selectedCity }: BusinessMapProps) {
       return;
     }
 
-    loadMapLibre()
+    Promise.resolve(maplibregl)
       .then((maplibregl) => {
         if (cancelled || !mapElementRef.current) return;
 
