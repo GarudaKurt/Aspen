@@ -14,6 +14,7 @@ import {
   FileCheck2,
   ShieldCheck,
   UserRound,
+  CheckCircle2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,11 @@ import {
   type BillingDetails,
 } from "@/features/business-profile/store/onboarding.store";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -70,6 +76,7 @@ export function ListingPage() {
   const billing = useListingStore((state) => state.billing);
   const setBillingField = useListingStore((state) => state.setBillingField);
   const [billingErrors, setBillingErrors] = useState<Record<string, string>>({});
+  const [submissionOpen, setSubmissionOpen] = useState(false);
 
   const activeIndex = Math.max(
     0,
@@ -92,6 +99,11 @@ export function ListingPage() {
 
   const goBack = () => {
     router.push(activeIndex === 0 ? "/#browse" : steps[activeIndex - 1].path);
+  };
+
+  const submitApplication = () => {
+    // Mock successful submission until the application is connected to a backend.
+    setSubmissionOpen(true);
   };
 
   const handleFile = (label: string, file?: File) => {
@@ -175,7 +187,7 @@ export function ListingPage() {
                   type="button"
                   onClick={
                     activeIndex === steps.length - 1
-                      ? () => router.push("/#top")
+                      ? submitApplication
                       : goNext
                   }
                   className="order-1 min-h-11 w-full px-4 sm:order-none sm:w-40 bg-[#3c6355] text-white hover:bg-[#2f5044]"
@@ -197,6 +209,35 @@ export function ListingPage() {
           </Card>
         </div>
       </div>
+      <Dialog open={submissionOpen} onOpenChange={setSubmissionOpen}>
+        <DialogContent className="max-w-md p-6 sm:p-8">
+          <DialogClose onClick={() => setSubmissionOpen(false)} />
+          <div className="flex flex-col items-center text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-[#eef7f1] text-[#3c6355]">
+              <CheckCircle2 className="size-7" aria-hidden="true" />
+            </span>
+            <h2 className="mt-4 text-xl font-bold text-[#171817]">
+              Application Submitted Successfully!
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[#69736d]">
+              Thank you for submitting your business verification application.
+              Your application is currently under review by our administration
+              team. The verification process typically takes 1–3 business days.
+            </p>
+            <p className="mt-3 text-sm leading-6 text-[#69736d]">
+              Please check your registered email regularly for updates regarding
+              your application's approval status.
+            </p>
+            <Button
+              type="button"
+              onClick={() => setSubmissionOpen(false)}
+              className="mt-6 min-h-11 w-full bg-[#3c6355] text-white hover:bg-[#2f5044] sm:w-40"
+            >
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
@@ -370,6 +411,32 @@ function IdentityStep({
   uploadedFiles: Record<string, string>;
   onFile: (label: string, file?: File) => void;
 }) {
+  const [contactNumber, setContactNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<
+    "idle" | "verified" | "invalid"
+  >("idle");
+
+  const isValidMobileNumber = /^(?:\+63|63|0)9\d{9}$/.test(
+    contactNumber.replace(/[\s()-]/g, ""),
+  );
+
+  const sendCode = () => {
+    if (!isValidMobileNumber) return;
+    setSendingCode(true);
+    setVerificationStatus("idle");
+    window.setTimeout(() => {
+      setCodeSent(true);
+      setSendingCode(false);
+    }, 450);
+  };
+
+  const verifyCode = () => {
+    setVerificationStatus(verificationCode === "1234" ? "verified" : "invalid");
+  };
+
   return (
     <FormSection
       title="Verify your identity"
@@ -388,30 +455,95 @@ function IdentityStep({
               <SelectItem value="National ID">National ID</SelectItem>
               <SelectItem value="Passport">Passport</SelectItem>
               <SelectItem value="Driver&apos;s license">Driver&apos;s license</SelectItem>
+              <SelectItem value="SSS ID">SSS ID</SelectItem>
+              <SelectItem value="PRC ID">PRC ID</SelectItem>
             </SelectContent>
           </Select>
         </FieldLabel>
       </div>
       <Card className="rounded-lg border-[#d8dbd8] p-3 shadow-none">
         <FieldLabel label="Contact number">
-          <div className="flex gap-2">
-            <Input placeholder="+63 900 000 0000" />
-            <Button type="button" variant="outline">
-              Send code
-            </Button>
-          </div>
-        </FieldLabel>
-        <FieldLabel label="Four-digit verification code">
-          <div className="flex gap-2">
-            <Input inputMode="numeric" maxLength={4} />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={contactNumber}
+              onChange={(event) => {
+                setContactNumber(event.target.value);
+                setCodeSent(false);
+                setVerificationStatus("idle");
+              }}
+              placeholder="+63 900 000 0000"
+              inputMode="tel"
+              aria-invalid={contactNumber.length > 0 && !isValidMobileNumber}
+            />
             <Button
               type="button"
-              className="bg-[#2768f5] text-white hover:bg-[#1d55d1]"
+              variant="outline"
+              onClick={sendCode}
+              disabled={!isValidMobileNumber || sendingCode}
+              className="shrink-0 sm:min-w-28"
             >
-              Verify
+              {sendingCode ? "Sending…" : codeSent ? "Resend code" : "Send code"}
             </Button>
           </div>
+          {contactNumber.length > 0 && !isValidMobileNumber && (
+            <span className="block text-xs font-normal text-red-600">
+              Enter a valid Philippine mobile number.
+            </span>
+          )}
         </FieldLabel>
+        <div
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ${codeSent ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+          aria-hidden={!codeSent}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <FieldLabel label="Four-digit verification code">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={verificationCode}
+                  onChange={(event) => {
+                    setVerificationCode(
+                      event.target.value.replace(/\D/g, "").slice(0, 4),
+                    );
+                    setVerificationStatus("idle");
+                  }}
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="1234"
+                  aria-describedby="mock-verification-note"
+                  disabled={!codeSent}
+                />
+                <Button
+                  type="button"
+                  onClick={verifyCode}
+                  disabled={
+                    !codeSent ||
+                    verificationCode.length !== 4 ||
+                    verificationStatus === "verified"
+                  }
+                  className="bg-[#2768f5] text-white hover:bg-[#1d55d1] sm:min-w-24"
+                >
+                  {verificationStatus === "verified" ? "Verified" : "Verify"}
+                </Button>
+              </div>
+              <span
+                id="mock-verification-note"
+                className="block text-xs font-normal text-[#69736d]"
+              >
+                Mock verification: use code 1234. No SMS is sent yet.
+              </span>
+              {verificationStatus === "invalid" && (
+                <span className="block text-xs font-normal text-red-600">
+                  That code is incorrect. Check the code and try again.
+                </span>
+              )}
+              {verificationStatus === "verified" && (
+                <span className="block text-xs font-normal text-[#3c6355]">
+                  Contact number verified successfully.
+                </span>
+              )}
+            </FieldLabel>
+          </div>
+        </div>
       </Card>
       {["Government ID", "Business Permit"].map((label) => (
         <FileUpload
