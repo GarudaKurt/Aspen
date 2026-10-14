@@ -180,11 +180,6 @@ function CityCombobox({
                   className={isSelected ? "text-[#3c6355]" : "text-transparent"}
                 />
                 <span>{option}</span>
-                {option !== "All Cities" && (
-                  <span className="ml-auto text-xs text-[#9a9c9b]">
-                    {philippineLocations.find(({ name }) => name === option)?.region}
-                  </span>
-                )}
               </button>
             );
           })}
