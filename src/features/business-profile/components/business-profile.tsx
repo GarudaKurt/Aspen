@@ -16,6 +16,8 @@ import {
   Share2,
   Star,
 } from "lucide-react";
+import type { BusinessLocationDetails } from "../location";
+import { formatBusinessAddress } from "../location";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -51,6 +53,7 @@ export type TenantProfileData = {
   favorites?: number;
   category: string;
   address: string;
+  locationDetails?: BusinessLocationDetails;
   description?: string;
   serviceCoverage?: string[];
   servicesOffered?: Array<{
@@ -280,6 +283,7 @@ export function BusinessProfile({
     () => ({
       businessName: provider.name,
       location: provider.address,
+      coordinates: provider.locationDetails?.coordinates ?? undefined,
       rating: provider.rating,
       services: provider.category,
       priceStarts: provider.servicesOffered?.[0]?.price ?? "Contact for pricing",
@@ -288,6 +292,7 @@ export function BusinessProfile({
     }),
     [
       provider.address,
+      provider.locationDetails,
       provider.category,
       provider.coverPhoto,
       provider.name,

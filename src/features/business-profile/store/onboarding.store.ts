@@ -1,6 +1,10 @@
 "use client";
 
 import { create } from "zustand";
+import {
+  initialBusinessLocation,
+  type BusinessLocationDetails,
+} from "../location";
 
 export type BillingDetails = {
  fullName: string;
@@ -11,6 +15,9 @@ export type BillingDetails = {
 
 export type ListingDraft = {
   providerType: string;
+  businessName: string;
+  businessDescription: string;
+  locationDetails: BusinessLocationDetails;
   selectedServices: string[];
   uploadedFiles: Record<string, string>;
   billing: BillingDetails;
@@ -18,6 +25,8 @@ export type ListingDraft = {
 
 type ListingStore = ListingDraft & {
   setProviderType: (providerType: string) => void;
+  setBusinessField: (field: "businessName" | "businessDescription", value: string) => void;
+  setLocationField: <K extends keyof BusinessLocationDetails>(field: K, value: BusinessLocationDetails[K]) => void;
   toggleService: (service: string) => void;
   setUploadedFile: (label: string, fileName: string) => void;
   setBillingField: <K extends keyof BillingDetails>(
@@ -29,6 +38,9 @@ type ListingStore = ListingDraft & {
 
 export const initialListingDraft: ListingDraft = {
   providerType: "Individual provider",
+  businessName: "",
+  businessDescription: "",
+  locationDetails: initialBusinessLocation,
   selectedServices: [],
   uploadedFiles: {},
   billing: {
@@ -42,6 +54,9 @@ export const initialListingDraft: ListingDraft = {
 export const useListingStore = create<ListingStore>((set) => ({
   ...initialListingDraft,
   setProviderType: (providerType) => set({ providerType }),
+  setBusinessField: (field, value) => set((state) => ({ ...state, [field]: value })),
+  setLocationField: (field, value) =>
+    set((state) => ({ locationDetails: { ...state.locationDetails, [field]: value } })),
   toggleService: (service) =>
     set((state) => ({
       selectedServices: state.selectedServices.includes(service)

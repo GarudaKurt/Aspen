@@ -11,6 +11,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent, ReactNode } from "react";
 import type { BusinessService } from "@/domain/business";
+import type { BusinessLocationDetails } from "@/features/business-profile/location";
 import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
 export type BusinessCardImage = {
@@ -21,6 +22,8 @@ export type BusinessCardImage = {
 
 export interface BusinessCardProps {
   location: string;
+  coordinates?: [number, number];
+  locationDetails?: BusinessLocationDetails;
   businessName: string;
   rating: string;
   services: string;

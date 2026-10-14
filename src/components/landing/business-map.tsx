@@ -40,6 +40,7 @@ type BusinessMapProps = {
   selectedCity: string;
   compact?: boolean;
   mapHeight?: "default" | "profile" | "expanded";
+  onMapClick?: (coordinates: [number, number]) => void;
 };
 
 type PositionedBusiness = {
@@ -77,6 +78,7 @@ function escapeHtml(value: string) {
 }
 
 function getCoordinates(business: BusinessCardProps) {
+  if (business.coordinates) return business.coordinates;
   const location = business.location.toLowerCase();
   const matchingCity = Object.keys(cityCoordinates).find((city) =>
     location.includes(city),
@@ -191,6 +193,7 @@ export function BusinessMap({
   selectedCity,
   compact = false,
   mapHeight = "default",
+  onMapClick,
 }: BusinessMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -397,10 +400,16 @@ export function BusinessMap({
         // when the map goes idle for the first time.
         map.once("idle", collapseAttribution);
         map.on("moveend", renderVisibleMarkers);
+        if (onMapClick) {
+          map.on("click", (event) => {
+            onMapClick([event.lngLat.lng, event.lngLat.lat]);
+          });
+        }
 
         return () => {
           map.off("error", handleMapError);
           map.off("moveend", renderVisibleMarkers);
+          if (onMapClick) map.off("click", () => undefined);
           activeMarkers.forEach((marker) => marker.remove());
           activePopups.forEach((popup) => popup.remove());
           map.remove();
@@ -417,7 +426,7 @@ export function BusinessMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [businesses, compact, mapHeight, selectedCity]);
+  }, [businesses, compact, mapHeight, onMapClick, selectedCity]);
 
   return (
     <section

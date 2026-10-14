@@ -23,6 +23,7 @@ export default async function BusinessProfileBySlugPage({
     reviews: getReviews(business.rating),
     category: business.services,
     address: business.location,
+    locationDetails: business.locationDetails,
     coverPhoto: business.images?.[0]?.src ?? null,
     slug: business.slug,
     serviceCoverage: [business.services],
