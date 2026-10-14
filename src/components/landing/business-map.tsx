@@ -93,6 +93,29 @@ function getRating(value: string) {
   return value.split(" ")[0] ?? value;
 }
 
+function hasPublishedRating(value: string) {
+  return Boolean(value && !/not yet rated/i.test(value));
+}
+
+function hasPublishedPrice(value: string) {
+  return Boolean(value && !/contact provider|not available/i.test(value));
+}
+
+function getLocationAccuracyLabel(business: BusinessCardProps) {
+  switch (business.locationDetails?.locationAccuracy) {
+    case "business":
+      return "Business location reference";
+    case "venue":
+      return "Venue reference — confirm storefront pin";
+    case "street-reference":
+      return "Street reference — confirm storefront pin";
+    case "address-only":
+      return "Address awaiting map pin";
+    default:
+      return "";
+  }
+}
+
 function getCategoryKey(business: BusinessCardProps) {
   const value = business.services.toLowerCase();
   if (value.includes("vet") || value.includes("veter")) return "veterinary";
@@ -147,6 +170,7 @@ function getPopupContent(business: BusinessCardProps) {
     business.locationDetails,
     business.location,
   );
+  const locationAccuracyLabel = getLocationAccuracyLabel(business);
 
   return `
     <div style="width:220px;overflow:hidden;font-family:inherit;color:#171817;">
@@ -155,10 +179,11 @@ function getPopupContent(business: BusinessCardProps) {
         <strong style="display:block;font-size:15px;color:#3c6355;">${escapeHtml(business.businessName)}</strong>
         <span style="display:block;margin-top:4px;font-size:12px;color:#69736d;">${escapeHtml(displayLocation)}</span>
         <div style="display:flex;gap:6px;margin-top:8px;font-size:12px;">
-          <span style="color:#d39b00;">★ ${escapeHtml(getRating(business.rating))}</span>
+          <span style="color:#69736d;">${hasPublishedRating(business.rating) ? `★ ${escapeHtml(getRating(business.rating))}` : "Not yet rated"}</span>
           <span style="color:#69736d;">· ${escapeHtml(business.services)}</span>
         </div>
-        <strong style="display:block;margin-top:7px;font-size:13px;">Starts at ${escapeHtml(business.priceStarts)}</strong>
+        <strong style="display:block;margin-top:7px;font-size:13px;">${hasPublishedPrice(business.priceStarts) ? `Starts at ${escapeHtml(business.priceStarts)}` : "Contact provider for pricing"}</strong>
+        ${locationAccuracyLabel ? `<span style="display:block;margin-top:8px;font-size:10px;color:#69736d;">${escapeHtml(locationAccuracyLabel)}</span>` : ""}
         <a href="${profileHref}" style="display:inline-block;margin-top:10px;color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">View business profile</a>
       </div>
     </div>
