@@ -56,7 +56,13 @@ export const useListingStore = create<ListingStore>((set) => ({
   setProviderType: (providerType) => set({ providerType }),
   setBusinessField: (field, value) => set((state) => ({ ...state, [field]: value })),
   setLocationField: (field, value) =>
-    set((state) => ({ locationDetails: { ...state.locationDetails, [field]: value } })),
+    set((state) => ({
+      locationDetails: {
+        ...state.locationDetails,
+        [field]: value,
+        ...(field === "coordinates" ? {} : { coordinates: null }),
+      },
+    })),
   toggleService: (service) =>
     set((state) => ({
       selectedServices: state.selectedServices.includes(service)

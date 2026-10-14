@@ -11,6 +11,7 @@ import { MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { BusinessCardProps } from "./business-card";
 import { cityCoordinates } from "./philippine-locations";
+import { getBusinessLocationSummary } from "@/features/business-profile/location";
 
 type MapLibreBounds = ReturnType<MapLibreMap["getBounds"]>;
 
@@ -80,6 +81,7 @@ function escapeHtml(value: string) {
 
 function getCoordinates(business: BusinessCardProps) {
   if (business.coordinates) return business.coordinates;
+  if (business.locationDetails) return business.locationDetails.coordinates;
   const location = business.location.toLowerCase();
   const matchingCity = Object.keys(cityCoordinates).find((city) =>
     location.includes(city),
@@ -141,13 +143,17 @@ function getPopupContent(business: BusinessCardProps) {
     ? `<img src="${escapeHtml(image)}" alt="" style="width:100%;height:96px;object-fit:cover;border-radius:10px 10px 0 0;" />`
     : "";
   const profileHref = `/business-profile/${encodeURIComponent(slug)}`;
+  const displayLocation = getBusinessLocationSummary(
+    business.locationDetails,
+    business.location,
+  );
 
   return `
     <div style="width:220px;overflow:hidden;font-family:inherit;color:#171817;">
       ${imageMarkup}
       <div style="padding:10px;">
         <strong style="display:block;font-size:15px;color:#3c6355;">${escapeHtml(business.businessName)}</strong>
-        <span style="display:block;margin-top:4px;font-size:12px;color:#69736d;">${escapeHtml(business.location)}</span>
+        <span style="display:block;margin-top:4px;font-size:12px;color:#69736d;">${escapeHtml(displayLocation)}</span>
         <div style="display:flex;gap:6px;margin-top:8px;font-size:12px;">
           <span style="color:#d39b00;">★ ${escapeHtml(getRating(business.rating))}</span>
           <span style="color:#69736d;">· ${escapeHtml(business.services)}</span>

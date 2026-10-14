@@ -284,6 +284,7 @@ export function BusinessProfile({
       businessName: provider.name,
       location: provider.address,
       coordinates: provider.locationDetails?.coordinates ?? undefined,
+      locationDetails: provider.locationDetails,
       rating: provider.rating,
       services: provider.category,
       priceStarts: provider.servicesOffered?.[0]?.price ?? "Contact for pricing",

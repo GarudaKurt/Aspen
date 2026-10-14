@@ -17,6 +17,7 @@ export function BusinessLocationPicker({ location, onChange }: BusinessLocationP
   const mapBusiness = {
     businessName: "Selected business location",
     location: formatBusinessAddress(location, "Business location"),
+    locationDetails: location,
     coordinates: location.coordinates ?? undefined,
     rating: "",
     services: "",
@@ -46,6 +47,7 @@ export function BusinessLocationPicker({ location, onChange }: BusinessLocationP
       }>;
       const result = results[0];
       if (!result) {
+        onChange({ coordinates: null });
         setStatus("not-found");
         return;
       }

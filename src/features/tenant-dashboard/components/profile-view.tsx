@@ -379,9 +379,18 @@ export function ProfileView() {
   };
 
   const updateLocation = (update: Partial<BusinessLocationDetails>) => {
+    const addressWasChanged = Object.keys(update).some((field) =>
+      ["province", "cityMunicipality", "barangay", "streetAddress", "landmark", "additionalDetails"].includes(field),
+    );
     setDraft((current) => ({
       ...current,
-      locationDetails: { ...current.locationDetails, ...update },
+      locationDetails: {
+        ...current.locationDetails,
+        ...update,
+        ...(addressWasChanged && !Object.prototype.hasOwnProperty.call(update, "coordinates")
+          ? { coordinates: null }
+          : {}),
+      },
     }));
   };
 
