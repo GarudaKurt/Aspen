@@ -66,8 +66,7 @@ const markerGlyphs: Record<string, string> = {
     '<path d="m8 8 8 8M16 8 8 16M6.5 6.5a2.5 2.5 0 1 0-5 0c0 2 2.5 4 2.5 4s2.5-2 2.5-4ZM22.5 6.5a2.5 2.5 0 1 1-5 0c0 2 2.5 4 2.5 4s2.5-2 2.5-4Z" />',
   boarding:
     '<path d="m3 11 9-8 9 8v9H3zM9 20v-5h6v5M8 11h.01M12 11h.01M16 11h.01" />',
-  "pet supplies":
-    '<path d="M7 8V6a5 5 0 0 1 10 0v2M5 8h14l1 13H4zM9 12h6" />',
+  "pet supplies": '<path d="M7 8V6a5 5 0 0 1 10 0v2M5 8h14l1 13H4zM9 12h6" />',
   training:
     '<circle cx="8" cy="7" r="2.2"/><circle cx="16" cy="7" r="2.2"/><circle cx="5" cy="13" r="2"/><circle cx="19" cy="13" r="2"/><path d="M8 18c1.5-2 6.5-2 8 0v2H8z" />',
 };
@@ -172,11 +171,12 @@ function getClusterPopupContent(group: MarkerGroup) {
       <div style="display:grid;gap:8px;margin-top:10px;">
         ${group.businesses
           .map(
-            (business) => `<a href="/business-profile/${encodeURIComponent(
-              business.slug ?? "",
-            )}" style="color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">${escapeHtml(
-              business.businessName,
-            )}</a>`,
+            (business) =>
+              `<a href="/business-profile/${encodeURIComponent(
+                business.slug ?? "",
+              )}" style="color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">${escapeHtml(
+                business.businessName,
+              )}</a>`,
           )
           .join("")}
       </div>
@@ -184,10 +184,7 @@ function getClusterPopupContent(group: MarkerGroup) {
   `;
 }
 
-function isWithinBounds(
-  bounds: MapLibreBounds,
-  coordinates: [number, number],
-) {
+function isWithinBounds(bounds: MapLibreBounds, coordinates: [number, number]) {
   const [longitude, latitude] = coordinates;
   return (
     longitude >= bounds.getWest() &&
@@ -228,7 +225,10 @@ export function BusinessMap({
         } = maplibregl;
 
         setWorkerUrl(
-          new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString(),
+          new URL(
+            "maplibre-gl/dist/maplibre-gl-worker.mjs",
+            import.meta.url,
+          ).toString(),
         );
         mapRef.current?.remove();
         const map = new MapConstructor({
@@ -248,6 +248,17 @@ export function BusinessMap({
           "bottom-right",
         );
 
+        // Start with the attribution collapsed to the (i) icon.
+        // MapLibre opens a compact control by default until the first map move.
+        const collapseAttribution = () => {
+          const attrib = mapElementRef.current?.querySelector(
+            ".maplibregl-ctrl-attrib",
+          );
+          attrib?.classList.remove("maplibregl-compact-show");
+          attrib?.removeAttribute("open");
+        };
+        collapseAttribution();
+
         let fallbackApplied = false;
         let mapLoaded = false;
         const handleMapError = () => {
@@ -262,8 +273,8 @@ export function BusinessMap({
             business,
             coordinates: getCoordinates(business),
           }))
-          .filter(
-            (item): item is PositionedBusiness => Boolean(item.coordinates),
+          .filter((item): item is PositionedBusiness =>
+            Boolean(item.coordinates),
           );
 
         const groupedBusinesses = new Map<string, MarkerGroup>();
@@ -354,12 +365,20 @@ export function BusinessMap({
               map.fitBounds(
                 [
                   [
-                    Math.min(...markerGroups.map((group) => group.coordinates[0])),
-                    Math.min(...markerGroups.map((group) => group.coordinates[1])),
+                    Math.min(
+                      ...markerGroups.map((group) => group.coordinates[0]),
+                    ),
+                    Math.min(
+                      ...markerGroups.map((group) => group.coordinates[1]),
+                    ),
                   ],
                   [
-                    Math.max(...markerGroups.map((group) => group.coordinates[0])),
-                    Math.max(...markerGroups.map((group) => group.coordinates[1])),
+                    Math.max(
+                      ...markerGroups.map((group) => group.coordinates[0]),
+                    ),
+                    Math.max(
+                      ...markerGroups.map((group) => group.coordinates[1]),
+                    ),
                   ],
                 ],
                 { padding: 30, maxZoom: 12 },
@@ -377,8 +396,13 @@ export function BusinessMap({
 
         map.once("load", () => {
           mapLoaded = true;
+          collapseAttribution();
           initializeMap();
         });
+        // MapLibre opens the compact attribution only once the tile sources
+        // have reported their credits (after "load"), so collapse it again
+        // when the map goes idle for the first time.
+        map.once("idle", collapseAttribution);
         map.on("moveend", renderVisibleMarkers);
 
         return () => {
@@ -403,7 +427,11 @@ export function BusinessMap({
   }, [businesses, compact, selectedCity]);
 
   return (
-    <section className={compact ? "p-0" : "px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16"}>
+    <section
+      className={
+        compact ? "p-0" : "px-6 py-12 sm:px-10 sm:py-16 lg:px-[130px] 2xl:px-16"
+      }
+    >
       <style>{`
         .aspen-map-pin { display:grid; place-items:center; width:22px; height:22px; padding:0; border:1px solid #fff; border-radius:9999px 9999px 9999px 4px; background:#3c6355; color:#fff; cursor:pointer; transform:rotate(-45deg); box-shadow:0 2px 8px rgba(23,24,23,.28); transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease; }
         .aspen-map-pin__glyph { display:grid; place-items:center; width:14px; height:14px; transform:rotate(45deg); font-size:9px; font-weight:700; }
@@ -417,9 +445,21 @@ export function BusinessMap({
         .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner { display:none !important; }
         .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) { min-width:24px; min-height:24px; padding:0; }
         .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) button { display:block; width:24px; height:24px; }
+        /* The OpenFreeMap credit is optional; OpenMapTiles + OpenStreetMap stay in the (i) panel. */
+        .maplibregl-ctrl-attrib-inner a[href^="https://openfreemap.org"] { display:none; }
       `}</style>
-      <div className={compact ? "w-full" : "mx-auto max-w-[1440px] 2xl:max-w-[1680px]"}>
-        <div className={compact ? "hidden" : "mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"}>
+      <div
+        className={
+          compact ? "w-full" : "mx-auto max-w-[1440px] 2xl:max-w-[1680px]"
+        }
+      >
+        <div
+          className={
+            compact
+              ? "hidden"
+              : "mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+          }
+        >
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5714e]">
               Explore by location
@@ -428,21 +468,31 @@ export function BusinessMap({
               Explore Pet Services Near You
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[#69736d] sm:text-base">
-              Browse nearby providers on the map and open a profile to learn more or request an appointment.
+              Browse nearby providers on the map and open a profile to learn
+              more or request an appointment.
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-[#69736d]">
             <MapPin className="size-4 text-[#3c6355]" />
-            {businesses.length} available {businesses.length === 1 ? "business" : "businesses"}
+            {businesses.length} available{" "}
+            {businesses.length === 1 ? "business" : "businesses"}
           </div>
         </div>
 
         {businesses.length ? (
-          <div className={compact ? "relative h-48 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm sm:h-56" : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"}>
+          <div
+            className={
+              compact
+                ? "relative h-48 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm sm:h-56"
+                : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"
+            }
+          >
             <div
               ref={mapElementRef}
               aria-label="Interactive map of matching pet-service businesses"
-              className={compact ? "h-full w-full" : "h-[360px] w-full sm:h-[440px]"}
+              className={
+                compact ? "h-full w-full" : "h-[360px] w-full sm:h-[440px]"
+              }
             />
             {!compact && (
               <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] text-[#69736d] shadow-sm">
