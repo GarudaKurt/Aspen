@@ -28,7 +28,26 @@ export function formatBusinessAddress(
     location.barangay,
     location.cityMunicipality,
     location.province,
-    "Philippines",
+  ].filter(Boolean);
+  return parts.length ? parts.join(", ") : fallback;
+}
+
+export function getBusinessLocationSummary(
+  location: Partial<BusinessLocationDetails> | undefined,
+  fallback: string,
+) {
+  if (!location) return fallback;
+  const city = location.cityMunicipality?.trim();
+  const street = location.streetAddress?.trim();
+  const landmark = location.landmark?.trim();
+  const parts = [
+    street,
+    landmark
+      ? landmark.toLowerCase().startsWith("near ")
+        ? landmark
+        : `Near ${landmark}`
+      : "",
+    city,
   ].filter(Boolean);
   return parts.length ? parts.join(", ") : fallback;
 }
