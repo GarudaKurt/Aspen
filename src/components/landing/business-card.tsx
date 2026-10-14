@@ -163,7 +163,7 @@ export function BusinessCard({
   const currentImage = cardImages[activeImage];
 
   return (
-    <Card className="group min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
+    <Card className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
       <div
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -254,15 +254,15 @@ export function BusinessCard({
           </div>
         )}
       </div>
-      <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
-        <p className="flex min-w-0 items-center gap-1 text-[10px] text-[#8d918f]" title={getBusinessCardLocationSummary(locationDetails, location)}><MapPin size={12} className="shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="truncate">{getBusinessCardLocationSummary(locationDetails, location)}</span></p>
+      <div className="flex min-w-0 flex-1 flex-col space-y-1 p-2 sm:space-y-1.5 sm:p-2">
+        <p className="flex min-w-0 min-h-[2rem] items-start gap-1 text-[10px] leading-4 text-[#8d918f]" title={getBusinessCardLocationSummary(locationDetails, location)}><MapPin size={12} className="mt-0.5 shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="line-clamp-2 min-w-0 break-words">{getBusinessCardLocationSummary(locationDetails, location)}</span></p>
         <Link
           href={slug ? `/business-profile/${slug}` : href}
           aria-label={`View ${businessName} profile`}
           title="View business profile"
-          className="group/name inline-flex max-w-full cursor-pointer rounded-sm text-base font-medium text-[#242524] outline-none transition-colors active:bg-[#eaf0ed] active:text-[#3c6355] active:underline hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+          className="group/name inline-flex min-h-[3rem] w-full min-w-0 cursor-pointer items-start rounded-sm text-base font-medium leading-6 text-[#242524] outline-none transition-colors active:bg-[#eaf0ed] active:text-[#3c6355] active:underline hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
         >
-          <h3 className="truncate underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
+          <h3 className="line-clamp-2 min-w-0 break-words underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
             {businessName}
           </h3>
         </Link>
