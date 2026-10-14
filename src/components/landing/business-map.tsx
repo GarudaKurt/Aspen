@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { BusinessCardProps } from "./business-card";
+import { cityCoordinates } from "./philippine-locations";
 
 type MapLibreBounds = ReturnType<MapLibreMap["getBounds"]>;
 
@@ -38,6 +39,7 @@ type BusinessMapProps = {
   businesses: BusinessCardProps[];
   selectedCity: string;
   compact?: boolean;
+  mapHeight?: "default" | "profile" | "expanded";
 };
 
 type PositionedBusiness = {
@@ -48,16 +50,6 @@ type PositionedBusiness = {
 type MarkerGroup = {
   coordinates: [number, number];
   businesses: BusinessCardProps[];
-};
-
-const cityCoordinates: Record<string, [number, number]> = {
-  "cebu city": [123.8854, 10.3157],
-  "mandaue city": [123.9223, 10.3236],
-  "lapu-lapu city": [123.9494, 10.3103],
-  "talisay city": [123.8494, 10.2447],
-  "naga city": [123.758, 10.2089],
-  "carcar city": [123.6402, 10.1061],
-  "danao city": [124.027, 10.5207],
 };
 
 const markerGlyphs: Record<string, string> = {
@@ -198,6 +190,7 @@ export function BusinessMap({
   businesses,
   selectedCity,
   compact = false,
+  mapHeight = "default",
 }: BusinessMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -424,7 +417,7 @@ export function BusinessMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [businesses, compact, selectedCity]);
+  }, [businesses, compact, mapHeight, selectedCity]);
 
   return (
     <section
@@ -461,10 +454,7 @@ export function BusinessMap({
           }
         >
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5714e]">
-              Explore by location
-            </p>
-            <h2 className="mt-2 text-3xl font-bold tracking-[-0.03em] text-[#3c6355] sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-[-0.03em] text-[#3c6355] sm:text-4xl">
               Explore Pet Services Near You
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[#69736d] sm:text-base">
@@ -483,7 +473,13 @@ export function BusinessMap({
           <div
             className={
               compact
-                ? "relative h-48 overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm sm:h-56"
+                ? `relative overflow-hidden rounded-xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm ${
+                    mapHeight === "expanded"
+                      ? "h-80 sm:h-[26rem] lg:h-[32rem]"
+                      : mapHeight === "profile"
+                        ? "h-64 sm:h-72 lg:h-80"
+                        : "h-48 sm:h-56"
+                  }`
                 : "relative overflow-hidden rounded-2xl border border-[#dfe8e2] bg-[#eaf0ed] shadow-sm"
             }
           >

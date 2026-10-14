@@ -226,7 +226,7 @@ export function ListingPage() {
             </p>
             <p className="mt-3 text-sm leading-6 text-[#69736d]">
               Please check your registered email regularly for updates regarding
-              your application's approval status.
+              your application&apos;s approval status.
             </p>
             <Button
               type="button"

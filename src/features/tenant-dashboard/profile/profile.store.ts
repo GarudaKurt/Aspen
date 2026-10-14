@@ -32,4 +32,6 @@ export const initialTenantProfile: TenantProfile = {
     { id: "pet-friendly-area", label: "Pet-Friendly Area" },
   ],
   verified: true,
+  // Demo fallback until the authenticated Supabase provider profile supplies created_at.
+  createdAt: "2024-01-15T00:00:00.000Z",
 };
