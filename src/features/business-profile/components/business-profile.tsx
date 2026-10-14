@@ -17,7 +17,7 @@ import {
   Star,
 } from "lucide-react";
 import type { BusinessLocationDetails } from "../location";
-import { formatBusinessAddress, getBusinessLocationSummary } from "../location";
+import { getBusinessCardLocationSummary } from "../location";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -367,7 +367,7 @@ export function BusinessProfile({
                 <span>·</span>
                 <span>{provider.category}</span>
                 <span>·</span>
-                <span>{getBusinessLocationSummary(provider.locationDetails, provider.address)}</span>
+                <span>{getBusinessCardLocationSummary(provider.locationDetails, provider.address)}</span>
               </p>
             </div>
 
