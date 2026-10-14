@@ -52,3 +52,15 @@ export function getBusinessLocationSummary(
   return parts.length ? parts.join(", ") : fallback;
 }
 
+export function getBusinessCardLocationSummary(
+  location: Partial<BusinessLocationDetails> | undefined,
+  fallback: string,
+) {
+  if (!location) return fallback;
+  const parts = [
+    location.streetAddress?.trim(),
+    location.cityMunicipality?.trim(),
+  ].filter(Boolean);
+  return parts.length ? parts.join(", ") : fallback;
+}
+
