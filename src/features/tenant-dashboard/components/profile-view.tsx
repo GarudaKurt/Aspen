@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
 import { Check, Maximize2, Minimize2, Pencil, Upload, X, MapPin } from "lucide-react";
-import { BusinessMap } from "@/components/landing/business-map";
+import { BusinessLocationPicker } from "@/features/business-profile/components/business-location-picker";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
 import {
   amenityOptions,
@@ -496,8 +496,7 @@ export function ProfileView() {
               </div>
               <div className="rounded-xl border border-[#dfe8e2] bg-[#f7faf8] p-3">
                 <div className="flex items-start gap-2 text-sm text-[#587267]"><MapPin className="mt-0.5 size-4 shrink-0 text-[#3c6355]" /><span>Click the map to place your exact business pin. This frontend preview keeps the selected coordinates for the public profile.</span></div>
-                <div className="mt-3"><BusinessMap businesses={[mapBusiness]} selectedCity="All Cities" compact mapHeight="profile" onMapClick={(coordinates) => updateLocation({ coordinates })} /></div>
-                <p className="mt-2 text-xs text-[#69736d]">Selected coordinates: {draft.locationDetails.coordinates ? `${draft.locationDetails.coordinates[1].toFixed(5)}, ${draft.locationDetails.coordinates[0].toFixed(5)}` : "not set"}</p>
+                <div className="mt-3"><BusinessLocationPicker location={draft.locationDetails} onChange={updateLocation} /></div>
               </div>
               <div>
                 <label

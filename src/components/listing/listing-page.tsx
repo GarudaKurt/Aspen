@@ -30,6 +30,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { barangaysByCity } from "@/features/business-profile/philippine-barangays";
+import { BusinessLocationPicker } from "@/features/business-profile/components/business-location-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -161,6 +162,7 @@ export function ListingPage() {
                 locationDetails={locationDetails}
                 onBusinessFieldChange={setBusinessField}
                 onLocationFieldChange={setLocationField}
+                onCoordinatesChange={(coordinates) => setLocationField("coordinates", coordinates)}
               />
             )}
             {activeIndex === 1 && (
@@ -318,6 +320,7 @@ function BusinessStep({
   locationDetails,
   onBusinessFieldChange,
   onLocationFieldChange,
+  onCoordinatesChange,
 }: {
   providerType: string;
   onProviderTypeChange: (value: string) => void;
@@ -326,6 +329,7 @@ function BusinessStep({
   locationDetails: import("@/features/business-profile/location").BusinessLocationDetails;
   onBusinessFieldChange: (field: "businessName" | "businessDescription", value: string) => void;
   onLocationFieldChange: <K extends keyof import("@/features/business-profile/location").BusinessLocationDetails>(field: K, value: import("@/features/business-profile/location").BusinessLocationDetails[K]) => void;
+  onCoordinatesChange: (coordinates: [number, number]) => void;
 }) {
   return (
     <FormSection
@@ -368,6 +372,7 @@ function BusinessStep({
       </div>
       <FieldLabel label="Nearby landmark" hint="Optional"><Input value={locationDetails.landmark} onChange={(event) => onLocationFieldChange("landmark", event.target.value)} placeholder="Near Cebu IT Park" /></FieldLabel>
       <FieldLabel label="Additional address details" hint="Optional"><Input value={locationDetails.additionalDetails} onChange={(event) => onLocationFieldChange("additionalDetails", event.target.value)} placeholder="Unit, floor, gate, or entrance details" /></FieldLabel>
+      <BusinessLocationPicker location={locationDetails} onChange={(update) => { if (update.coordinates) onCoordinatesChange(update.coordinates); }} />
     </FormSection>
   );
 }

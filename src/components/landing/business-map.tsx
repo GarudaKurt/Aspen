@@ -41,6 +41,7 @@ type BusinessMapProps = {
   compact?: boolean;
   mapHeight?: "default" | "profile" | "expanded";
   onMapClick?: (coordinates: [number, number]) => void;
+  onCoordinatesChange?: (coordinates: [number, number]) => void;
 };
 
 type PositionedBusiness = {
@@ -194,6 +195,7 @@ export function BusinessMap({
   compact = false,
   mapHeight = "default",
   onMapClick,
+  onCoordinatesChange,
 }: BusinessMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -316,9 +318,19 @@ export function BusinessMap({
               group.businesses.length,
               compact,
             );
-            const marker = new Marker({ element: markerElement })
+            const marker = new Marker({
+              element: markerElement,
+              draggable: Boolean(onCoordinatesChange && group.businesses.length === 1),
+            })
               .setLngLat(group.coordinates)
               .addTo(map);
+
+            if (onCoordinatesChange && group.businesses.length === 1) {
+              marker.on("dragend", () => {
+                const position = marker.getLngLat();
+                onCoordinatesChange([position.lng, position.lat]);
+              });
+            }
 
             const popup = new Popup({
               maxWidth: "280px",
@@ -400,16 +412,15 @@ export function BusinessMap({
         // when the map goes idle for the first time.
         map.once("idle", collapseAttribution);
         map.on("moveend", renderVisibleMarkers);
-        if (onMapClick) {
-          map.on("click", (event) => {
-            onMapClick([event.lngLat.lng, event.lngLat.lat]);
-          });
-        }
+        const handleMapClick = (event: { lngLat: { lng: number; lat: number } }) => {
+          onMapClick?.([event.lngLat.lng, event.lngLat.lat]);
+        };
+        if (onMapClick) map.on("click", handleMapClick);
 
         return () => {
           map.off("error", handleMapError);
           map.off("moveend", renderVisibleMarkers);
-          if (onMapClick) map.off("click", () => undefined);
+          if (onMapClick) map.off("click", handleMapClick);
           activeMarkers.forEach((marker) => marker.remove());
           activePopups.forEach((popup) => popup.remove());
           map.remove();
@@ -426,7 +437,7 @@ export function BusinessMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [businesses, compact, mapHeight, onMapClick, selectedCity]);
+  }, [businesses, compact, mapHeight, onCoordinatesChange, onMapClick, selectedCity]);
 
   return (
     <section
