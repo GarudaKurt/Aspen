@@ -13,12 +13,13 @@ export function AspenLogo({
 }: AspenLogoProps) {
   return (
     <Image
-      src="/img/logo/logo.png"
+      src="/img/logo/logo.png?v=transparent"
       alt={decorative ? "" : "Aspen"}
       width={size}
       height={size}
       aria-hidden={decorative ? true : undefined}
-      className={className}
+      unoptimized
+      className={`bg-transparent object-contain ${className ?? ""}`}
     />
   );
 }

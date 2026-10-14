@@ -16,6 +16,10 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  distanceSquared,
+  philippineLocations,
+} from "./philippine-locations";
 
 type DiscoverySearchProps = {
   query: string;
@@ -26,17 +30,6 @@ type DiscoverySearchProps = {
   serviceCategory: string;
   onServiceCategoryChange: (category: string) => void;
 };
-
-const cities = [
-  "All Cities",
-  "Cebu City",
-  "Mandaue City",
-  "Lapu-Lapu City",
-  "Talisay City",
-  "Naga City",
-  "Carcar City",
-  "Danao City",
-];
 
 const serviceCategories = [
   { label: "All Services", icon: ListFilter },
@@ -56,7 +49,40 @@ function CityCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(city);
+  const [prioritizedCities, setPrioritizedCities] = useState(() => [
+    "All Cities",
+    ...philippineLocations.map(({ name }) => name),
+  ]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    let cancelled = false;
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (cancelled) return;
+        const currentLocation: [number, number] = [
+          coords.longitude,
+          coords.latitude,
+        ];
+        const nearbyFirst = [...philippineLocations].sort((first, second) =>
+          distanceSquared(first.coordinates, currentLocation) -
+          distanceSquared(second.coordinates, currentLocation),
+        );
+        setPrioritizedCities([
+          "All Cities",
+          ...nearbyFirst.map(({ name }) => name),
+        ]);
+      },
+      () => undefined,
+      { enableHighAccuracy: false, maximumAge: 15 * 60 * 1000, timeout: 5000 },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -74,11 +100,11 @@ function CityCombobox({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
-  const filteredCities = cities.filter((option) =>
+  const filteredCities = prioritizedCities.filter((option) =>
     option.toLowerCase().includes(search.trim().toLowerCase()),
   );
   const customCity = search.trim();
-  const hasExactCity = cities.some(
+  const hasExactCity = prioritizedCities.some(
     (option) => option.toLowerCase() === customCity.toLowerCase(),
   );
 
@@ -153,7 +179,7 @@ function CityCombobox({
                   size={16}
                   className={isSelected ? "text-[#3c6355]" : "text-transparent"}
                 />
-                {option}
+                <span>{option}</span>
               </button>
             );
           })}

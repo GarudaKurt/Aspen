@@ -73,8 +73,8 @@ export function LandingPage() {
         selectedFilters={selectedFilters}
         onSelectedFiltersChange={updateServiceFilters}
       />
-      <OwnerCta />
       <BusinessMap businesses={mapBusinesses} selectedCity={city} />
+      <OwnerCta />
       <SiteFooter />
       <section id="how-it-works" className="sr-only" aria-label="How it works">
         <span>Discover trusted pet services near you.</span>

@@ -10,10 +10,14 @@ import {
   Check,
   Heart,
   ImagePlus,
+  Maximize2,
   MessageCircle,
+  Minimize2,
   Share2,
   Star,
 } from "lucide-react";
+import type { BusinessLocationDetails } from "../location";
+import { getBusinessCardLocationSummary } from "../location";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +53,7 @@ export type TenantProfileData = {
   favorites?: number;
   category: string;
   address: string;
+  locationDetails?: BusinessLocationDetails;
   description?: string;
   serviceCoverage?: string[];
   servicesOffered?: Array<{
@@ -63,6 +68,8 @@ export type TenantProfileData = {
   slug?: string;
   amenities?: BusinessAmenity[];
   verified?: boolean;
+  /** Populated from the provider account's Supabase created_at field in production. */
+  createdAt?: string;
 };
 
 type TenantProfileProps = {
@@ -78,6 +85,7 @@ const defaultProvider: TenantProfileData = {
   category: "Vet Clinic",
   address: "Kalayaan Ave, Quezon City",
   verified: true,
+  createdAt: "2024-01-15T00:00:00.000Z",
 };
 
 const tabs = ["Overview", "Photos", "Services", "Reviews"];
@@ -255,6 +263,7 @@ export function BusinessProfile({
   preview = false,
 }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
+  const [mapExpanded, setMapExpanded] = useState(false);
   const isFavorite = useFavoritesStore((state) => state.isFavorite(provider.slug));
   const toggleFavoriteState = useFavoritesStore((state) => state.toggleFavorite);
   const toggleFavorite = () => {
@@ -274,6 +283,8 @@ export function BusinessProfile({
     () => ({
       businessName: provider.name,
       location: provider.address,
+      coordinates: provider.locationDetails?.coordinates ?? undefined,
+      locationDetails: provider.locationDetails,
       rating: provider.rating,
       services: provider.category,
       priceStarts: provider.servicesOffered?.[0]?.price ?? "Contact for pricing",
@@ -282,6 +293,7 @@ export function BusinessProfile({
     }),
     [
       provider.address,
+      provider.locationDetails,
       provider.category,
       provider.coverPhoto,
       provider.name,
@@ -356,7 +368,7 @@ export function BusinessProfile({
                 <span>·</span>
                 <span>{provider.category}</span>
                 <span>·</span>
-                <span>{provider.address}</span>
+                <span>{getBusinessCardLocationSummary(provider.locationDetails, provider.address)}</span>
               </p>
             </div>
 
@@ -398,7 +410,14 @@ export function BusinessProfile({
           <Stat label="Status" value={businessStatus.label} />
           <Stat label="Price tier" value="Start at 1500 - Premium" />
           <Stat label="Response time" value="Usually within 1 hr" />
-          <Stat label="Since" value="Member since 2024" />
+          <Stat
+            label="Since"
+            value={
+              provider.createdAt
+                ? `Member since ${new Date(provider.createdAt).getFullYear()}`
+                : "Membership date unavailable"
+            }
+          />
         </Card>
 
         <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 border-b border-[#d8d8d5] px-2 sm:gap-x-10">
@@ -472,11 +491,36 @@ export function BusinessProfile({
                 </ProfileSection>
 
                 <ProfileSection title="Location">
-                  <div className="max-w-[520px]">
+                  <div className="max-w-[720px]">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="text-sm text-[#69736d]">
+                        Explore the area around {provider.name}.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setMapExpanded((expanded) => !expanded)}
+                        className="shrink-0 border-[#d8dfdc] text-[#3c6355] hover:bg-[#eef3f0]"
+                        aria-pressed={mapExpanded}
+                      >
+                        {mapExpanded ? (
+                          <Minimize2 className="size-4" />
+                        ) : (
+                          <Maximize2 className="size-4" />
+                        )}
+                        <span className="hidden sm:inline">
+                          {mapExpanded ? "Minimize map" : "Maximize map"}
+                        </span>
+                        <span className="sr-only sm:hidden">
+                          {mapExpanded ? "Minimize map" : "Maximize map"}
+                        </span>
+                      </Button>
+                    </div>
                     <BusinessMap
                       businesses={[mapBusiness]}
                       selectedCity="All Cities"
                       compact
+                      mapHeight={mapExpanded ? "expanded" : "profile"}
                     />
                   </div>
                 </ProfileSection>

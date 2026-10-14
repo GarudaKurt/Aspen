@@ -29,6 +29,8 @@ import {
   DialogClose,
   DialogContent,
 } from "@/components/ui/dialog";
+import { barangaysByCity } from "@/features/business-profile/philippine-barangays";
+import { BusinessLocationPicker } from "@/features/business-profile/components/business-location-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -69,6 +71,11 @@ export function ListingPage() {
   const router = useRouter();
   const providerType = useListingStore((state) => state.providerType);
   const setProviderType = useListingStore((state) => state.setProviderType);
+  const businessName = useListingStore((state) => state.businessName);
+  const businessDescription = useListingStore((state) => state.businessDescription);
+  const locationDetails = useListingStore((state) => state.locationDetails);
+  const setBusinessField = useListingStore((state) => state.setBusinessField);
+  const setLocationField = useListingStore((state) => state.setLocationField);
   const selectedServices = useListingStore((state) => state.selectedServices);
   const toggleService = useListingStore((state) => state.toggleService);
   const uploadedFiles = useListingStore((state) => state.uploadedFiles);
@@ -150,6 +157,12 @@ export function ListingPage() {
               <BusinessStep
                 providerType={providerType}
                 onProviderTypeChange={setProviderType}
+                businessName={businessName}
+                businessDescription={businessDescription}
+                locationDetails={locationDetails}
+                onBusinessFieldChange={setBusinessField}
+                onLocationFieldChange={setLocationField}
+                onCoordinatesChange={(coordinates) => setLocationField("coordinates", coordinates)}
               />
             )}
             {activeIndex === 1 && (
@@ -226,7 +239,7 @@ export function ListingPage() {
             </p>
             <p className="mt-3 text-sm leading-6 text-[#69736d]">
               Please check your registered email regularly for updates regarding
-              your application's approval status.
+              your application&apos;s approval status.
             </p>
             <Button
               type="button"
@@ -302,9 +315,21 @@ function ListingStepper({ activeIndex }: { activeIndex: number }) {
 function BusinessStep({
   providerType,
   onProviderTypeChange,
+  businessName,
+  businessDescription,
+  locationDetails,
+  onBusinessFieldChange,
+  onLocationFieldChange,
+  onCoordinatesChange,
 }: {
   providerType: string;
   onProviderTypeChange: (value: string) => void;
+  businessName: string;
+  businessDescription: string;
+  locationDetails: import("@/features/business-profile/location").BusinessLocationDetails;
+  onBusinessFieldChange: (field: "businessName" | "businessDescription", value: string) => void;
+  onLocationFieldChange: <K extends keyof import("@/features/business-profile/location").BusinessLocationDetails>(field: K, value: import("@/features/business-profile/location").BusinessLocationDetails[K]) => void;
+  onCoordinatesChange: (coordinates: [number, number]) => void;
 }) {
   return (
     <FormSection
@@ -331,17 +356,23 @@ function BusinessStep({
         </div>
       </FieldLabel>
       <FieldLabel label="Business or display name">
-        <Input placeholder="e.g. Kalinga Animal Hospital" />
+        <Input value={businessName} onChange={(event) => onBusinessFieldChange("businessName", event.target.value)} placeholder="e.g. Kalinga Animal Hospital" />
       </FieldLabel>
       <FieldLabel
         label="Business description"
         hint="Describe your experience and what makes your service distinctive."
       >
-        <textarea className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
+        <textarea value={businessDescription} onChange={(event) => onBusinessFieldChange("businessDescription", event.target.value)} className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
       </FieldLabel>
-      <FieldLabel label="Business address">
-        <textarea className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
-      </FieldLabel>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FieldLabel label="Province"><Input value={locationDetails.province} onChange={(event) => onLocationFieldChange("province", event.target.value)} placeholder="Cebu" /></FieldLabel>
+        <FieldLabel label="City / Municipality"><Input value={locationDetails.cityMunicipality} onChange={(event) => onLocationFieldChange("cityMunicipality", event.target.value)} placeholder="Cebu City" /></FieldLabel>
+        <FieldLabel label="Barangay"><Input list="listing-barangay-options" value={locationDetails.barangay} onChange={(event) => onLocationFieldChange("barangay", event.target.value)} placeholder="Choose or enter barangay" /><datalist id="listing-barangay-options">{(barangaysByCity[locationDetails.cityMunicipality] ?? []).map((barangay) => <option key={barangay} value={barangay} />)}</datalist></FieldLabel>
+        <FieldLabel label="Street name and building number"><Input value={locationDetails.streetAddress} onChange={(event) => onLocationFieldChange("streetAddress", event.target.value)} placeholder="48 Carlock Street" /></FieldLabel>
+      </div>
+      <FieldLabel label="Nearby landmark" hint="Optional"><Input value={locationDetails.landmark} onChange={(event) => onLocationFieldChange("landmark", event.target.value)} placeholder="Near Cebu IT Park" /></FieldLabel>
+      <FieldLabel label="Additional address details" hint="Optional"><Input value={locationDetails.additionalDetails} onChange={(event) => onLocationFieldChange("additionalDetails", event.target.value)} placeholder="Unit, floor, gate, or entrance details" /></FieldLabel>
+      <BusinessLocationPicker location={locationDetails} onChange={(update) => { if (update.coordinates) onCoordinatesChange(update.coordinates); }} />
     </FormSection>
   );
 }

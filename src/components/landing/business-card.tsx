@@ -11,6 +11,8 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent, ReactNode } from "react";
 import type { BusinessService } from "@/domain/business";
+import type { BusinessLocationDetails } from "@/features/business-profile/location";
+import { getBusinessCardLocationSummary } from "@/features/business-profile/location";
 import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 
 export type BusinessCardImage = {
@@ -21,6 +23,8 @@ export type BusinessCardImage = {
 
 export interface BusinessCardProps {
   location: string;
+  coordinates?: [number, number];
+  locationDetails?: BusinessLocationDetails;
   businessName: string;
   rating: string;
   services: string;
@@ -57,6 +61,7 @@ export function BusinessCardSkeleton() {
 
 export function BusinessCard({
   location,
+  locationDetails,
   businessName,
   rating,
   services,
@@ -246,7 +251,7 @@ export function BusinessCard({
         )}
       </div>
       <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
-        <p className="flex min-w-0 items-center gap-1 text-[10px] text-[#8d918f]"><MapPin size={12} className="shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="truncate">{location}</span></p>
+        <p className="flex min-w-0 items-center gap-1 text-[10px] text-[#8d918f]" title={getBusinessCardLocationSummary(locationDetails, location)}><MapPin size={12} className="shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="truncate">{getBusinessCardLocationSummary(locationDetails, location)}</span></p>
         <Link
           href={slug ? `/business-profile/${slug}` : href}
           aria-label={`View ${businessName} profile`}

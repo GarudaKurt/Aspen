@@ -3,6 +3,7 @@ import type { BusinessCardProps } from "./business-card";
 export const mockBusinesses: BusinessCardProps[] = [
   {
     location: "Lapu-Lapu City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Lapu-Lapu City", barangay: "Mactan", streetAddress: "Mactan Road", landmark: "Near Mactan Newtown", additionalDetails: "", coordinates: [123.979, 10.307] },
     businessName: "Kalinga Animal Hospital",
     slug: "kalinga-animal-hospital",
     rating: "4.8 (23)",
@@ -49,6 +50,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Cebu City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Cebu City", barangay: "Lahug", streetAddress: "48 Carlock Street", landmark: "Near Cebu IT Park", additionalDetails: "", coordinates: [123.9024, 10.3307] },
     businessName: "Cebu Pet Wellness Center",
     slug: "cebu-pet-wellness-center",
     rating: "4.7 (18)",
@@ -85,6 +87,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Mandaue City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Mandaue City", barangay: "Banilad", streetAddress: "A. S. Fortuna Street", landmark: "Near Banilad Town Centre", additionalDetails: "", coordinates: [123.934, 10.345] },
     businessName: "Paws & Claws Grooming",
     slug: "paws-and-claws-grooming",
     rating: "4.9 (31)",
@@ -121,6 +124,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Talisay City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Talisay City", barangay: "Tabunok", streetAddress: "South Road Properties", landmark: "Near Talisay City Hall", additionalDetails: "", coordinates: [123.833, 10.267] },
     businessName: "Happy Tails Boarding",
     slug: "happy-tails-boarding",
     rating: "4.6 (14)",
@@ -157,6 +161,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Naga City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Naga City", barangay: "Central Poblacion", streetAddress: "Naga-Uling Road", landmark: "Near Naga City Public Market", additionalDetails: "", coordinates: [123.756, 10.208] },
     businessName: "Pet Pantry Cebu",
     slug: "pet-pantry-cebu",
     rating: "4.8 (27)",
@@ -172,6 +177,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Danao City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Danao City", barangay: "Suba", streetAddress: "Central National Highway", landmark: "Near Danao City Sports Complex", additionalDetails: "", coordinates: [124.034, 10.522] },
     businessName: "Woof Academy",
     slug: "woof-academy",
     rating: "4.7 (20)",
@@ -208,6 +214,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Carcar City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Carcar City", barangay: "Valencia", streetAddress: "Natalio Bacalso Avenue", landmark: "Near Carcar Rotunda", additionalDetails: "", coordinates: [123.645, 10.115] },
     businessName: "Cebu Animal Care",
     slug: "cebu-animal-care",
     rating: "4.5 (12)",
@@ -244,6 +251,7 @@ export const mockBusinesses: BusinessCardProps[] = [
   },
   {
     location: "Cebu City, Philippines",
+    locationDetails: { province: "Cebu", cityMunicipality: "Cebu City", barangay: "Mabolo", streetAddress: "General Maxilom Avenue", landmark: "Near Ayala Center Cebu", additionalDetails: "", coordinates: [123.906, 10.326] },
     businessName: "Little Paws Pet Shop",
     slug: "little-paws-pet-shop",
     rating: "4.9 (36)",

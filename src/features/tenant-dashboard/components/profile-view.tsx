@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useState, type ChangeEvent } from "react";
-import { Check, Maximize2, Minimize2, Pencil, Upload, X } from "lucide-react";
+import { Check, Maximize2, Minimize2, Pencil, Upload, X, MapPin } from "lucide-react";
+import { BusinessLocationPicker } from "@/features/business-profile/components/business-location-picker";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
 import {
   amenityOptions,
@@ -35,6 +36,11 @@ import {
   initialTenantProfile,
   type TenantProfile,
 } from "../profile/profile.store";
+import { barangaysByCity } from "@/features/business-profile/philippine-barangays";
+import {
+  formatBusinessAddress,
+  type BusinessLocationDetails,
+} from "@/features/business-profile/location";
 
 type EditableProfile = TenantProfile;
 
@@ -85,7 +91,12 @@ export function ProfileView() {
   const saveInfo = () => {
     const nextErrors: Record<string, string> = {};
     if (!draft.name.trim()) nextErrors.name = "Business name is required.";
-    if (!draft.address.trim()) nextErrors.address = "Address is required.";
+    if (!draft.locationDetails.streetAddress.trim()) {
+      nextErrors.streetAddress = "Street and building number are required.";
+    }
+    if (!draft.locationDetails.cityMunicipality.trim()) {
+      nextErrors.cityMunicipality = "City or municipality is required.";
+    }
     if (!draft.description.trim()) {
       nextErrors.description = "Description is required.";
     }
@@ -98,7 +109,16 @@ export function ProfileView() {
     updateTenantProfile({
       ...draft,
       name: draft.name.trim(),
-      address: draft.address.trim(),
+      address: formatBusinessAddress(draft.locationDetails, draft.address.trim()),
+      locationDetails: {
+        ...draft.locationDetails,
+        province: draft.locationDetails.province.trim(),
+        cityMunicipality: draft.locationDetails.cityMunicipality.trim(),
+        barangay: draft.locationDetails.barangay.trim(),
+        streetAddress: draft.locationDetails.streetAddress.trim(),
+        landmark: draft.locationDetails.landmark.trim(),
+        additionalDetails: draft.locationDetails.additionalDetails.trim(),
+      },
       description: draft.description.trim(),
     });
     setErrors({});
@@ -358,6 +378,33 @@ export function ProfileView() {
     );
   };
 
+  const updateLocation = (update: Partial<BusinessLocationDetails>) => {
+    const addressWasChanged = Object.keys(update).some((field) =>
+      ["province", "cityMunicipality", "barangay", "streetAddress", "landmark", "additionalDetails"].includes(field),
+    );
+    setDraft((current) => ({
+      ...current,
+      locationDetails: {
+        ...current.locationDetails,
+        ...update,
+        ...(addressWasChanged && !Object.prototype.hasOwnProperty.call(update, "coordinates")
+          ? { coordinates: null }
+          : {}),
+      },
+    }));
+  };
+
+  const mapBusiness = {
+    businessName: draft.name,
+    location: formatBusinessAddress(draft.locationDetails, draft.address),
+    coordinates: draft.locationDetails.coordinates ?? undefined,
+    rating: draft.rating,
+    services: draft.category,
+    priceStarts: "Contact for pricing",
+    slug: "tenant-preview",
+    images: draft.coverPhoto ? [{ src: draft.coverPhoto }] : [],
+  };
+
   return (
     <>
       <MobileDashboardNav />
@@ -425,27 +472,40 @@ export function ProfileView() {
                   <p className="mt-1 text-xs text-red-600">{errors.name}</p>
                 )}
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="business-province" className="text-sm text-slate-500">Province</label>
+                  <Input id="business-province" value={draft.locationDetails.province} onChange={(event) => updateLocation({ province: event.target.value })} placeholder="Cebu" />
+                </div>
+                <div>
+                  <label htmlFor="business-city" className="text-sm text-slate-500">City / Municipality</label>
+                  <Input id="business-city" value={draft.locationDetails.cityMunicipality} onChange={(event) => updateLocation({ cityMunicipality: event.target.value })} placeholder="Cebu City" aria-invalid={Boolean(errors.cityMunicipality)} />
+                  {errors.cityMunicipality && <p className="mt-1 text-xs text-red-600">{errors.cityMunicipality}</p>}
+                </div>
+                <div>
+                  <label htmlFor="business-barangay" className="text-sm text-slate-500">Barangay</label>
+                  <Input id="business-barangay" list="business-barangay-options" value={draft.locationDetails.barangay} onChange={(event) => updateLocation({ barangay: event.target.value })} placeholder="Choose or enter barangay" />
+                  <datalist id="business-barangay-options">
+                    {(barangaysByCity[draft.locationDetails.cityMunicipality] ?? []).map((barangay) => <option key={barangay} value={barangay} />)}
+                  </datalist>
+                </div>
+                <div>
+                  <label htmlFor="business-street" className="text-sm text-slate-500">Street name and building number</label>
+                  <Input id="business-street" value={draft.locationDetails.streetAddress} onChange={(event) => updateLocation({ streetAddress: event.target.value })} placeholder="48 Carlock Street" aria-invalid={Boolean(errors.streetAddress)} />
+                  {errors.streetAddress && <p className="mt-1 text-xs text-red-600">{errors.streetAddress}</p>}
+                </div>
+              </div>
               <div>
-                <label
-                  htmlFor="business-address"
-                  className="text-sm text-slate-500"
-                >
-                  Address
-                </label>
-                <Input
-                  id="business-address"
-                  value={draft.address}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      address: event.target.value,
-                    }))
-                  }
-                  aria-invalid={Boolean(errors.address)}
-                />
-                {errors.address && (
-                  <p className="mt-1 text-xs text-red-600">{errors.address}</p>
-                )}
+                <label htmlFor="business-landmark" className="text-sm text-slate-500">Nearby landmark <span className="text-slate-400">(optional)</span></label>
+                <Input id="business-landmark" value={draft.locationDetails.landmark} onChange={(event) => updateLocation({ landmark: event.target.value })} placeholder="Near Cebu IT Park" />
+              </div>
+              <div>
+                <label htmlFor="business-address-details" className="text-sm text-slate-500">Additional address details <span className="text-slate-400">(optional)</span></label>
+                <Input id="business-address-details" value={draft.locationDetails.additionalDetails} onChange={(event) => updateLocation({ additionalDetails: event.target.value })} placeholder="Unit, floor, gate, or entrance details" />
+              </div>
+              <div className="rounded-xl border border-[#dfe8e2] bg-[#f7faf8] p-3">
+                <div className="flex items-start gap-2 text-sm text-[#587267]"><MapPin className="mt-0.5 size-4 shrink-0 text-[#3c6355]" /><span>Click the map to place your exact business pin. This frontend preview keeps the selected coordinates for the public profile.</span></div>
+                <div className="mt-3"><BusinessLocationPicker location={draft.locationDetails} onChange={updateLocation} /></div>
               </div>
               <div>
                 <label
@@ -531,7 +591,8 @@ export function ProfileView() {
               </div>
               <div>
                 <dt className="text-sm text-slate-400">Address</dt>
-                <dd className="font-semibold">{profile.address}</dd>
+                <dd className="font-semibold">{formatBusinessAddress(profile.locationDetails, profile.address)}</dd>
+                {profile.locationDetails.landmark && <dd className="mt-1 text-sm text-slate-500">Near {profile.locationDetails.landmark}</dd>}
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-sm text-slate-400">Description</dt>
@@ -558,7 +619,7 @@ export function ProfileView() {
           )}
           <h2 className="mt-4 text-xl font-semibold">{profile.name}</h2>
           <p className="text-slate-500">
-            {profile.address} · {profile.category}
+            {formatBusinessAddress(profile.locationDetails, profile.address)} · {profile.category}
           </p>
           <p className="mt-4 text-[#c5714e]">
             ★ {profile.rating} ({profile.reviews})

@@ -29,6 +29,9 @@ export function DashboardOverview() {
   const [profile] = useState(initialTenantProfile);
   const completion = getProfileCompletion(profile);
   const setupItems = getProfileSetupItems(profile);
+  const membershipYear = profile.createdAt
+    ? new Date(profile.createdAt).getFullYear()
+    : null;
 
   return (
     <>
@@ -62,6 +65,11 @@ export function DashboardOverview() {
         </div>
         <p className="mt-2 text-sm text-slate-600">
           A complete profile gets 3× more booking requests.
+        </p>
+        <p className="mt-4 text-sm font-medium text-[#3c6355]">
+          {membershipYear
+            ? `Serving our community since ${membershipYear}.`
+            : "Membership date will appear once your provider account is connected."}
         </p>
       </section>
       <Card className="mt-6 w-full bg-white p-5 shadow-none">
