@@ -74,10 +74,6 @@ export function BusinessCard({
 }: BusinessCardProps) {
   const cardImages = images;
   const hasImages = cardImages.length > 0;
-  const hasPublishedRating = Boolean(rating && !/not yet rated/i.test(rating));
-  const hasPublishedPrice = Boolean(
-    priceStarts && !/contact provider|not available/i.test(priceStarts),
-  );
   const [activeImage, setActiveImage] = useState(0);
   const [favoriteNotice, setFavoriteNotice] = useState("");
   const isFavorite = useFavoritesStore((state) => state.isFavorite(slug));
@@ -267,25 +263,15 @@ export function BusinessCard({
           </h3>
         </Link>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#9a9c9b]">
-          {hasPublishedRating ? (
-            <>
-              <Star size={13} fill="#ffd000" strokeWidth={0} />
-              <span>{rating}</span>
-            </>
-          ) : (
-            <span>Not yet rated</span>
-          )}
+          <Star size={13} fill="#ffd000" strokeWidth={0} />
+          <span>{rating}</span>
           <span className="text-[#d9d9d7]">•</span>
           <span>{services}</span>
         </div>
-        {hasPublishedPrice ? (
-          <p className="text-sm leading-5 text-[#8d918f]">
-            Starts at{" "}
-            <span className="font-semibold text-[#242524]">{priceStarts}</span>
-          </p>
-        ) : (
-          <p className="text-sm leading-5 text-[#8d918f]">Contact provider for pricing</p>
-        )}
+        <p className="text-sm leading-5 text-[#8d918f]">
+          Starts at{" "}
+          <span className="font-semibold text-[#242524]">{priceStarts}</span>
+        </p>
         {actions && <div className="pt-1">{actions}</div>}
       </div>
     </Card>

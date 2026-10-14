@@ -6,8 +6,6 @@ export type BusinessLocationDetails = {
   landmark: string;
   additionalDetails: string;
   coordinates: [number, number] | null;
-  locationAccuracy?: "business" | "venue" | "street-reference" | "address-only";
-  locationSource?: string;
 };
 
 export const initialBusinessLocation: BusinessLocationDetails = {

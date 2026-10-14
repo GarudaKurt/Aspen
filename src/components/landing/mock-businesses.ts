@@ -1,5 +1,4 @@
 import type { BusinessCardProps } from "./business-card";
-import { cebuSampleBusinesses } from "./cebu-sample-businesses";
 
 export const mockBusinesses: BusinessCardProps[] = [
   {
@@ -267,6 +266,3 @@ export const mockBusinesses: BusinessCardProps[] = [
     ],
   },
 ];
-
-// Public sample records stay separate so they can be replaced by tenant data later.
-mockBusinesses.push(...cebuSampleBusinesses);
