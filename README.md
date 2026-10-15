@@ -775,7 +775,67 @@ Never commit `.env.local`. Server-only variables are validated in `core/config/e
 
 **Cloudflare with Vercel:** use Cloudflare for DNS and your registrar, with the Vercel domain records set to **DNS only** (grey cloud). Vercel advises against putting a reverse proxy in front of it, since it limits Vercel's traffic visibility, adds latency, and can cause cache and certificate issues. Cloudflare remains useful for Turnstile (bot protection on signup and booking forms), email routing, and optionally R2 for file storage later.
 
-**Docker:** in Phase 1 it is only for local Supabase. Vercel builds the Next.js app itself, so no Dockerfile is needed. Dockerfiles arrive with the Phase 2 backend.
+### Docker production image
+
+The repository includes a multi-stage Dockerfile using Next.js standalone output. The final image contains the traced Next.js server, `public`, and `.next/static`, and runs as the unprivileged `nextjs` user.
+
+#### Local Docker test
+
+```bash
+cp .env.docker.example .env.docker
+# Fill in Supabase values when testing authenticated or database-backed flows.
+docker compose --env-file .env.docker up -d --build
+docker compose ps
+curl http://localhost:3000
+docker compose logs -f web
+docker compose --env-file .env.docker down
+```
+
+`NEXT_PUBLIC_*` values are build-time values in Next.js, so rebuild the image after changing them. Server-only values such as `SUPABASE_SERVICE_ROLE_KEY` are passed to the running container and are never copied into the image. Do not commit `.env.docker`.
+
+#### Docker Hub
+
+Create a Docker Hub repository named `aspen`, then authenticate locally with a token (not a password):
+
+```bash
+docker login -u YOUR_DOCKERHUB_USERNAME
+docker build \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://your-domain.example \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_KEY \
+  -t YOUR_DOCKERHUB_USERNAME/aspen:latest \
+  -t YOUR_DOCKERHUB_USERNAME/aspen:v0.1.0 .
+docker push YOUR_DOCKERHUB_USERNAME/aspen:latest
+docker push YOUR_DOCKERHUB_USERNAME/aspen:v0.1.0
+```
+
+The image is not published automatically from a developer machine. The GitHub Actions workflow publishes on pushes to `main` after Docker Hub secrets are configured:
+
+- Repository secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`
+- Repository variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+The workflow publishes `latest` and an immutable commit-SHA tag. Use a Docker Hub access token with the minimum repository permissions required for pushing.
+
+#### DigitalOcean Droplet
+
+On an Ubuntu Droplet with Docker installed, create a protected environment file and run the published image:
+
+```bash
+mkdir -p ~/aspen && cd ~/aspen
+cat > .env <<'EOF'
+SUPABASE_SERVICE_ROLE_KEY=replace-me
+EOF
+docker login -u YOUR_DOCKERHUB_USERNAME
+docker pull YOUR_DOCKERHUB_USERNAME/aspen:v0.1.0
+docker run -d --name aspen --restart unless-stopped \
+  --env-file .env \
+  -p 3000:3000 \
+  YOUR_DOCKERHUB_USERNAME/aspen:v0.1.0
+```
+
+Put Nginx or Caddy in front of the container for the public domain and HTTPS. Keep port `3000` private to the Droplet firewall when a reverse proxy is configured. To update safely, pull the new tag, stop/remove the old container, and start the new one with the same environment file. Docker Compose can also be used on the Droplet when the build arguments and runtime environment are maintained separately.
+
+The current Jenkinsfile remains the existing lint/build pipeline; GitHub Actions is the recommended image-publishing path because it provides native Buildx caching and Docker Hub secret handling. The Jenkins Docker stage can be enabled later if the Jenkins agent is given a Docker daemon.
 
 ---
 
