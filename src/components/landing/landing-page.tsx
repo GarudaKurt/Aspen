@@ -29,16 +29,7 @@ export function LandingPage() {
       ),
     [city, selectedFilters, submittedQuery],
   );
-  const mapBusinesses = useMemo(
-    () =>
-      filterBusinesses(
-        mockBusinesses,
-        submittedQuery,
-        "All Cities",
-        selectedFilters,
-      ),
-    [selectedFilters, submittedQuery],
-  );
+  const mapBusinesses = filteredBusinesses;
 
   const updateServiceFilters = (filters: string[]) => {
     setSelectedFilters(filters);
@@ -73,7 +64,11 @@ export function LandingPage() {
         selectedFilters={selectedFilters}
         onSelectedFiltersChange={updateServiceFilters}
       />
-      <BusinessMap businesses={mapBusinesses} selectedCity={city} />
+      <BusinessMap
+        businesses={mapBusinesses}
+        selectedCity={city}
+        allowCityFallback
+      />
       <OwnerCta />
       <SiteFooter />
       <section id="how-it-works" className="sr-only" aria-label="How it works">

@@ -6,14 +6,27 @@ import { Button } from "@/components/ui/button";
 import { BusinessMap } from "@/components/landing/business-map";
 import { formatBusinessAddress, type BusinessLocationDetails } from "../location";
 
-type BusinessLocationPickerProps = {
+type LocationPickerStatus =
+  | "idle"
+  | "searching"
+  | "found"
+  | "not-found"
+  | "ambiguous"
+  | "error";
+
+type LocationPickerProps = {
   location: BusinessLocationDetails;
   onChange: (update: Partial<BusinessLocationDetails>) => void;
 };
 
-export function BusinessLocationPicker({ location, onChange }: BusinessLocationPickerProps) {
-  const [status, setStatus] = useState<"idle" | "searching" | "found" | "not-found" | "error">("idle");
-  const addressQuery = formatBusinessAddress(location, "");
+export function BusinessLocationPicker({ location, onChange }: LocationPickerProps) {
+  const [status, setStatus] = useState<LocationPickerStatus>("idle");
+  const addressQuery = [
+    formatBusinessAddress(location, ""),
+    location.landmark.trim(),
+  ]
+    .filter(Boolean)
+    .join(", ");
   const mapBusiness = {
     businessName: "Selected business location",
     location: formatBusinessAddress(location, "Business location"),
@@ -33,7 +46,8 @@ export function BusinessLocationPicker({ location, onChange }: BusinessLocationP
       const params = new URLSearchParams({
         q: `${addressQuery}, Philippines`,
         format: "jsonv2",
-        limit: "1",
+          addressdetails: "1",
+          limit: "5",
         countrycodes: "ph",
       });
       const response = await fetch(
@@ -42,15 +56,38 @@ export function BusinessLocationPicker({ location, onChange }: BusinessLocationP
       );
       if (!response.ok) throw new Error("Geocoding request failed");
       const results = (await response.json()) as Array<{
-        lat: string;
-        lon: string;
+        lat?: string;
+        lon?: string;
+        address?: {
+          house_number?: string;
+          road?: string;
+          pedestrian?: string;
+        };
       }>;
-      const result = results[0];
-      if (!result) {
+      const streetLevelResults = results.filter(
+        (result) =>
+          Boolean(
+            result.address?.house_number ||
+              result.address?.road ||
+              result.address?.pedestrian,
+          ) &&
+          Number.isFinite(Number(result.lat)) &&
+          Number.isFinite(Number(result.lon)),
+      );
+
+      if (!streetLevelResults.length) {
         onChange({ coordinates: null });
         setStatus("not-found");
         return;
       }
+
+      if (streetLevelResults.length > 1) {
+        onChange({ coordinates: null });
+        setStatus("ambiguous");
+        return;
+      }
+
+      const result = streetLevelResults[0];
       onChange({ coordinates: [Number(result.lon), Number(result.lat)] });
       setStatus("found");
     } catch {
@@ -75,6 +112,7 @@ export function BusinessLocationPicker({ location, onChange }: BusinessLocationP
           businesses={[mapBusiness]}
           selectedCity="All Cities"
           compact
+          allowCityFallback={false}
           mapHeight="profile"
           onMapClick={(coordinates) => onChange({ coordinates })}
           onCoordinatesChange={(coordinates) => onChange({ coordinates })}
@@ -87,6 +125,7 @@ export function BusinessLocationPicker({ location, onChange }: BusinessLocationP
       </p>
       {status === "found" && <p className="mt-1 text-xs text-[#3c6355]">Address located. Please verify the pin before saving.</p>}
       {status === "not-found" && <p className="mt-1 text-xs text-amber-700">We could not locate this address. Move the pin manually to the correct storefront.</p>}
+      {status === "ambiguous" && <p className="mt-1 text-xs text-amber-700">We found multiple street-level matches. Move the pin manually to the correct storefront.</p>}
       {status === "error" && <p className="mt-1 text-xs text-red-600">The address search is unavailable. You can still place the pin manually.</p>}
     </div>
   );

@@ -33,6 +33,8 @@ export interface BusinessCardProps {
   servicesOffered?: BusinessService[];
   images?: BusinessCardImage[];
   href?: string;
+  sourceUrl?: string;
+  locationAccuracy?: "exact" | "city";
   isLoading?: boolean;
   actions?: ReactNode;
 }
@@ -157,6 +159,10 @@ export function BusinessCard({
   };
 
   const currentImage = cardImages[activeImage];
+  const locationSummary = getBusinessCardLocationSummary(
+    locationDetails,
+    location,
+  );
 
   return (
     <Card className="group min-w-0 overflow-hidden rounded-xl border border-[#e0e0dd] bg-white shadow-[0_2px_5px_rgba(20,20,20,0.15)] transition-shadow hover:shadow-[0_4px_10px_rgba(20,20,20,0.18)]">
@@ -250,28 +256,42 @@ export function BusinessCard({
           </div>
         )}
       </div>
-      <div className="space-y-1 p-2 sm:space-y-1.5 sm:p-2">
-        <p className="flex min-w-0 items-center gap-1 text-[10px] text-[#8d918f]" title={getBusinessCardLocationSummary(locationDetails, location)}><MapPin size={12} className="shrink-0 text-[#3c6355]" aria-hidden="true" /><span className="truncate">{getBusinessCardLocationSummary(locationDetails, location)}</span></p>
+      <div className="min-w-0 space-y-1 p-2 sm:space-y-1.5 sm:p-2">
+        <p
+          className="flex min-w-0 items-start gap-1 pr-10 text-[10px] leading-4 text-[#8d918f]"
+        >
+          <MapPin
+            size={12}
+            className="shrink-0 text-[#3c6355]"
+            aria-hidden="true"
+          />
+          <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
+            {locationSummary}
+          </span>
+        </p>
         <Link
           href={slug ? `/business-profile/${slug}` : href}
           aria-label={`View ${businessName} profile`}
-          title="View business profile"
-          className="group/name inline-flex max-w-full cursor-pointer rounded-sm text-base font-medium text-[#242524] outline-none transition-colors active:bg-[#eaf0ed] active:text-[#3c6355] active:underline hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+          className="group/name block min-w-0 w-full cursor-pointer rounded-sm text-sm font-medium leading-5 text-[#242524] outline-none transition-colors active:bg-[#eaf0ed] active:text-[#3c6355] active:underline hover:text-[#3c6355] focus-visible:text-[#3c6355] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
         >
-          <h3 className="truncate underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
+          <h3 className="break-words [overflow-wrap:anywhere] underline-offset-4 group-hover/name:underline group-focus-visible/name:underline">
             {businessName}
           </h3>
         </Link>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#9a9c9b]">
-          <Star size={13} fill="#ffd000" strokeWidth={0} />
-          <span>{rating}</span>
-          <span className="text-[#d9d9d7]">•</span>
-          <span>{services}</span>
+        <div className="flex min-w-0 items-center gap-x-2 overflow-hidden text-sm text-[#9a9c9b]">
+          {rating && <Star size={13} fill="#ffd000" strokeWidth={0} />}
+          {rating && <span className="shrink-0">{rating}</span>}
+          {rating && <span className="text-[#d9d9d7]">•</span>}
+          <span className="min-w-0 truncate">{services}</span>
         </div>
-        <p className="text-sm leading-5 text-[#8d918f]">
-          Starts at{" "}
-          <span className="font-semibold text-[#242524]">{priceStarts}</span>
-        </p>
+        {priceStarts && (
+          <p className="flex min-w-0 gap-1 text-sm leading-5 text-[#8d918f]">
+            Starts at{" "}
+            <span className="min-w-0 truncate font-semibold text-[#242524]">
+              {priceStarts}
+            </span>
+          </p>
+        )}
         {actions && <div className="pt-1">{actions}</div>}
       </div>
     </Card>

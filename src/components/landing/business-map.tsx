@@ -4,20 +4,22 @@ import {
   type Map as MapLibreMap,
   type Marker as MapLibreMarker,
   type Popup as MapLibrePopup,
-  type StyleSpecification,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPin } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { BusinessCardProps } from "./business-card";
 import { cityCoordinates } from "./philippine-locations";
-import { getBusinessLocationSummary } from "@/features/business-profile/location";
+import {
+  getBusinessLocationSummary,
+  isValidBusinessCoordinates,
+} from "@/features/business-profile/location";
 
 type MapLibreBounds = ReturnType<MapLibreMap["getBounds"]>;
 
 const openFreeMapStyle = "https://tiles.openfreemap.org/styles/liberty";
 
-const fallbackMapStyle: StyleSpecification = {
+const fallbackMapStyle = {
   version: 8,
   sources: {
     openstreetmap: {
@@ -34,13 +36,14 @@ const fallbackMapStyle: StyleSpecification = {
       source: "openstreetmap",
     },
   ],
-};
+} as Parameters<MapLibreMap["setStyle"]>[0];
 
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
   selectedCity: string;
   compact?: boolean;
   mapHeight?: "default" | "profile" | "expanded";
+  allowCityFallback?: boolean;
   onMapClick?: (coordinates: [number, number]) => void;
   onCoordinatesChange?: (coordinates: [number, number]) => void;
 };
@@ -79,9 +82,14 @@ function escapeHtml(value: string) {
   });
 }
 
-function getCoordinates(business: BusinessCardProps) {
-  if (business.coordinates) return business.coordinates;
-  if (business.locationDetails) return business.locationDetails.coordinates;
+function getCoordinates(business: BusinessCardProps, allowCityFallback = true) {
+  if (isValidBusinessCoordinates(business.coordinates)) {
+    return business.coordinates;
+  }
+  if (isValidBusinessCoordinates(business.locationDetails?.coordinates)) {
+    return business.locationDetails.coordinates;
+  }
+  if (!allowCityFallback) return null;
   const location = business.location.toLowerCase();
   const matchingCity = Object.keys(cityCoordinates).find((city) =>
     location.includes(city),
@@ -154,6 +162,7 @@ function getPopupContent(business: BusinessCardProps) {
       <div style="padding:10px;">
         <strong style="display:block;font-size:15px;color:#3c6355;">${escapeHtml(business.businessName)}</strong>
         <span style="display:block;margin-top:4px;font-size:12px;color:#69736d;">${escapeHtml(displayLocation)}</span>
+        ${business.locationAccuracy === "city" ? '<span style="display:block;margin-top:6px;font-size:11px;color:#8a6b25;">Approximate city area; exact storefront pin not verified.</span>' : ""}
         <div style="display:flex;gap:6px;margin-top:8px;font-size:12px;">
           <span style="color:#d39b00;">★ ${escapeHtml(getRating(business.rating))}</span>
           <span style="color:#69736d;">· ${escapeHtml(business.services)}</span>
@@ -200,6 +209,7 @@ export function BusinessMap({
   selectedCity,
   compact = false,
   mapHeight = "default",
+  allowCityFallback = true,
   onMapClick,
   onCoordinatesChange,
 }: BusinessMapProps) {
@@ -275,7 +285,7 @@ export function BusinessMap({
         const positionedBusinesses = businesses
           .map((business) => ({
             business,
-            coordinates: getCoordinates(business),
+            coordinates: getCoordinates(business, allowCityFallback),
           }))
           .filter((item): item is PositionedBusiness =>
             Boolean(item.coordinates),
@@ -374,7 +384,15 @@ export function BusinessMap({
 
           if (normalizedCity === "all cities") {
             if (markerGroups.length === 1) {
-              map.setCenter(markerGroups[0].coordinates).setZoom(13);
+              map
+                .setCenter(markerGroups[0].coordinates)
+                .setZoom(
+                  mapHeight === "profile" || mapHeight === "expanded"
+                    ? markerGroups[0].businesses[0].locationAccuracy === "city"
+                      ? 12
+                      : 16
+                    : 13,
+                );
             } else if (markerGroups.length > 1) {
               map.fitBounds(
                 [
@@ -443,7 +461,7 @@ export function BusinessMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [businesses, compact, mapHeight, onCoordinatesChange, onMapClick, selectedCity]);
+  }, [allowCityFallback, businesses, compact, mapHeight, onCoordinatesChange, onMapClick, selectedCity]);
 
   return (
     <section
