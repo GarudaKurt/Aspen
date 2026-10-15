@@ -2,6 +2,7 @@
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import { BusinessMap } from "@/components/landing/business-map";
+import { cityCoordinates } from "@/components/landing/philippine-locations";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
@@ -13,11 +14,15 @@ import {
   Maximize2,
   MessageCircle,
   Minimize2,
+  Navigation,
   Share2,
   Star,
 } from "lucide-react";
 import type { BusinessLocationDetails } from "../location";
-import { getBusinessCardLocationSummary } from "../location";
+import {
+  getBusinessCardLocationSummary,
+  isValidBusinessCoordinates,
+} from "../location";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -279,12 +284,54 @@ export function BusinessProfile({
   const schedule = provider.businessHours ?? initialBusinessHours;
   const businessStatus = getBusinessHoursStatus(schedule);
   const displayedAmenities = provider.amenities ?? amenityOptions.slice(0, 3);
+  const locationQuery = useMemo(() => {
+    const details = provider.locationDetails;
+    if (!details) return provider.address.trim();
+
+    return [
+      details.streetAddress,
+      details.barangay,
+      details.cityMunicipality,
+      details.province,
+      details.landmark,
+    ]
+      .map((part) => part?.trim())
+      .filter(Boolean)
+      .join(", ");
+  }, [provider.address, provider.locationDetails]);
+  const storedCoordinates = isValidBusinessCoordinates(
+    provider.locationDetails?.coordinates,
+  )
+    ? provider.locationDetails.coordinates
+    : null;
+
+  const normalizedCity = provider.locationDetails?.cityMunicipality
+    ?.trim()
+    .toLowerCase();
+  const cityFallbackCoordinates = normalizedCity
+    ? cityCoordinates[normalizedCity] ?? null
+    : null;
+  const mapCoordinates = storedCoordinates ?? cityFallbackCoordinates;
+  const mapAccuracy: "exact" | "city" | null = storedCoordinates
+    ? "exact"
+    : cityFallbackCoordinates
+      ? "city"
+      : null;
+  const directionsDestination = storedCoordinates
+    ? `${storedCoordinates[1]},${storedCoordinates[0]}`
+    : locationQuery;
+  const directionsHref = directionsDestination
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(directionsDestination)}`
+    : null;
   const mapBusiness = useMemo(
     () => ({
       businessName: provider.name,
       location: provider.address,
-      coordinates: provider.locationDetails?.coordinates ?? undefined,
-      locationDetails: provider.locationDetails,
+      coordinates: mapCoordinates ?? undefined,
+      locationAccuracy: mapAccuracy ?? undefined,
+      locationDetails: provider.locationDetails && mapCoordinates
+        ? { ...provider.locationDetails, coordinates: mapCoordinates }
+        : provider.locationDetails,
       rating: provider.rating,
       services: provider.category,
       priceStarts: provider.servicesOffered?.[0]?.price ?? "Contact for pricing",
@@ -293,9 +340,11 @@ export function BusinessProfile({
     }),
     [
       provider.address,
-      provider.locationDetails,
+      mapCoordinates,
+      mapAccuracy,
       provider.category,
       provider.coverPhoto,
+      provider.locationDetails,
       provider.name,
       provider.rating,
       provider.servicesOffered,
@@ -496,32 +545,61 @@ export function BusinessProfile({
                       <p className="text-sm text-[#69736d]">
                         Explore the area around {provider.name}.
                       </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setMapExpanded((expanded) => !expanded)}
-                        className="shrink-0 border-[#d8dfdc] text-[#3c6355] hover:bg-[#eef3f0]"
-                        aria-pressed={mapExpanded}
-                      >
-                        {mapExpanded ? (
-                          <Minimize2 className="size-4" />
-                        ) : (
-                          <Maximize2 className="size-4" />
+                      <div className="flex shrink-0 items-center gap-2">
+                        {directionsHref && (
+                          <a
+                            href={directionsHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#d8dfdc] px-2.5 text-xs font-medium text-[#3c6355] outline-none transition-colors hover:bg-[#eef3f0] focus-visible:ring-2 focus-visible:ring-[#3c6355]/30 sm:px-3"
+                          >
+                            <Navigation className="size-4" aria-hidden="true" />
+                            <span>Get directions</span>
+                          </a>
                         )}
-                        <span className="hidden sm:inline">
-                          {mapExpanded ? "Minimize map" : "Maximize map"}
-                        </span>
-                        <span className="sr-only sm:hidden">
-                          {mapExpanded ? "Minimize map" : "Maximize map"}
-                        </span>
-                      </Button>
+                        {mapCoordinates && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setMapExpanded((expanded) => !expanded)}
+                            className="shrink-0 border-[#d8dfdc] text-[#3c6355] hover:bg-[#eef3f0]"
+                            aria-pressed={mapExpanded}
+                          >
+                            {mapExpanded ? (
+                              <Minimize2 className="size-4" />
+                            ) : (
+                              <Maximize2 className="size-4" />
+                            )}
+                            <span className="hidden sm:inline">
+                              {mapExpanded ? "Minimize map" : "Maximize map"}
+                            </span>
+                            <span className="sr-only sm:hidden">
+                              {mapExpanded ? "Minimize map" : "Maximize map"}
+                            </span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <BusinessMap
-                      businesses={[mapBusiness]}
-                      selectedCity="All Cities"
-                      compact
-                      mapHeight={mapExpanded ? "expanded" : "profile"}
-                    />
+                    {mapAccuracy === "city" && (
+                      <p className="mt-2 text-xs text-[#69736d]">
+                        Showing the approximate {provider.locationDetails?.cityMunicipality ?? "city"} area. The exact storefront location has not been verified yet.
+                      </p>
+                    )}
+                    {mapCoordinates ? (
+                      <BusinessMap
+                        businesses={[mapBusiness]}
+                        selectedCity="All Cities"
+                        compact
+                        allowCityFallback={false}
+                        mapHeight={mapExpanded ? "expanded" : "profile"}
+                      />
+                    ) : (
+                      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-[#d8dfdc] bg-[#f7faf8] px-6 text-center sm:h-72 lg:h-80">
+                        <p className="max-w-md text-sm leading-5 text-[#69736d]">
+                          An exact map location is not available for this registered address yet. Use Get directions to navigate to the address.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </ProfileSection>
               </>

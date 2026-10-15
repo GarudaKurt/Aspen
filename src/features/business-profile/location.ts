@@ -8,14 +8,29 @@ export type BusinessLocationDetails = {
   coordinates: [number, number] | null;
 };
 
+export function isValidBusinessCoordinates(
+  coordinates: [number, number] | null | undefined,
+): coordinates is [number, number] {
+  if (!coordinates) return false;
+  const [longitude, latitude] = coordinates;
+  return (
+    Number.isFinite(longitude) &&
+    Number.isFinite(latitude) &&
+    longitude >= -180 &&
+    longitude <= 180 &&
+    latitude >= -90 &&
+    latitude <= 90
+  );
+}
+
 export const initialBusinessLocation: BusinessLocationDetails = {
-  province: "Cebu",
-  cityMunicipality: "Cebu City",
-  barangay: "Lahug",
-  streetAddress: "48 Carlock Street",
+  province: "",
+  cityMunicipality: "",
+  barangay: "",
+  streetAddress: "",
   landmark: "Near Cebu IT Park",
   additionalDetails: "",
-  coordinates: [123.9024, 10.3307],
+  coordinates: null,
 };
 
 export function formatBusinessAddress(

@@ -16,10 +16,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import {
-  distanceSquared,
-  philippineLocations,
-} from "./philippine-locations";
+import { philippineLocations } from "./philippine-locations";
 
 type DiscoverySearchProps = {
   query: string;
@@ -48,41 +45,12 @@ function CityCombobox({
   onCityChange: (city: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState(city);
-  const [prioritizedCities, setPrioritizedCities] = useState(() => [
+  const [search, setSearch] = useState(city === "All Cities" ? "" : city);
+  const cities = [
     "All Cities",
     ...philippineLocations.map(({ name }) => name),
-  ]);
+  ];
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    let cancelled = false;
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        if (cancelled) return;
-        const currentLocation: [number, number] = [
-          coords.longitude,
-          coords.latitude,
-        ];
-        const nearbyFirst = [...philippineLocations].sort((first, second) =>
-          distanceSquared(first.coordinates, currentLocation) -
-          distanceSquared(second.coordinates, currentLocation),
-        );
-        setPrioritizedCities([
-          "All Cities",
-          ...nearbyFirst.map(({ name }) => name),
-        ]);
-      },
-      () => undefined,
-      { enableHighAccuracy: false, maximumAge: 15 * 60 * 1000, timeout: 5000 },
-    );
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -100,17 +68,13 @@ function CityCombobox({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [open]);
 
-  const filteredCities = prioritizedCities.filter((option) =>
+  const filteredCities = cities.filter((option) =>
     option.toLowerCase().includes(search.trim().toLowerCase()),
-  );
-  const customCity = search.trim();
-  const hasExactCity = prioritizedCities.some(
-    (option) => option.toLowerCase() === customCity.toLowerCase(),
   );
 
   const selectCity = (value: string) => {
     onCityChange(value);
-    setSearch(value);
+    setSearch(value === "All Cities" ? "" : value);
     setOpen(false);
   };
 
@@ -126,13 +90,13 @@ function CityCombobox({
           onFocus={() => setOpen(true)}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
-              setSearch(city);
+              setSearch(city === "All Cities" ? "" : city);
               setOpen(false);
             }
 
-            if (event.key === "Enter" && customCity) {
+            if (event.key === "Enter" && filteredCities.length === 1) {
               event.preventDefault();
-              selectCity(customCity);
+              selectCity(filteredCities[0]);
             }
           }}
           role="combobox"
@@ -184,24 +148,9 @@ function CityCombobox({
             );
           })}
 
-          {customCity && !hasExactCity && (
-            <button
-              type="button"
-              role="option"
-              aria-selected={false}
-              onClick={() => selectCity(customCity)}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[#3c6355] hover:bg-[#eef5f1] focus-visible:bg-[#eef5f1] focus-visible:outline-none"
-            >
-              <MapPin size={16} />
-              <span>
-                Use <span className="font-semibold">{customCity}</span>
-              </span>
-            </button>
-          )}
-
-          {!filteredCities.length && !customCity && (
+          {!filteredCities.length && (
             <p className="px-3 py-2.5 text-sm text-[#737773]">
-              Type a city to search or enter a custom city.
+              No matching cities. Try another search.
             </p>
           )}
         </div>

@@ -55,10 +55,14 @@ export function filterBusinesses(
 
     const matchesQuery =
       !normalizedQuery || searchableText.includes(normalizedQuery);
+    const registeredCity =
+      business.locationDetails?.cityMunicipality?.trim().toLowerCase() ?? "";
+    const locationText = business.location.toLowerCase();
     const matchesCity =
       !normalizedCity ||
       normalizedCity === "all cities" ||
-      business.location.toLowerCase().includes(normalizedCity);
+      registeredCity === normalizedCity ||
+      locationText.includes(normalizedCity);
     const matchesFilters = serviceFilters.every((filter) =>
       matchesServiceCategory(business, filter),
     );
