@@ -23,7 +23,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   {
     name: "Basic",
-    price: "₱499",
+    price: "₱999",
     description: "Build a complete profile and start receiving requests.",
     cta: "Choose Basic",
     features: [
@@ -35,7 +35,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   {
     name: "Professional",
-    price: "₱999",
+    price: "₱1,999",
     description: "Manage appointments and grow your visibility.",
     cta: "Choose Professional",
     badge: "Recommended",
@@ -50,7 +50,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   {
     name: "Enterprise",
-    price: "₱1,999+",
+    price: "₱2,999",
     description: "Flexible tools for multi-location businesses.",
     cta: "Talk to sales",
     features: [

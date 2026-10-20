@@ -3,7 +3,7 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpenCheck,
@@ -15,6 +15,10 @@ import {
   ShieldCheck,
   UserRound,
   CheckCircle2,
+  ChevronDown,
+  Loader2,
+  MapPin,
+  Search,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -71,6 +75,8 @@ export function ListingPage() {
   const setProviderType = useListingStore((state) => state.setProviderType);
   const businessName = useListingStore((state) => state.businessName);
   const businessDescription = useListingStore((state) => state.businessDescription);
+  const yearsExperience = useListingStore((state) => state.yearsExperience);
+  const facebookPage = useListingStore((state) => state.facebookPage);
   const locationDetails = useListingStore((state) => state.locationDetails);
   const setBusinessField = useListingStore((state) => state.setBusinessField);
   const setLocationField = useListingStore((state) => state.setLocationField);
@@ -157,6 +163,8 @@ export function ListingPage() {
                 onProviderTypeChange={setProviderType}
                 businessName={businessName}
                 businessDescription={businessDescription}
+                yearsExperience={yearsExperience}
+                facebookPage={facebookPage}
                 locationDetails={locationDetails}
                 onBusinessFieldChange={setBusinessField}
                 onLocationFieldChange={setLocationField}
@@ -314,6 +322,8 @@ function BusinessStep({
   onProviderTypeChange,
   businessName,
   businessDescription,
+  yearsExperience,
+  facebookPage,
   locationDetails,
   onBusinessFieldChange,
   onLocationFieldChange,
@@ -322,8 +332,10 @@ function BusinessStep({
   onProviderTypeChange: (value: string) => void;
   businessName: string;
   businessDescription: string;
+  yearsExperience: string;
+  facebookPage: string;
   locationDetails: import("@/features/business-profile/location").BusinessLocationDetails;
-  onBusinessFieldChange: (field: "businessName" | "businessDescription", value: string) => void;
+  onBusinessFieldChange: (field: "businessName" | "businessDescription" | "yearsExperience" | "facebookPage", value: string) => void;
   onLocationFieldChange: <K extends keyof import("@/features/business-profile/location").BusinessLocationDetails>(field: K, value: import("@/features/business-profile/location").BusinessLocationDetails[K]) => void;
 }) {
   return (
@@ -359,13 +371,289 @@ function BusinessStep({
       >
         <textarea value={businessDescription} onChange={(event) => onBusinessFieldChange("businessDescription", event.target.value)} className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
       </FieldLabel>
+      <LocationFields
+        locationDetails={locationDetails}
+        onLocationFieldChange={onLocationFieldChange}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
-        <FieldLabel label="Province"><Input value={locationDetails.province} onChange={(event) => onLocationFieldChange("province", event.target.value)} placeholder="Cebu" /></FieldLabel>
-        <FieldLabel label="City / Municipality"><Input value={locationDetails.cityMunicipality} onChange={(event) => onLocationFieldChange("cityMunicipality", event.target.value)} placeholder="Cebu City" /></FieldLabel>
-        <FieldLabel label="Barangay"><Input value={locationDetails.barangay} onChange={(event) => onLocationFieldChange("barangay", event.target.value)} placeholder="e.g. Lahug" /></FieldLabel>
-        <FieldLabel label="Street address"><Input value={locationDetails.streetAddress} onChange={(event) => onLocationFieldChange("streetAddress", event.target.value)} placeholder="e.g. Colon Street" /></FieldLabel>
+        <FieldLabel label="Years of experience" hint="Optional">
+          <Input type="number" min="0" value={yearsExperience} onChange={(event) => onBusinessFieldChange("yearsExperience", event.target.value)} placeholder="e.g. 4" />
+        </FieldLabel>
+        <FieldLabel label="Facebook page" hint="Optional">
+          <Input value={facebookPage} onChange={(event) => onBusinessFieldChange("facebookPage", event.target.value)} placeholder="https://facebook.com/your-business" />
+        </FieldLabel>
       </div>
     </FormSection>
+  );
+}
+
+type LocationOption = {
+  code: string;
+  name: string;
+  type?: string;
+};
+
+type AddressResult = {
+  id: number;
+  label: string;
+  coordinates: [number, number];
+  type?: string;
+};
+
+function LocationFields({
+  locationDetails,
+  onLocationFieldChange,
+}: {
+  locationDetails: import("@/features/business-profile/location").BusinessLocationDetails;
+  onLocationFieldChange: <K extends keyof import("@/features/business-profile/location").BusinessLocationDetails>(
+    field: K,
+    value: import("@/features/business-profile/location").BusinessLocationDetails[K],
+  ) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <AdministrativeLocationField
+          key={`province-${locationDetails.province}`}
+          label="Province"
+          placeholder="Search province"
+          level="provinces"
+          value={locationDetails.province}
+          onChange={(value) => {
+            onLocationFieldChange("province", value);
+            onLocationFieldChange("cityMunicipality", "");
+            onLocationFieldChange("barangay", "");
+          }}
+        />
+        <AdministrativeLocationField
+          key={`city-${locationDetails.province}`}
+          label="City / Municipality"
+          placeholder="Search city or municipality"
+          level="cities"
+          parent={locationDetails.province}
+          value={locationDetails.cityMunicipality}
+          disabled={!locationDetails.province}
+          onChange={(value) => {
+            onLocationFieldChange("cityMunicipality", value);
+            onLocationFieldChange("barangay", "");
+          }}
+        />
+        <AdministrativeLocationField
+          key={`barangay-${locationDetails.cityMunicipality}`}
+          label="Barangay"
+          placeholder="Search barangay"
+          level="barangays"
+          parent={locationDetails.cityMunicipality}
+          value={locationDetails.barangay}
+          disabled={!locationDetails.cityMunicipality}
+          onChange={(value) => onLocationFieldChange("barangay", value)}
+        />
+        <StreetAddressField
+          locationDetails={locationDetails}
+          onLocationFieldChange={onLocationFieldChange}
+        />
+      </div>
+      <p className="text-xs leading-5 text-[#777b78]">
+        Select the official administrative areas first. Street address is entered manually and can be checked against map data when available.
+      </p>
+    </div>
+  );
+}
+
+function AdministrativeLocationField({
+  label,
+  placeholder,
+  level,
+  parent,
+  value,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  placeholder: string;
+  level: "provinces" | "cities" | "barangays";
+  parent?: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [options, setOptions] = useState<LocationOption[]>([]);
+  const [open, setOpen] = useState(false);
+  const shouldLoad = !disabled && (level === "provinces" || Boolean(parent));
+  const [loading, setLoading] = useState(shouldLoad);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (disabled || (level !== "provinces" && !parent)) {
+      return;
+    }
+
+    let cancelled = false;
+    const params = new URLSearchParams({ level });
+    if (parent) params.set(level === "cities" ? "province" : "city", parent);
+
+    fetch(`/api/locations?${params.toString()}`)
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error ?? "Unable to load locations.");
+        return payload as LocationOption[];
+      })
+      .then((items) => {
+        if (!cancelled) setOptions(items);
+      })
+      .catch((reason: Error) => {
+        if (!cancelled) setError(reason.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [disabled, level, parent]);
+
+  const filteredOptions = options
+    .filter((option) => option.name.toLowerCase().includes(query.trim().toLowerCase()))
+    .slice(0, 80);
+
+  return (
+    <div className="relative space-y-2 text-sm font-semibold">
+      <span>{label}</span>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#777b78]" aria-hidden="true" />
+        <Input
+          value={query}
+          disabled={disabled}
+          placeholder={disabled ? `Select ${level === "cities" ? "a province" : "a city first"}` : placeholder}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={`${level}-options`}
+          onFocus={() => setOpen(true)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setOpen(true);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setOpen(false);
+            if (event.key === "Enter" && filteredOptions[0]) {
+              event.preventDefault();
+              onChange(filteredOptions[0].name);
+              setQuery(filteredOptions[0].name);
+              setOpen(false);
+            }
+          }}
+          onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+          className="h-11 pl-9 pr-9 rounded-lg border-[#d2d5d2] focus-visible:border-[#3c6355] focus-visible:ring-[#3c6355]/20"
+        />
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#777b78]" aria-hidden="true" />
+      </div>
+      {open && !disabled && (
+        <div id={`${level}-options`} role="listbox" className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-[#d2d5d2] bg-white p-1 shadow-lg">
+          {loading && <p className="flex items-center gap-2 px-3 py-3 text-xs font-normal text-[#777b78]"><Loader2 className="size-4 animate-spin" /> Loading locations…</p>}
+          {!loading && error && <p className="px-3 py-3 text-xs font-normal text-red-600">{error}</p>}
+          {!loading && !error && filteredOptions.length === 0 && <p className="px-3 py-3 text-xs font-normal text-[#777b78]">No matching {label.toLowerCase()} found.</p>}
+          {!loading && !error && filteredOptions.map((option) => (
+            <button
+              type="button"
+              role="option"
+              aria-selected={option.name === value}
+              key={option.code}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onChange(option.name);
+                setQuery(option.name);
+                setOpen(false);
+              }}
+              className="flex w-full items-start rounded-md px-3 py-2 text-left text-sm font-normal text-[#242524] hover:bg-[#f1f6f3] focus:bg-[#f1f6f3] focus:outline-none"
+            >
+              {option.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StreetAddressField({
+  locationDetails,
+  onLocationFieldChange,
+}: {
+  locationDetails: import("@/features/business-profile/location").BusinessLocationDetails;
+  onLocationFieldChange: <K extends keyof import("@/features/business-profile/location").BusinessLocationDetails>(
+    field: K,
+    value: import("@/features/business-profile/location").BusinessLocationDetails[K],
+  ) => void;
+}) {
+  const [results, setResults] = useState<AddressResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const searchAddress = async () => {
+    const parts = [locationDetails.streetAddress, locationDetails.barangay, locationDetails.cityMunicipality, locationDetails.province].filter(Boolean);
+    if (parts.length < 2) {
+      setMessage("Add a street and city or municipality before searching.");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch(`/api/geocode/address?q=${encodeURIComponent(parts.join(", "))}`);
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Address search failed.");
+      setResults(payload as AddressResult[]);
+      if (!payload.length) setMessage("No precise map match was found. You can still save the address and verify it later.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Address search failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2 text-sm font-semibold">
+      <span>Street address</span>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          value={locationDetails.streetAddress}
+          onChange={(event) => {
+            onLocationFieldChange("streetAddress", event.target.value);
+            setResults([]);
+            setMessage("");
+          }}
+          placeholder="e.g. Colon Street"
+          className="h-11 rounded-lg border-[#d2d5d2] focus-visible:border-[#3c6355] focus-visible:ring-[#3c6355]/20"
+        />
+        <Button type="button" variant="outline" onClick={searchAddress} disabled={loading} className="h-11 shrink-0 border-[#d2d5d2]">
+          {loading ? <Loader2 className="size-4 animate-spin" /> : <MapPin className="size-4" />}
+          Find on map
+        </Button>
+      </div>
+      {results.length > 0 && (
+        <div className="space-y-1 rounded-lg border border-[#d2d5d2] bg-white p-1">
+          <p className="px-3 py-2 text-xs font-normal text-[#777b78]">Choose the closest verified match:</p>
+          {results.map((result) => (
+            <button
+              type="button"
+              key={result.id}
+              onClick={() => {
+                onLocationFieldChange("coordinates", result.coordinates);
+                setResults([]);
+                setMessage("Map location selected.");
+              }}
+              className="flex w-full items-start gap-2 rounded-md px-3 py-2 text-left text-xs font-normal text-[#242524] hover:bg-[#f1f6f3]"
+            >
+              <MapPin className="mt-0.5 size-4 shrink-0 text-[#3c6355]" />
+              <span className="break-words">{result.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {message && <p className="text-xs font-normal text-[#777b78]">{message}</p>}
+      {locationDetails.coordinates && <p className="text-xs font-normal text-[#3c6355]">Map location selected from address search.</p>}
+    </div>
   );
 }
 
@@ -400,29 +688,9 @@ function ServicesStep({
           </Button>
         ))}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FieldLabel label="Service area">
-          <Select defaultValue="Cebu City">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Cebu City">Cebu City</SelectItem>
-              <SelectItem value="Mandaue City">Mandaue City</SelectItem>
-              <SelectItem value="Lapu-Lapu City">Lapu-Lapu City</SelectItem>
-            </SelectContent>
-          </Select>
-        </FieldLabel>
-        <FieldLabel label="Years of experience">
-          <Input type="number" placeholder="4" />
-        </FieldLabel>
-      </div>
-      <FieldLabel label="Service summary">
-        <textarea className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20" />
-      </FieldLabel>
-      <FieldLabel label="Facebook page" hint="Optional">
-        <Input placeholder="https://facebook.com/your-business" />
-      </FieldLabel>
+      <p className="text-sm leading-5 text-[#777b78]">
+        Choose the categories that best describe the services your business offers. You can add individual services and pricing from your provider dashboard.
+      </p>
     </FormSection>
   );
 }

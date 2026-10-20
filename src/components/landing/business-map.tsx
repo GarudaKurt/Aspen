@@ -41,6 +41,7 @@ const fallbackMapStyle = {
 type BusinessMapProps = {
   businesses: BusinessCardProps[];
   selectedCity: string;
+  selectedCityCoordinates?: [number, number];
   compact?: boolean;
   mapHeight?: "default" | "profile" | "expanded";
   allowCityFallback?: boolean;
@@ -207,6 +208,7 @@ function isWithinBounds(bounds: MapLibreBounds, coordinates: [number, number]) {
 export function BusinessMap({
   businesses,
   selectedCity,
+  selectedCityCoordinates,
   compact = false,
   mapHeight = "default",
   allowCityFallback = true,
@@ -248,7 +250,7 @@ export function BusinessMap({
         const map = new MapConstructor({
           container: mapElementRef.current,
           style: openFreeMapStyle,
-          center: cityCoordinates["cebu city"],
+          center: selectedCityCoordinates ?? cityCoordinates["cebu city"],
           zoom: 10,
           attributionControl: false,
           dragRotate: false,
@@ -380,7 +382,8 @@ export function BusinessMap({
 
         const initializeMap = () => {
           const normalizedCity = selectedCity.trim().toLowerCase();
-          const selectedCenter = cityCoordinates[normalizedCity];
+          const selectedCenter =
+            selectedCityCoordinates ?? cityCoordinates[normalizedCity];
 
           if (normalizedCity === "all cities") {
             if (markerGroups.length === 1) {
@@ -461,7 +464,7 @@ export function BusinessMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [allowCityFallback, businesses, compact, mapHeight, onCoordinatesChange, onMapClick, selectedCity]);
+  }, [allowCityFallback, businesses, compact, mapHeight, onCoordinatesChange, onMapClick, selectedCity, selectedCityCoordinates]);
 
   return (
     <section
