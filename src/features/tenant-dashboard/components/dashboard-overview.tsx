@@ -16,7 +16,10 @@ import {
   getProfileSetupItems,
 } from "../profile/profile-completion";
 import { initialTenantProfile } from "../profile/profile.store";
+import { subscriptionPlans } from "@/features/subscriptions/data/plans";
 import { useState } from "react";
+
+const professionalPlan = subscriptionPlans.find((plan) => plan.name === "Professional");
 
 const stats = [
   ["6", "Upcoming bookings", CalendarDays],
@@ -148,7 +151,9 @@ export function DashboardOverview() {
             <p className="text-xs font-semibold uppercase tracking-wide text-[#587267]">
               Professional plan
             </p>
-            <p className="mt-1 text-2xl font-bold text-[#3c6355]">₱999/month</p>
+            <p className="mt-1 text-2xl font-bold text-[#3c6355]">
+              {professionalPlan?.price ?? "₱1,999"}/month
+            </p>
             <p className="mt-1 text-sm text-[#587267]">
               Auto-renewal is enabled.
             </p>

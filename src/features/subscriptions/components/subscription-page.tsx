@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -73,9 +73,6 @@ export function SubscriptionPage() {
           ))}
         </div>
 
-        <button type="button" className="mx-auto mt-10 flex min-h-11 items-center gap-2 rounded-lg border border-[#cbd7cf] px-5 py-3 text-sm font-semibold text-[#3c6355] transition-colors hover:bg-[#f5f9f6]">
-          View features in detail <ChevronDown size={16} />
-        </button>
         <p className="mt-5 text-center text-xs text-[#88918b]">Plan selection and payment activation will be connected when billing is implemented.</p>
       </section>
     </main>

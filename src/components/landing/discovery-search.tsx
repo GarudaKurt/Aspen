@@ -22,7 +22,7 @@ type DiscoverySearchProps = {
   query: string;
   city: string;
   onQueryChange: (query: string) => void;
-  onCityChange: (city: string) => void;
+  onCityChange: (city: string, coordinates?: [number, number]) => void;
   onSearch: (query: string) => void;
   serviceCategory: string;
   onServiceCategoryChange: (category: string) => void;
@@ -37,15 +37,20 @@ const serviceCategories = [
   { label: "Training", icon: GraduationCap },
 ];
 
-function CityCombobox({
+export function CityCombobox({
   city,
   onCityChange,
+  variant = "embedded",
 }: {
   city: string;
-  onCityChange: (city: string) => void;
+  onCityChange: (city: string, coordinates?: [number, number]) => void;
+  variant?: "embedded" | "field";
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(city === "All Cities" ? "" : city);
+  const [customResults, setCustomResults] = useState<CitySearchResult[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState("");
   const cities = [
     "All Cities",
     ...philippineLocations.map(({ name }) => name),
@@ -71,20 +76,68 @@ function CityCombobox({
   const filteredCities = cities.filter((option) =>
     option.toLowerCase().includes(search.trim().toLowerCase()),
   );
+  const normalizedSearch = search.trim().toLowerCase();
+  const hasExactPredefinedCity = cities.some(
+    (option) => option.toLowerCase() === normalizedSearch,
+  );
 
-  const selectCity = (value: string) => {
-    onCityChange(value);
+  const validateCustomCity = async () => {
+    const query = search.trim();
+    if (!query || hasExactPredefinedCity) return;
+
+    setIsValidating(true);
+    setValidationError("");
+    setCustomResults([]);
+
+    try {
+      const response = await fetch(
+        `/api/geocode/city?q=${encodeURIComponent(query)}`,
+      );
+
+      if (!response.ok) throw new Error("Location service unavailable");
+
+      const results = (await response.json()) as NominatimResult[];
+      const validResults = results
+        .map(toCitySearchResult)
+        .filter((result): result is CitySearchResult => Boolean(result));
+
+      if (!validResults.length) {
+        setValidationError("We could not verify that city. Try a nearby municipality or check the spelling.");
+      } else {
+        setCustomResults(validResults);
+      }
+    } catch {
+      setValidationError("We could not verify this city right now. Please try again.");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const selectCity = (value: string, coordinates?: [number, number]) => {
+    onCityChange(value, coordinates);
     setSearch(value === "All Cities" ? "" : value);
+    setCustomResults([]);
+    setValidationError("");
     setOpen(false);
   };
 
+  const predefinedCoordinates = (value: string) =>
+    philippineLocations.find(
+      ({ name }) => name.toLowerCase() === value.toLowerCase(),
+    )?.coordinates;
+
   return (
-    <div ref={containerRef} className="relative z-30 min-w-0 flex-1">
+    <div
+      ref={containerRef}
+      className={`relative z-30 min-w-0 flex-1 ${variant === "field" ? "rounded-lg border border-[#d2d5d2] bg-white px-3 focus-within:border-[#3c6355] focus-within:ring-2 focus-within:ring-[#3c6355]/20" : ""}`}
+    >
       <div className="flex items-center gap-1">
         <Input
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
+            setCustomResults([]);
+            setValidationError("");
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
@@ -136,7 +189,7 @@ function CityCombobox({
                 type="button"
                 role="option"
                 aria-selected={isSelected}
-                onClick={() => selectCity(option)}
+                onClick={() => selectCity(option, predefinedCoordinates(option))}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#f3f3f2] focus-visible:bg-[#f3f3f2] focus-visible:outline-none"
               >
                 <Check
@@ -148,15 +201,95 @@ function CityCombobox({
             );
           })}
 
+          {search.trim() && !hasExactPredefinedCity && (
+            <button
+              type="button"
+              onClick={validateCustomCity}
+              disabled={isValidating}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#3c6355] hover:bg-[#f3f3f2] focus-visible:bg-[#f3f3f2] focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+            >
+              <Search size={16} />
+              {isValidating ? "Checking location…" : `Search for “${search.trim()}”`}
+            </button>
+          )}
+
+          {customResults.map((result) => (
+            <button
+              key={`${result.coordinates.join(",")}-${result.name}`}
+              type="button"
+              role="option"
+              aria-selected={false}
+              onClick={() => selectCity(result.name, result.coordinates)}
+              className="flex w-full flex-col items-start rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[#f3f3f2] focus-visible:bg-[#f3f3f2] focus-visible:outline-none"
+            >
+              <span className="font-medium text-[#242524]">{result.name}</span>
+              <span className="mt-0.5 text-xs text-[#737773]">{result.displayName}</span>
+            </button>
+          ))}
+
           {!filteredCities.length && (
             <p className="px-3 py-2.5 text-sm text-[#737773]">
-              No matching cities. Try another search.
+              {customResults.length ? "Choose a verified location above." : "No predefined city matches yet."}
+            </p>
+          )}
+
+          {validationError && (
+            <p role="alert" className="px-3 py-2.5 text-sm text-red-600">
+              {validationError}
             </p>
           )}
         </div>
       )}
     </div>
   );
+}
+
+type NominatimResult = {
+  display_name?: string;
+  lat?: string;
+  lon?: string;
+  name?: string;
+  addresstype?: string;
+  address?: {
+    city?: string;
+    municipality?: string;
+    town?: string;
+    village?: string;
+  };
+};
+
+type CitySearchResult = {
+  name: string;
+  displayName: string;
+  coordinates: [number, number];
+};
+
+function toCitySearchResult(result: NominatimResult): CitySearchResult | null {
+  const latitude = Number(result.lat);
+  const longitude = Number(result.lon);
+  const name =
+    result.address?.city ??
+    result.address?.municipality ??
+    result.address?.town ??
+    result.address?.village ??
+    result.name;
+
+  const acceptedPlaceTypes = new Set(["city", "town", "municipality"]);
+
+  if (
+    !name ||
+    !acceptedPlaceTypes.has(result.addresstype ?? "") ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude)
+  ) {
+    return null;
+  }
+
+  return {
+    name,
+    displayName: result.display_name ?? name,
+    coordinates: [longitude, latitude],
+  };
 }
 
 export function DiscoverySearch({
@@ -177,7 +310,7 @@ export function DiscoverySearch({
   return (
     <section
       id="browse"
-      className="px-6 pb-12 pt-3 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px] min-[1600px]:!max-w-none min-[1600px]:!px-0"
+      className="scroll-mt-24 px-6 pb-12 pt-3 sm:scroll-mt-28 sm:px-10 sm:pb-16 sm:pt-4 lg:px-[130px] 2xl:px-16 2xl:max-w-[1680px] min-[1600px]:!max-w-none min-[1600px]:!px-0"
     >
       <div className="mx-auto max-w-[1440px] 2xl:max-w-[1680px] min-[1600px]:px-14">
         <h1 className="max-w-[1000px] text-4xl font-bold leading-[1.12] tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-[58px]">

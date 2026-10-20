@@ -22,6 +22,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
+import { subscriptionPlans } from "@/features/subscriptions/data/plans";
+
+const professionalPlan = subscriptionPlans.find((plan) => plan.name === "Professional");
 import { Switch } from "@/components/ui/switch";
 
 import { useListingStore } from "@/features/business-profile/store/onboarding.store";
@@ -200,7 +203,9 @@ export function BillingDetailsPage() {
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs text-slate-500">Monthly billing</p>
-                <p className="mt-1 font-semibold">₱999 / month</p>
+                <p className="mt-1 font-semibold">
+                  {professionalPlan?.price ?? "₱1,999"} / month
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Next billing date</p>

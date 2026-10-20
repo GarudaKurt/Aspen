@@ -17,6 +17,8 @@ export type ListingDraft = {
   providerType: string;
   businessName: string;
   businessDescription: string;
+  yearsExperience: string;
+  facebookPage: string;
   locationDetails: BusinessLocationDetails;
   selectedServices: string[];
   uploadedFiles: Record<string, string>;
@@ -25,7 +27,10 @@ export type ListingDraft = {
 
 type ListingStore = ListingDraft & {
   setProviderType: (providerType: string) => void;
-  setBusinessField: (field: "businessName" | "businessDescription", value: string) => void;
+  setBusinessField: (
+    field: "businessName" | "businessDescription" | "yearsExperience" | "facebookPage",
+    value: string,
+  ) => void;
   setLocationField: <K extends keyof BusinessLocationDetails>(field: K, value: BusinessLocationDetails[K]) => void;
   toggleService: (service: string) => void;
   setUploadedFile: (label: string, fileName: string) => void;
@@ -40,6 +45,8 @@ export const initialListingDraft: ListingDraft = {
   providerType: "Individual provider",
   businessName: "",
   businessDescription: "",
+  yearsExperience: "",
+  facebookPage: "",
   locationDetails: initialBusinessLocation,
   selectedServices: [],
   uploadedFiles: {},

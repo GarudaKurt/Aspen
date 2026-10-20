@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { ArrowUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { DiscoverySearch } from "./discovery-search";
 import { BusinessDirectory } from "./business-directory";
@@ -16,8 +17,13 @@ export function LandingPage() {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [city, setCity] = useState("All Cities");
+  const [selectedCityCoordinates, setSelectedCityCoordinates] = useState<
+    [number, number] | undefined
+  >();
   const [serviceCategory, setServiceCategory] = useState("All Services");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [searchRequested, setSearchRequested] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const filteredBusinesses = useMemo(
     () =>
@@ -36,6 +42,37 @@ export function LandingPage() {
     setServiceCategory(filters[0] ?? "All Services");
   };
 
+  useEffect(() => {
+    if (!searchRequested) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("all-businesses")?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+      setSearchRequested(false);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [searchRequested]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 480);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToSearch = () => {
+    document.getElementById("browse")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <main id="top" className="min-h-screen bg-white text-[#111111]">
       <SiteHeader />
@@ -50,8 +87,14 @@ export function LandingPage() {
         query={query}
         city={city}
         onQueryChange={setQuery}
-        onCityChange={setCity}
-        onSearch={setSubmittedQuery}
+        onCityChange={(value, coordinates) => {
+          setCity(value);
+          setSelectedCityCoordinates(coordinates);
+        }}
+        onSearch={(nextQuery) => {
+          setSubmittedQuery(nextQuery);
+          setSearchRequested(true);
+        }}
         serviceCategory={serviceCategory}
         onServiceCategoryChange={(category) =>
           updateServiceFilters(category === "All Services" ? [] : [category])
@@ -67,10 +110,21 @@ export function LandingPage() {
       <BusinessMap
         businesses={mapBusinesses}
         selectedCity={city}
+        selectedCityCoordinates={selectedCityCoordinates}
         allowCityFallback
       />
       <OwnerCta />
       <SiteFooter />
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToSearch}
+          aria-label="Scroll back to search"
+          className="fixed bottom-6 right-6 z-30 inline-flex size-12 items-center justify-center rounded-full border border-[#315447] bg-[#3c6355] text-white shadow-lg transition hover:bg-[#315447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] focus-visible:ring-offset-2 sm:bottom-8 sm:right-8"
+        >
+          <ArrowUp size={20} aria-hidden="true" />
+        </button>
+      )}
       <section id="how-it-works" className="sr-only" aria-label="How it works">
         <span>Discover trusted pet services near you.</span>
       </section>
