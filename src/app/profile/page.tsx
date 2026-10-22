@@ -3,6 +3,8 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { CustomerProfilePage } from "@/features/account/components/customer-profile-page";
 import { requireUser } from "@/server/auth/guard";
 
+export const dynamic = "force-dynamic";
+
 function toProfileUser(current: Awaited<ReturnType<typeof requireUser>>): HeaderUser {
   const metadata = current.user.user_metadata ?? {};
   const email = current.user.email ?? current.profile?.email ?? "";

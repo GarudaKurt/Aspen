@@ -5,6 +5,8 @@ import { mapAppointmentRow } from "@/features/appointments/api/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { requireUser } from "@/server/auth/guard";
 
+export const dynamic = "force-dynamic";
+
 function toCustomerNotifications(appointments: AppointmentRequest[]): AppNotification[] {
   return appointments.map((appointment) => {
     const status = appointment.status;

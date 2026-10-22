@@ -4,6 +4,8 @@ import { mapAppointmentRow } from "@/features/appointments/api/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { requireUser } from "@/server/auth/guard";
 
+export const dynamic = "force-dynamic";
+
 export default async function CustomerBookingsRoute() {
   const current = await requireUser("/bookings");
   const supabase = await createSupabaseServerClient();

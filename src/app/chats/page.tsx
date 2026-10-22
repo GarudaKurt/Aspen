@@ -2,6 +2,8 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { ChatView } from "@/features/chats";
 import { requireUser } from "@/server/auth/guard";
 
+export const dynamic = "force-dynamic";
+
 export default async function CustomerChatsPage() {
   await requireUser("/chats");
 
