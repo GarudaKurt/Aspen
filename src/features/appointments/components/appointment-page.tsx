@@ -40,6 +40,7 @@ import {
   type AppointmentDraft,
   type Period,
 } from "../store/booking-draft.store";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 
 type Step = { label: string; path: string; icon: LucideIcon };
@@ -117,6 +118,7 @@ export function AppointmentPage({
   const [emailSuggestion, setEmailSuggestion] =
     useState<EmailSuggestion | null>(null);
   const [phoneValidationOpen, setPhoneValidationOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const currentBusiness = businessSlug ?? null;
@@ -143,6 +145,63 @@ export function AppointmentPage({
         ? `${basePath}/confirmation`
         : steps[activeIndex + 1].path,
     );
+  };
+
+  const submitAppointment = async () => {
+    if (submitting || draft.bookingReference) {
+      if (draft.bookingReference) router.push(`${basePath}/confirmation`);
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        setError("Please sign in again before requesting an appointment.");
+        return;
+      }
+
+      const selectedServices = services.filter((service) =>
+        draft.serviceIds.includes(service.id),
+      );
+      const { data, error: insertError } = await supabase
+        .from("appointments")
+        .insert({
+          customer_id: userData.user.id,
+          business_id: businessSlug ?? "general",
+          business_name: businessName,
+          service_id: draft.serviceIds.join(","),
+          service_name: selectedServices.map((service) => service.title).join(", "),
+          customer_name: draft.fullName.trim(),
+          customer_email: draft.email.trim(),
+          customer_phone: draft.phone.trim(),
+          pet_name: draft.petName.trim(),
+          pet_type: draft.petType.trim(),
+          appointment_date: draft.date,
+          appointment_time: draft.time,
+          notes: draft.reason.trim(),
+        })
+        .select("booking_reference")
+        .single();
+
+      if (insertError || !data?.booking_reference) {
+        setError(
+          insertError?.message ??
+            "We could not save your appointment request. Please try again.",
+        );
+        return;
+      }
+
+      update("bookingReference", data.booking_reference);
+      router.push(`${basePath}/confirmation`);
+    } catch {
+      setError("We could not save your appointment request. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const validateContactDetails = () => {
@@ -202,6 +261,10 @@ export function AppointmentPage({
       return setError("Complete your pet's details to continue.");
     if (activeIndex === 3 && !validateContactDetails()) return;
     setError("");
+    if (activeIndex === steps.length - 1) {
+      void submitAppointment();
+      return;
+    }
     goForward();
   };
   const back = () =>
@@ -328,7 +391,9 @@ export function AppointmentPage({
                     onClick={next}
                     className="order-1 min-h-11 w-full px-4 sm:order-none sm:w-40 bg-[#3c6355] text-white hover:bg-[#2f5044]"
                   >
-                    {activeIndex === steps.length - 1
+                    {submitting
+                      ? "Sending request…"
+                      : activeIndex === steps.length - 1
                       ? "Request appointment"
                       : "Save and continue"}
                   </Button>
@@ -366,7 +431,8 @@ export function AppointmentPage({
             <AlertDialogCancel
               onClick={() => {
                 setEmailSuggestion(null);
-                goForward();
+                if (activeIndex === steps.length - 1) void submitAppointment();
+                else goForward();
               }}
             >
               Keep Anyway
@@ -375,7 +441,8 @@ export function AppointmentPage({
               onClick={() => {
                 if (emailSuggestion) update("email", emailSuggestion.suggested);
                 setEmailSuggestion(null);
-                goForward();
+                if (activeIndex === steps.length - 1) void submitAppointment();
+                else goForward();
               }}
             >
               Use Suggested Email
@@ -815,7 +882,9 @@ function ConfirmationPage({
             </p>
             <p className="mt-2">
               <span className="text-slate-500">Booking #</span>
-              <span className="float-right">123456</span>
+              <span className="float-right font-semibold">
+                {draft.bookingReference || "Pending"}
+              </span>
             </p>
           </div>
           <Button

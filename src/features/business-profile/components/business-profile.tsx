@@ -50,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AppointmentAuthGate } from "@/features/appointments/components/appointment-auth-gate";
 
 export type TenantProfileData = {
   name: string;
@@ -1068,16 +1069,7 @@ function ScheduleCard({
       <div className="mt-5">
         <BusinessHoursList schedule={schedule} />
       </div>
-      <Link
-        href={
-          businessSlug
-            ? `/business-profile/${businessSlug}/request-appointment`
-            : "/request-appointment"
-        }
-        className="mt-5 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#3c6355] px-2 text-xs font-semibold text-white hover:bg-[#2f5044]"
-      >
-        Request Appointment
-      </Link>
+      <AppointmentAuthGate businessSlug={businessSlug} />
       <p className="mt-5 text-center text-[8px] text-[#a7a9a7]">
         Free to request · no payment required now
       </p>

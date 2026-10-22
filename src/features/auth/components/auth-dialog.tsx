@@ -18,10 +18,16 @@ export function AuthDialog({
   open,
   onOpenChange,
   initialMode = "login",
+  onSubmitSuccess,
+  notice,
+  redirectPath,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialMode?: AuthDialogMode;
+  onSubmitSuccess?: () => boolean | Promise<boolean> | void;
+  notice?: { message: string; variant: "error" | "success" };
+  redirectPath?: string;
 }) {
   const [mode, setMode] = useState<AuthDialogMode>(initialMode);
 
@@ -42,6 +48,9 @@ export function AuthDialog({
           onForgotPassword={() => setMode("forgot")}
           onCreateAccount={() => setMode("signup")}
           onSignIn={() => setMode("login")}
+          onSubmitSuccess={onSubmitSuccess}
+          notice={notice}
+          redirectPath={redirectPath}
         />
       </DialogContent>
     </Dialog>

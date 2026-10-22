@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import {
   AlertDialog,
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
 import { getEmailSuggestion } from "@/shared/schemas/contact.schema";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 import {
   loginSchema,
@@ -30,21 +31,44 @@ import {
 type AuthMode = "login" | "signup" | "forgot" | "reset";
 type AuthValues = { email: string; password: string; confirmPassword: string };
 
+function getAuthErrorMessage(error: unknown) {
+  const authError = error as { code?: string; message?: string } | null;
+  const code = authError?.code;
+  const message = authError?.message ?? "";
+
+  if (code === "over_email_send_rate_limit" || /email rate limit exceeded/i.test(message)) {
+    return "Email sending is temporarily rate-limited by Supabase. Wait before trying again, or configure a custom SMTP provider for continued testing.";
+  }
+
+  if (code === "oauth_provider_not_supported" || /unsupported provider/i.test(message)) {
+    return "Google sign-in is not enabled in the Supabase project yet. Enable Google under Authentication → Providers, then try again.";
+  }
+
+  if (code === "email_not_confirmed") {
+    return "Please confirm your email address before signing in.";
+  }
+
+  return error instanceof Error && error.message
+    ? error.message
+    : "Authentication failed. Please try again.";
+}
+
 export function AuthForm({
   mode,
   onForgotPassword,
   onCreateAccount,
   onSignIn,
   onSubmitSuccess,
+  notice,
+  redirectPath,
 }: {
   mode: AuthMode;
   onForgotPassword?: () => void;
   onCreateAccount?: () => void;
   onSignIn?: () => void;
-  onSubmitSuccess?: (values: {
-    email: string;
-    password: string;
-  }) => boolean | Promise<boolean> | void;
+  onSubmitSuccess?: () => boolean | Promise<boolean> | void;
+  notice?: { message: string; variant: "error" | "success" };
+  redirectPath?: string;
 }) {
   const [values, setValues] = useState<AuthValues>({
     email: "",
@@ -57,18 +81,36 @@ export function AuthForm({
   const [rememberMe, setRememberMe] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [suggestion, setSuggestion] = useState<{ entered: string; suggested: string } | null>(null);
-  const [recoveryStep, setRecoveryStep] = useState<"email" | "verification">(
-    "email",
-  );
-  const [verificationCode, setVerificationCode] = useState("");
-  const [verificationError, setVerificationError] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendError, setResendError] = useState("");
+  const submitInFlight = useRef(false);
+  const resendInFlight = useRef(false);
   const isForgotMode = mode === "forgot";
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const timeout = window.setTimeout(() => {
+      setResendCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timeout);
+  }, [resendCooldown]);
 
   const update = (field: keyof AuthValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: "" }));
     setSubmitError("");
+  };
+
+  const getEmailVerificationRedirect = () => {
+    const loginPath = redirectPath
+      ? `/login?verified=1&next=${encodeURIComponent(redirectPath)}`
+      : "/login?verified=1";
+
+    return `${window.location.origin}/callback?flow=verification&next=${encodeURIComponent(loginPath)}`;
   };
 
   const validate = (emailOverride?: string) => {
@@ -98,7 +140,8 @@ export function AuthForm({
     return false;
   };
 
-  const submitMock = async (skipEmailSuggestion = false, emailOverride?: string) => {
+  const submitAuth = async (skipEmailSuggestion = false, emailOverride?: string) => {
+    if (submitInFlight.current) return;
     if (!validate(emailOverride)) return;
 
     if (!skipEmailSuggestion && mode !== "reset") {
@@ -109,67 +152,147 @@ export function AuthForm({
       }
     }
 
+    submitInFlight.current = true;
     setLoading(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-    setLoading(false);
+    setSubmitError("");
 
-    if (mode === "login" && onSubmitSuccess) {
-      const accepted = await onSubmitSuccess({
-        email: values.email,
-        password: values.password,
-      });
-      if (accepted === false) {
-        setSubmitError("These provider credentials are not recognized.");
+    try {
+      const supabase = getSupabaseBrowserClient();
+
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: values.email.trim(),
+          password: values.password,
+        });
+        if (error) throw error;
+
+        if (onSubmitSuccess) {
+          const accepted = await onSubmitSuccess();
+          if (accepted === false) return;
+        } else {
+          toast({
+            title: "Signed in successfully",
+            description: rememberMe
+              ? "You chose to stay connected on this device."
+              : "Your Aspen session is now active.",
+            variant: "success",
+          });
+        }
         return;
       }
-    }
 
-    if (mode === "signup") {
-      setShowConfirmation(true);
-      return;
-    }
+      if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
+          email: values.email.trim(),
+          password: values.password,
+          options: {
+            emailRedirectTo: getEmailVerificationRedirect(),
+          },
+        });
+        if (error) throw error;
 
-    if (isForgotMode) {
-      setRecoveryStep("verification");
-      return;
-    }
+        // Supabase returns a session when email confirmation is disabled and
+        // returns no session when the user must confirm their email first.
+        if (data.session) {
+          if (onSubmitSuccess) {
+            const accepted = await onSubmitSuccess();
+            if (accepted === false) return;
+          } else {
+            toast({
+              title: "Account created",
+              description: "Your Aspen session is now active.",
+              variant: "success",
+            });
+          }
+          return;
+        }
 
-    toast({
-      title:
-        isForgotMode
-          ? "Reset email preview ready"
-          : mode === "reset"
-            ? "Password reset preview ready"
-            : "Sign-in preview ready",
-      description:
-        mode === "login"
-          ? rememberMe
-            ? "You chose to stay connected on this device."
-            : "You will be asked to sign in again when the session expires."
-          : "This UI is ready for the authentication integration.",
-      variant: "success",
-    });
+        setShowConfirmation(true);
+        return;
+      }
+
+      if (isForgotMode) {
+        const { error } = await supabase.auth.resetPasswordForEmail(values.email.trim(), {
+          redirectTo: `${window.location.origin}/callback?next=/reset-password`,
+        });
+        if (error) throw error;
+        toast({
+          title: "Password reset email sent",
+          description: "Check your inbox for a secure password reset link.",
+          variant: "success",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: values.password });
+      if (error) throw error;
+      toast({
+        title: "Password updated",
+        description: "Your new password is ready to use.",
+        variant: "success",
+      });
+    } catch (error) {
+      setSubmitError(getAuthErrorMessage(error));
+    } finally {
+      submitInFlight.current = false;
+      setLoading(false);
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    if (resendInFlight.current || resendCooldown > 0) return;
+
+    resendInFlight.current = true;
+    setResendLoading(true);
+    setResendError("");
+
+    try {
+      const { error } = await getSupabaseBrowserClient().auth.resend({
+        type: "signup",
+        email: values.email.trim(),
+        options: {
+          emailRedirectTo: getEmailVerificationRedirect(),
+        },
+      });
+
+      if (error) throw error;
+
+      setResendCooldown(60);
+    } catch (error) {
+      setResendError(getAuthErrorMessage(error));
+    } finally {
+      resendInFlight.current = false;
+      setResendLoading(false);
+    }
+  };
+
+  const startOAuth = async (provider: "google") => {
+    if (submitInFlight.current) return;
+    submitInFlight.current = true;
+    setLoading(true);
+    setSubmitError("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const next = redirectPath ?? (window.location.pathname === "/provider-login"
+        ? "/tenant-dashboard"
+        : window.location.pathname);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/callback?next=${encodeURIComponent(next)}`,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      submitInFlight.current = false;
+      setLoading(false);
+      setSubmitError(getAuthErrorMessage(error));
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void submitMock();
-  };
-
-  const handleVerificationSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const code = verificationCode.trim();
-    if (!/^\d{6}$/.test(code)) {
-      setVerificationError("Enter the 6-digit verification code.");
-      return;
-    }
-
-    setVerificationError("");
-    toast({
-      title: "Verification ready",
-      description: "Connect the authentication provider to verify this code.",
-      variant: "success",
-    });
+    void submitAuth();
   };
 
   if (showConfirmation) {
@@ -178,59 +301,33 @@ export function AuthForm({
         <Mail className="mx-auto size-10 text-[#3c6355]" />
         <h2 className="mt-3 text-lg font-semibold">Check your email</h2>
         <p className="mt-2 text-sm leading-6 text-[#64736b]">
-          In the connected experience, a confirmation link will be sent to{" "}
+          Registration submitted. Please check your email and click the
+          verification link to activate your account: {" "}
           <strong>{values.email}</strong>.
+          Check your inbox or spam folder, then return here to sign in.
         </p>
+        {resendError && (
+          <p role="alert" className="mt-3 rounded-md bg-red-50 px-3 py-2 text-left text-sm text-red-700">
+            {resendError}
+          </p>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => void resendVerificationEmail()}
+          disabled={resendLoading || resendCooldown > 0}
+          className="mt-5 w-full border-[#3c6355] text-[#3c6355] hover:bg-[#eef7f1]"
+        >
+          {resendLoading
+            ? "Sending…"
+            : resendCooldown > 0
+              ? `Resend available in ${resendCooldown}s`
+              : "Resend verification email"}
+        </Button>
         <Link href="/login" className="mt-5 inline-flex text-sm font-semibold text-[#3c6355] hover:underline">
           Back to sign in
         </Link>
       </div>
-    );
-  }
-
-  if (mode === "forgot" && recoveryStep === "verification") {
-    return (
-      <form onSubmit={handleVerificationSubmit} className="space-y-5" noValidate>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Verification</h1>
-          <p className="mt-2 text-sm leading-6 text-[#69736d]">
-            Enter the 6-digit code sent to <strong>{values.email}</strong>.
-          </p>
-        </div>
-        <div>
-          <label htmlFor="verification-code" className="text-sm font-semibold">
-            Verification code
-          </label>
-          <Input
-            id="verification-code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            value={verificationCode}
-            onChange={(event) => {
-              setVerificationCode(event.target.value.replace(/\D/g, ""));
-              setVerificationError("");
-            }}
-            placeholder="000000"
-            className="mt-2 text-center text-lg tracking-[0.45em]"
-            aria-invalid={Boolean(verificationError)}
-          />
-          {verificationError && (
-            <p className="mt-1 text-xs text-red-600">{verificationError}</p>
-          )}
-        </div>
-        <Button type="submit" className="h-11 w-full bg-[#3c6355] text-white hover:bg-[#2f5044]">
-          Verify code
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => setRecoveryStep("email")}
-          className="w-full text-[#3c6355]"
-        >
-          Use a different email
-        </Button>
-      </form>
     );
   }
 
@@ -247,6 +344,19 @@ export function AuthForm({
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {notice && (
+          <p
+            role={notice.variant === "error" ? "alert" : "status"}
+            className={
+              notice.variant === "error"
+                ? "rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"
+                : "rounded-md bg-[#eef7f1] px-3 py-2 text-sm text-[#3c6355]"
+            }
+          >
+            {notice.message}
+          </p>
+        )}
+
         {mode !== "reset" && (
           <div>
             <Label htmlFor="auth-email">Email</Label>
@@ -362,12 +472,9 @@ export function AuthForm({
             <div className="flex items-center gap-3 text-xs text-[#8a948e]">
               <span className="h-px flex-1 bg-[#e0e7e2]" />or<span className="h-px flex-1 bg-[#e0e7e2]" />
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button type="button" variant="outline" onClick={() => toast("Google sign-in preview")} className="h-10 gap-2">
+            <div className="grid gap-2">
+              <Button type="button" variant="outline" disabled={loading} onClick={() => void startOAuth("google")} className="h-10 gap-2">
                 <Image src="/img/logo/google.svg" alt="" width={16} height={16} /> Google
-              </Button>
-              <Button type="button" variant="outline" onClick={() => toast("Apple sign-in preview")} className="h-10 gap-2">
-                <Image src="/img/logo/apple.svg" alt="" width={16} height={16} /> Apple
               </Button>
             </div>
           </>
@@ -429,10 +536,10 @@ export function AuthForm({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => { setSuggestion(null); void submitMock(true); }}>
+          <AlertDialogCancel onClick={() => { setSuggestion(null); void submitAuth(true); }}>
             Keep anyway
           </AlertDialogCancel>
-          <AlertDialogAction onClick={() => { const current = suggestion; if (current) update("email", current.suggested); setSuggestion(null); if (current) void submitMock(true, current.suggested); }}>
+          <AlertDialogAction onClick={() => { const current = suggestion; if (current) update("email", current.suggested); setSuggestion(null); if (current) void submitAuth(true, current.suggested); }}>
             Use suggested email
           </AlertDialogAction>
         </AlertDialogFooter>

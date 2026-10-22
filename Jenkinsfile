@@ -32,10 +32,11 @@ pipeline {
             }
         }
 
-        stage('Lint & Test') {
+        stage('Lint, Type Check & Test') {
             steps {
                 sh '''
                     pnpm run lint
+                    pnpm run typecheck
                     if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
                         pnpm run test
                     else

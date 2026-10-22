@@ -6,6 +6,7 @@ export type Period = "Morning" | "Afternoon" | "Evening";
 
 export type AppointmentDraft = {
   businessSlug: string | null;
+  bookingReference: string;
   serviceIds: string[];
   date: string;
   period: Period;
@@ -20,6 +21,7 @@ export type AppointmentDraft = {
 
 export const initialAppointmentDraft: AppointmentDraft = {
   businessSlug: null,
+  bookingReference: "",
   serviceIds: [],
   date: "",
   period: "Morning",

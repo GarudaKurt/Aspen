@@ -31,6 +31,7 @@ export function ConversationList({
   onDelete,
   onArchive,
   onToggleMute,
+  showActions = true,
   className,
 }: {
   conversations: Conversation[];
@@ -39,6 +40,7 @@ export function ConversationList({
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onToggleMute: (id: string) => void;
+  showActions?: boolean;
   className?: string;
 }) {
   const [query, setQuery] = useState("");
@@ -47,7 +49,7 @@ export function ConversationList({
     <div className="p-4"><Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search conversations" /></div>
     <OnlineUsers conversations={visible} onSelect={onSelect} />
     <div className="max-h-[300px] overflow-x-clip overflow-y-auto lg:max-h-[500px]">
-      {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
+      {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} showActions={showActions} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
     </div>
   </section>;
 }
@@ -97,6 +99,7 @@ function ConversationItem({
   onDelete,
   onArchive,
   onToggleMute,
+  showActions,
 }: {
   conversation: Conversation;
   selected: boolean;
@@ -104,6 +107,7 @@ function ConversationItem({
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onToggleMute: (id: string) => void;
+  showActions: boolean;
 }) {
   const [swiped, setSwiped] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -124,11 +128,11 @@ function ConversationItem({
   };
 
   return <div className="relative overflow-x-clip overflow-y-visible border-t">
-    <div className="absolute inset-y-0 right-0 flex items-center gap-1 bg-slate-100 px-2">
+    {showActions && <div className="absolute inset-y-0 right-0 flex items-center gap-1 bg-slate-100 px-2">
       <Button type="button" variant="ghost" size="icon-sm" onClick={() => onArchive(conversation.id)} title="Archive conversation" aria-label="Archive conversation"><Archive /></Button>
       <Button type="button" variant="ghost" size="icon-sm" onClick={() => onToggleMute(conversation.id)} title={conversation.muted ? "Unmute notifications" : "Mute notifications"} aria-label={conversation.muted ? "Unmute notifications" : "Mute notifications"}><BellOff /></Button>
       <Button type="button" variant="ghost" size="icon-sm" onClick={() => onDelete(conversation.id)} title="Delete conversation" aria-label="Delete conversation"><Trash2 /></Button>
-    </div>
+    </div>}
     <div className={`relative flex items-center gap-3 bg-white p-4 transition-transform duration-200 ${swiped ? "-translate-x-32" : "translate-x-0"} ${selected ? "bg-slate-50" : ""}`} onTouchStart={startTouch} onTouchMove={moveTouch} onTouchEnd={() => undefined}>
       <button type="button" onClick={() => { onSelect(conversation.id); setSwiped(false); }} className="flex min-w-0 flex-1 items-center gap-3 text-left">
         <Avatar conversation={conversation} />
@@ -138,7 +142,7 @@ function ConversationItem({
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1 text-xs text-slate-400"><span>{conversation.timestamp}</span>{conversation.unreadCount ? <span className="grid min-w-5 place-items-center rounded-full bg-[#3c6355] px-1 text-[10px] text-white">{conversation.unreadCount}</span> : null}</span>
       </button>
-      <div className="relative hidden sm:block">
+      {showActions && <div className="relative hidden sm:block">
         <Button
           ref={actionButtonRef}
           type="button"
@@ -166,7 +170,7 @@ function ConversationItem({
           </div>,
           document.body,
         )}
-      </div>
+      </div>}
     </div>
   </div>;
 }

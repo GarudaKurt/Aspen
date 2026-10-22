@@ -2,14 +2,19 @@
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./dashboard-sidebar";
-import { useProviderAuthStore } from "@/features/provider-auth/provider-auth.store";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const logout = useProviderAuthStore((state) => state.logout);
+  const router = useRouter();
+  const logout = async () => {
+    await getSupabaseBrowserClient().auth.signOut();
+    router.replace("/");
+  };
 
   return (
     <SidebarProvider>

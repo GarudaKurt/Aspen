@@ -1,5 +1,11 @@
+import { Suspense } from "react";
+
 import { AuthRoutePage } from "@/features/auth/components/auth-route-page";
 
 export default function AuthPage() {
-  return <AuthRoutePage initialMode="signup" />;
+  return (
+    <Suspense fallback={null}>
+      <AuthRoutePage initialMode="signup" />
+    </Suspense>
+  );
 }

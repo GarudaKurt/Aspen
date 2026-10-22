@@ -83,7 +83,9 @@ function createMockAppointment(
 
   return {
     appointmentId: `apt-${appointmentId}-${String(index + 1).padStart(2, "0")}`,
+    bookingReference: `MOCK-${String(index + 1).padStart(4, "0")}`,
     businessId: tenantBusinessId,
+    businessName: "PawSpot Cebu",
     customerId: `customer-${customerIndex + 1}`,
     serviceId: `service-${serviceNames[serviceIndex].toLowerCase().replace(/[^a-z]+/g, "-")}`,
     customerName: customerNames[customerIndex],
