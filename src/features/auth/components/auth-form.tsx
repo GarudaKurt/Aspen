@@ -60,6 +60,7 @@ export function AuthForm({
   onSignIn,
   onSubmitSuccess,
   notice,
+  redirectPath,
 }: {
   mode: AuthMode;
   onForgotPassword?: () => void;
@@ -67,6 +68,7 @@ export function AuthForm({
   onSignIn?: () => void;
   onSubmitSuccess?: () => boolean | Promise<boolean> | void;
   notice?: { message: string; variant: "error" | "success" };
+  redirectPath?: string;
 }) {
   const [values, setValues] = useState<AuthValues>({
     email: "",
@@ -103,8 +105,13 @@ export function AuthForm({
     setSubmitError("");
   };
 
-  const getEmailVerificationRedirect = () =>
-    `${window.location.origin}/callback?flow=verification&next=${encodeURIComponent("/login?verified=1")}`;
+  const getEmailVerificationRedirect = () => {
+    const loginPath = redirectPath
+      ? `/login?verified=1&next=${encodeURIComponent(redirectPath)}`
+      : "/login?verified=1";
+
+    return `${window.location.origin}/callback?flow=verification&next=${encodeURIComponent(loginPath)}`;
+  };
 
   const validate = (emailOverride?: string) => {
     const result =
@@ -266,9 +273,9 @@ export function AuthForm({
     setSubmitError("");
     try {
       const supabase = getSupabaseBrowserClient();
-      const next = window.location.pathname === "/provider-login"
+      const next = redirectPath ?? (window.location.pathname === "/provider-login"
         ? "/tenant-dashboard"
-        : window.location.pathname;
+        : window.location.pathname);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {

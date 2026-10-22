@@ -14,10 +14,15 @@ function DropdownMenuContent({
 }: MenuPrimitive.Popup.Props & { sideOffset?: number }) {
   return (
     <MenuPrimitive.Portal>
-      <MenuPrimitive.Positioner side="bottom" align="end" sideOffset={sideOffset}>
+      <MenuPrimitive.Positioner
+        side="bottom"
+        align="end"
+        sideOffset={sideOffset}
+        className="z-[1000]"
+      >
         <MenuPrimitive.Popup
           className={cn(
-            "z-50 min-w-56 origin-(--transform-origin) rounded-xl border border-[#e0e0dd] bg-white p-2 text-[#242524] shadow-xl outline-none transition data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
+            "relative z-[1000] min-w-56 origin-(--transform-origin) isolate rounded-xl border border-[#e0e0dd] bg-white p-2 text-[#242524] shadow-xl outline-none transition data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
             className,
           )}
           {...props}

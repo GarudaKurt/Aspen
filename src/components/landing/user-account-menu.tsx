@@ -12,7 +12,6 @@ import {
   MessageCircle,
   UserRound,
 } from "lucide-react";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +78,6 @@ export function UserAvatar({
   user: HeaderUser;
   size?: "small" | "default" | "large";
 }) {
-  const [imageFailed, setImageFailed] = useState(false);
   const sizeClass =
     size === "small" ? "size-6 text-[10px]" : size === "large" ? "size-20 text-2xl" : "size-9 text-xs";
 
@@ -87,17 +85,7 @@ export function UserAvatar({
     <span
       className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eaf0ed] font-semibold text-[#3c6355] ${sizeClass}`}
     >
-      {user.avatarUrl && !imageFailed ? (
-        <img
-          src={user.avatarUrl}
-          alt=""
-          className="absolute inset-0 size-full object-cover"
-          referrerPolicy="no-referrer"
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <span aria-hidden="true">{getInitials(user.displayName, user.email)}</span>
-      )}
+      <span aria-hidden="true">{getInitials(user.displayName, user.email)}</span>
     </span>
   );
 }
