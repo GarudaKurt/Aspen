@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/components/ui/toast";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { AppointmentPagination, APPOINTMENTS_PAGE_SIZE } from "./appointment-pagination";
 import {
   appointmentStatusUpdateSchema,
@@ -144,6 +145,7 @@ export function AppointmentManagementPage({
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>("All");
   const [dateFilter, setDateFilter] = useState<AppointmentDateFilter>("all");
   const [page, setPage] = useState(1);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const counts = useMemo(
     () => ({
@@ -201,7 +203,7 @@ export function AppointmentManagementPage({
     setPage(1);
   };
 
-  const updateStatus = (
+  const updateStatus = async (
     appointment: AppointmentRequest,
     status: AppointmentStatus,
     reason?: string,
@@ -213,6 +215,17 @@ export function AppointmentManagementPage({
     const result = updateAppointmentStatus(appointment, parsed.success ? parsed.data : {});
     if (!result.ok) {
       toast({ title: "Appointment update failed", description: result.error, variant: "destructive" });
+      return false;
+    }
+
+    setUpdatingId(appointment.appointmentId);
+    const { error } = await getSupabaseBrowserClient()
+      .from("appointments")
+      .update({ status: result.appointment.status, rejection_reason: result.appointment.rejectionReason ?? null })
+      .eq("id", appointment.appointmentId);
+    if (error) {
+      setUpdatingId(null);
+      toast({ title: "Appointment update failed", description: "The change could not be saved. Please try again.", variant: "destructive" });
       return false;
     }
 
@@ -229,12 +242,13 @@ export function AppointmentManagementPage({
       description: `${appointment.customerName}'s request was updated successfully.`,
       variant: "success",
     });
+    setUpdatingId(null);
     return true;
   };
 
   const accept = (appointment: AppointmentRequest) => {
     if (appointment.status !== "Pending") return;
-    updateStatus(appointment, "Confirmed");
+    void updateStatus(appointment, "Confirmed");
   };
 
   const openReject = (appointment: AppointmentRequest) => {
@@ -245,10 +259,12 @@ export function AppointmentManagementPage({
 
   const reject = () => {
     if (!pendingReject || pendingReject.status !== "Pending") return;
-    if (updateStatus(pendingReject, "Rejected", rejectionReason.trim())) {
+    void updateStatus(pendingReject, "Rejected", rejectionReason.trim()).then((updated) => {
+      if (updated) {
       setPendingReject(null);
       setRejectionReason("");
-    }
+      }
+    });
   };
 
   return (
@@ -352,6 +368,7 @@ export function AppointmentManagementPage({
                       <Button
                         type="button"
                         onClick={() => accept(appointment)}
+                        disabled={updatingId === appointment.appointmentId}
                         className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
                       >
                         <Check className="mr-2 size-4" />
@@ -361,6 +378,7 @@ export function AppointmentManagementPage({
                         type="button"
                         variant="outline"
                         onClick={() => openReject(appointment)}
+                        disabled={updatingId === appointment.appointmentId}
                         className="border-red-200 text-red-700 hover:bg-red-50"
                       >
                         <X className="mr-2 size-4" />
@@ -428,10 +446,10 @@ export function AppointmentManagementPage({
               </div>
               {selected.status === "Pending" && (
                 <div className="mt-auto flex gap-3 border-t bg-white p-5">
-                  <Button type="button" onClick={() => accept(selected)} className="flex-1 bg-[#3c6355] text-white hover:bg-[#2f5044]">
+                  <Button type="button" onClick={() => accept(selected)} disabled={updatingId === selected.appointmentId} className="flex-1 bg-[#3c6355] text-white hover:bg-[#2f5044]">
                     <Check className="mr-2 size-4" />Accept
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => openReject(selected)} className="flex-1 border-red-200 text-red-700 hover:bg-red-50">
+                  <Button type="button" variant="outline" onClick={() => openReject(selected)} disabled={updatingId === selected.appointmentId} className="flex-1 border-red-200 text-red-700 hover:bg-red-50">
                     <X className="mr-2 size-4" />Reject
                   </Button>
                 </div>

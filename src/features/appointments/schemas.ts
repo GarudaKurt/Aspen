@@ -11,7 +11,9 @@ export const appointmentStatusSchema = z.enum([
 
 export const appointmentRequestSchema = z.object({
   appointmentId: z.string().trim().min(1),
+  bookingReference: z.string().trim().min(1).optional(),
   businessId: z.string().trim().min(1),
+  businessName: z.string().trim().min(1).optional(),
   customerId: z.string().trim().min(1),
   serviceId: z.string().trim().min(1),
   customerName: z.string().trim().min(1),

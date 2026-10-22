@@ -39,7 +39,7 @@ type AccountLink = {
 
 const accountLinks: AccountLink[] = [
   { label: "My Profile", href: "/profile", icon: UserRound },
-  { label: "My Bookings", href: "/request-appointment", icon: CalendarDays },
+  { label: "My Bookings", href: "/bookings", icon: CalendarDays },
   { label: "My Wishlist", href: "/wishlist", icon: Heart },
 ];
 

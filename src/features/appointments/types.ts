@@ -7,7 +7,9 @@ export type AppointmentStatus =
 
 export type AppointmentRequest = {
   appointmentId: string;
+  bookingReference?: string;
   businessId: string;
+  businessName?: string;
   customerId: string;
   serviceId: string;
   customerName: string;
