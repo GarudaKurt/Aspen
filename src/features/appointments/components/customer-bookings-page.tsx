@@ -184,8 +184,7 @@ export function CustomerBookingsPage({ initialAppointments, loadError }: { initi
       <section className="mx-auto w-full max-w-[1180px] px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5714e]">Customer account</p>
-            <h1 className="mt-2 text-3xl font-bold text-[#3c6355] sm:text-4xl">My bookings</h1>
+            <h1 className="text-3xl font-bold text-[#3c6355] sm:text-4xl">My bookings</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-[#777b78]">Keep track of your requests, confirmed visits, and completed pet care appointments in one place.</p>
           </div>
           <div className="grid grid-cols-3 gap-2 sm:min-w-[330px]">

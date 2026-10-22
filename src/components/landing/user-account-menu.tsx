@@ -45,8 +45,7 @@ const accountLinks: AccountLink[] = [
 
 const activityLinks: AccountLink[] = [
   { label: "Messages", href: "/chats", icon: MessageCircle },
-  { label: "Notifications", href: "/tenant-dashboard/notifications", icon: Bell },
-  { label: "Calendar", href: "/request-appointment", icon: CalendarDays },
+  { label: "Notifications", href: "/notifications", icon: Bell },
 ];
 
 export function getNameParts(name: string, email = "") {
