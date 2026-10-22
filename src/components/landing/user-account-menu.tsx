@@ -44,7 +44,7 @@ const accountLinks: AccountLink[] = [
 ];
 
 const activityLinks: AccountLink[] = [
-  { label: "Messages", href: "/tenant-dashboard/chat", icon: MessageCircle },
+  { label: "Messages", href: "/chats", icon: MessageCircle },
   { label: "Notifications", href: "/tenant-dashboard/notifications", icon: Bell },
   { label: "Calendar", href: "/request-appointment", icon: CalendarDays },
 ];

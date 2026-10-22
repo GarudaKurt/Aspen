@@ -6,7 +6,8 @@ export {
   sendMessage,
   toggleConversationMute,
 } from "./api/actions";
-export { getConversation, getConversations } from "./api/queries";
+export { getConversation, getConversations, getConversationsForRole } from "./api/queries";
+export type { ChatRole } from "./api/queries";
 export { subscribeToChat } from "./api/realtime";
 export { createChatStore, useChatStore } from "./store/chat.store";
 export type { ChatRealtimeEvent, ChatRealtimeListener } from "./api/realtime";

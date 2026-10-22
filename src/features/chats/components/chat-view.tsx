@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getConversation, getConversations } from "../api/queries";
+import { getConversation, getConversationsForRole, type ChatRole } from "../api/queries";
 import { createChatStore, useChatStore } from "../store/chat.store";
 import type { Message } from "../types";
 import {
@@ -15,12 +15,20 @@ import {
 
 export function ChatView({
   navigation,
-  currentUser = "provider",
+  currentUser,
+  role = "provider",
+  initialConversations,
 }: {
   navigation?: ReactNode;
   currentUser?: Message["from"];
+  role?: ChatRole;
+  initialConversations?: ReturnType<typeof getConversationsForRole>;
 }) {
-  const chatStore = useMemo(() => createChatStore(getConversations()), []);
+  const chatRole: ChatRole = role ?? "provider";
+  const chatStore = useMemo(
+    () => createChatStore(initialConversations ?? getConversationsForRole(chatRole)),
+    [initialConversations, chatRole],
+  );
   const chatState = useChatStore(chatStore);
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -36,7 +44,7 @@ export function ChatView({
     event.preventDefault();
     const body = draft.trim();
     if (!body || !selected) return;
-    chatStore.sendMessage(selected.id, body, currentUser);
+    chatStore.sendMessage(selected.id, body, currentUser ?? chatRole);
     setDraft("");
   };
 
@@ -65,9 +73,11 @@ export function ChatView({
   return (
     <>
       {navigation}
-      <h1 className="text-3xl font-bold">Chat</h1>
+      <h1 className="text-3xl font-bold">{chatRole === "customer" ? "My chats" : "Chat"}</h1>
       <p className="mt-1 text-slate-500">
-        Messages from customers about bookings and questions.
+        {chatRole === "customer"
+          ? "Keep conversations with your pet-service providers in one place."
+          : "Messages from customers about bookings and questions."}
       </p>
       <Card className="mt-7 grid min-h-[560px] overflow-x-clip overflow-y-visible bg-white p-0 shadow-none lg:grid-cols-[280px_minmax(0,1fr)]">
         <ConversationList
@@ -78,6 +88,7 @@ export function ChatView({
           onDelete={setDeleteId}
           onArchive={chatStore.archiveConversation}
           onToggleMute={chatStore.toggleMute}
+          showActions={chatRole === "provider"}
         />
         <div
           className={
@@ -107,18 +118,27 @@ export function ChatView({
           ) : (
             <div className="grid flex-1 place-items-center p-5 text-center text-slate-500">
               <div>
-                <p>No conversation selected.</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-3"
-                  onClick={() =>
-                    chatState.conversations[0] &&
-                    selectConversation(chatState.conversations[0].id)
-                  }
-                >
-                  Choose a conversation
-                </Button>
+                {chatRole === "customer" && !chatState.conversations.length ? (
+                  <>
+                    <p className="font-medium text-slate-700">No provider conversations yet.</p>
+                    <p className="mt-2 max-w-sm text-sm">After you start a conversation with a service provider, your messages will appear here.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>No conversation selected.</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-3"
+                      onClick={() =>
+                        chatState.conversations[0] &&
+                        selectConversation(chatState.conversations[0].id)
+                      }
+                    >
+                      Choose a conversation
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}
