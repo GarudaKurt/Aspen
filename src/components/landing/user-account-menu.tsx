@@ -162,11 +162,10 @@ export function UserAccountMenu({
               <AccountItemLabel item={item} />
             </DropdownMenuLinkItem>
           ))}
-          <DropdownMenuItem disabled label="Help and support">
+          <DropdownMenuLinkItem render={<Link href="/help" />}>
             <CircleHelp size={16} className="text-[#3c6355]" aria-hidden="true" />
             <span>Help &amp; Support</span>
-            <span className="ml-auto text-[11px] text-[#8d918f]">Soon</span>
-          </DropdownMenuItem>
+          </DropdownMenuLinkItem>
         </div>
         <DropdownMenuSeparator className="my-2 h-px bg-[#ececea]" />
         <DropdownMenuItem onClick={onSignOut} label="Log out" className="text-[#8d5d4c] data-highlighted:bg-[#fff4ef]">
@@ -230,6 +229,14 @@ export function MobileAccountLinks({
           </Link>
         );
       })}
+      <Link
+        href="/help"
+        onClick={onNavigate}
+        className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#242524] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+      >
+        <CircleHelp size={18} className="text-[#3c6355]" aria-hidden="true" />
+        Help &amp; Support
+      </Link>
       {hasBusiness && (
         <Link
           href="/tenant-dashboard"
