@@ -68,6 +68,7 @@ export type TenantProfileData = {
     category: string;
     description: string;
     price: string;
+    photos?: string[];
   }>;
   coverPhoto?: string | null;
   businessHours?: BusinessHoursDay[];

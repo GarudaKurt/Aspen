@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
+import { clearListingDraft } from "@/features/business-profile/store/onboarding.store";
 
 import {
   MobileAccountLinks,
@@ -151,6 +152,7 @@ export function SiteHeader({ hasBusiness = false }: SiteHeaderProps) {
 
   const signOut = async () => {
     await getSupabaseBrowserClient().auth.signOut();
+    clearListingDraft();
     setUser(null);
     setMobileOpen(false);
     router.refresh();

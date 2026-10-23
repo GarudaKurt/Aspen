@@ -19,7 +19,10 @@ export async function requireRole(
   nextPath = "/",
 ) {
   const current = await requireUser(nextPath);
-  const allowed = current.profile?.role === role || current.profile?.role === "admin";
+  // Roles are intentionally exact. An administrator has a separate control
+  // plane and must not be treated as a provider simply because both are
+  // authenticated users.
+  const allowed = current.profile?.role === role;
 
   if (!allowed) redirect("/");
   return current;

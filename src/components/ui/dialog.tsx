@@ -7,25 +7,46 @@ export function Dialog({
   open,
   onOpenChange,
   children,
+  className = "",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
+  className?: string;
 }) {
   useEffect(() => {
     if (!open) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyPaddingRight = body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - html.clientWidth;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onOpenChange(false);
     };
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+      body.style.paddingRight = previousBodyPaddingRight;
+    };
   }, [open, onOpenChange]);
 
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto p-4 sm:p-6"
+      className={`fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto p-4 sm:p-6 ${className}`}
       role="dialog"
       aria-modal="true"
     >
@@ -78,6 +99,6 @@ export function DialogClose({
   );
 }
 
-export function DialogHeader({ children }: { children: ReactNode }) {
-  return <div className="mb-6 flex flex-col items-center">{children}</div>;
+export function DialogHeader({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`flex flex-col items-center ${className || "mb-6"}`}>{children}</div>;
 }

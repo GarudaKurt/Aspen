@@ -8,5 +8,6 @@ export type BusinessService = {
   price: string;
   duration: string;
   photos: string[];
+  photoAssetIds?: Array<string | null>;
   status: BusinessServiceStatus;
 };
