@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ListingDraftAuthBoundary } from "@/features/business-profile/components/listing-draft-auth-boundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +23,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}<Toaster /></body>
+      <body className="min-h-full flex flex-col">
+        <ListingDraftAuthBoundary />
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

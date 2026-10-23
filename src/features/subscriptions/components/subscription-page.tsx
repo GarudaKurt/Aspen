@@ -14,6 +14,9 @@ export function SubscriptionPage() {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
+  const getStartedPath = (planName: string) =>
+    `/list-your-business?plan=${encodeURIComponent(planName.toLowerCase())}`;
+
   return (
     <main className="min-h-screen bg-white text-[#171817]">
       <header className="border-b border-[#e5e8e5]">
@@ -56,7 +59,7 @@ export function SubscriptionPage() {
               <p className="mt-4 min-h-12 text-left text-sm leading-5 text-[#7c8780]">{plan.description}</p>
               <Button
                 type="button"
-                onClick={() => router.push("/list-your-business")}
+                onClick={() => router.push(getStartedPath(plan.name))}
                 variant={plan.highlighted ? "default" : "outline"}
                 className={`mt-6 min-h-11 w-full rounded-xl ${plan.highlighted ? "bg-[#3c6355] text-white hover:bg-[#2f5044]" : "border-[#3c6355] text-[#3c6355] hover:bg-[#eef5f0]"}`}>
                 {plan.cta}

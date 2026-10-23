@@ -20,8 +20,10 @@ import { Card } from "@/components/ui/card";
 import { ServiceFormSheet } from "./service-form-sheet";
 import { ServicePreviewSheet } from "./service-preview-sheet";
 import type { ServiceAnalytics, ServiceItem } from "../types";
+import { deleteBusinessService, deleteServiceMedia, saveBusinessService } from "@/features/tenancy/api/actions";
+import { uploadMediaFile } from "@/features/media/client";
 
-type ServiceDraft = Omit<ServiceItem, "id">;
+type ServiceDraft = Omit<ServiceItem, "id"> & { photoFiles?: File[]; photoFilePreviews?: string[] };
 type StatusFilter = "All" | ServiceItem["status"];
 const emptyAnalytics: ServiceAnalytics = { views: 0, favorites: 0, inquiries: 0, bookings: 0 };
 
@@ -85,9 +87,11 @@ function SummaryCard({
 export function ServicesView({
   initialServices,
   initialAnalytics = {},
+  businessId,
 }: {
   initialServices: ServiceItem[];
   initialAnalytics?: Record<string, ServiceAnalytics>;
+  businessId?: string;
 }) {
   const [items, setItems] = useState(initialServices);
   const [analytics, setAnalytics] = useState(initialAnalytics);
@@ -97,6 +101,7 @@ export function ServicesView({
   const [pendingDelete, setPendingDelete] = useState<ServiceItem | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("All");
   const [query, setQuery] = useState("");
+  const [saveError, setSaveError] = useState("");
 
   const counts = useMemo(
     () => ({
@@ -148,24 +153,68 @@ export function ServicesView({
     setFormOpen(true);
   };
 
-  const save = (draft: ServiceDraft) => {
+  const save = async (draft: ServiceDraft) => {
+    if (!businessId) return;
+    setSaveError("");
+    const result = await saveBusinessService(businessId, draft);
+    if (!result.ok) {
+      setSaveError(result.error);
+      return;
+    }
+    const uploadedPhotos: string[] = [];
+    const uploadedAssetIds: string[] = [];
+    try {
+      for (const file of draft.photoFiles ?? []) {
+        const asset = await uploadMediaFile(file, {
+          serviceId: result.id,
+          category: "service_photo",
+          visibility: "public",
+        });
+        uploadedPhotos.push(asset.url ?? "");
+        uploadedAssetIds.push(asset.id);
+      }
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "The service was saved, but one or more photos could not be uploaded.");
+      return;
+    }
+    const previousAssetIds = (editing?.photoAssetIds ?? []).filter((id): id is string => Boolean(id));
+    const retainedAssetIds = new Set((draft.photoAssetIds ?? []).filter((id): id is string => Boolean(id)));
+    const removedAssetIds = previousAssetIds.filter((id) => !retainedAssetIds.has(id));
+    const mediaResult = await deleteServiceMedia(result.id, removedAssetIds);
+    if (!mediaResult.ok) {
+      setSaveError(mediaResult.error);
+      return;
+    }
+    const uploadedByPreview = new Map(
+      (draft.photoFilePreviews ?? []).map((preview, index) => [preview, uploadedPhotos[index] ?? ""]),
+    );
+    const uploadedAssetIdByPreview = new Map(
+      (draft.photoFilePreviews ?? []).map((preview, index) => [preview, uploadedAssetIds[index] ?? null]),
+    );
+    const nextPhotos = draft.photos.map((photo) => uploadedByPreview.get(photo) ?? photo);
+    const nextPhotoAssetIds = draft.photos.map((photo, index) =>
+      draft.photoAssetIds?.[index] ?? uploadedAssetIdByPreview.get(photo) ?? null,
+    );
     if (editing) {
       setItems((current) =>
         current.map((service) =>
-          service.id === editing.id ? { ...draft, id: editing.id } : service,
+          service.id === editing.id ? { ...draft, id: editing.id, photos: nextPhotos, photoAssetIds: nextPhotoAssetIds } : service,
         ),
       );
     } else {
-      const id = crypto.randomUUID();
-      setItems((current) => [...current, { ...draft, id }]);
+      const id = result.id;
+      setItems((current) => [...current, { ...draft, id, photos: nextPhotos, photoAssetIds: nextPhotoAssetIds }]);
       setAnalytics((current) => ({ ...current, [id]: emptyAnalytics }));
     }
     setFormOpen(false);
   };
 
-  const remove = () => {
+  const remove = async () => {
     if (!pendingDelete) return;
     const id = pendingDelete.id;
+    if (!businessId) return;
+    const result = await deleteBusinessService(businessId, id);
+    if (!result.ok) return;
     setItems((current) => current.filter((service) => service.id !== id));
     setAnalytics((current) => {
       const next = { ...current };
@@ -208,6 +257,12 @@ export function ServicesView({
           Add new listing
         </Button>
       </div>
+
+      {saveError && (
+        <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          {saveError}
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard icon={BarChart3} label="Total listings" value={counts.All} detail={`${counts.Active} currently active`} />

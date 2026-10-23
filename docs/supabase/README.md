@@ -27,6 +27,143 @@ variables. Do not expose `SUPABASE_SERVICE_ROLE_KEY` to the client.
 4. Confirm that a newly registered user creates one matching row in
    `public.profiles`.
 
+## Provider tenancy setup
+
+The provider/business backend is defined in
+`supabase/migrations/0017_tenancy.sql`. Run it after
+`0016_appointments.sql`. It adds:
+
+- `provider_applications` for provider onboarding and review status.
+- `businesses` owned by a provider profile.
+- Business locations, services, service-photo metadata, hours, and amenities.
+- Ownership-based RLS policies for provider and customer access.
+- Provider verification metadata; binary verification files are stored in
+  Cloudflare R2 through the media upload flow.
+- An optional `appointments.business_uuid` relationship while preserving the
+  existing text business slug for older bookings.
+
+Provider applications remain customer accounts until an administrator approves
+them. After reviewing an application, an administrator can run:
+
+```sql
+select public.approve_provider_application('<application-uuid>');
+```
+
+This promotes the profile to the `provider` role and creates the provider
+business, location, and initial draft services atomically. Publish the business
+only after the review is complete:
+
+```sql
+update public.businesses
+set status = 'published', verified = true
+where id = '<business-uuid>';
+```
+
+Visitors may begin **Get Listed** without an account. Authentication is
+required before the Identity step and before final submission. The client
+persists only non-sensitive draft fields in session storage; identity files and
+billing details stay out of browser storage. The server requires a verified
+Supabase user and records that session user's ID as the application owner.
+
+The tenancy server actions and queries use the authenticated Supabase server
+client and shared Zod schemas. They do not use or expose the service-role key.
+Verification documents must be uploaded as private R2 media assets. Store only
+the R2 object key and document metadata in `provider_applications` and
+`media_assets`; never store file bytes, passwords, card numbers, or SMTP/OAuth
+secrets in application tables. The Supabase Storage bucket created by older
+versions of `0017_tenancy.sql` is no longer used by the application and can be
+retained for legacy data or removed manually after confirming it is empty.
+
+Subscription and payment credentials are intentionally not stored by the
+tenancy migration. Connect a payment provider separately before treating
+billing controls as live payment functionality.
+
+See [tenancy.md](./tenancy.md) for the complete provider data model, approval
+workflow, storage policy details, and manual setup checklist.
+
+## Provider and admin role separation
+
+`customer`, `provider`, and `admin` are distinct application roles. New Auth
+users receive `customer`. Submitting a provider application does not change the
+role; only the admin approval function changes it to `provider` and creates the
+provider-owned business. Providers can manage only their own business records.
+
+The provider dashboard and admin control plane are separate routes:
+
+- `/tenant-dashboard` is exact-role `provider` access.
+- `/admin/provider-applications` is exact-role `admin` access.
+- `/admin/provider-applications` is the administrative review UI and uses the
+  admin-only approval/rejection RPCs.
+
+Apply `supabase/migrations/0019_rbac_hardening.sql` after the tenancy and media
+migrations, then apply `0020_provider_onboarding_guards.sql`. The hardening
+migration prevents non-admin users from changing `profiles.role`, blocks
+admins from submitting provider applications through RLS, restricts direct
+business creation to providers, and adds rejection handling with required
+reasons. Migration `0020` enforces the current one-business-per-provider
+architecture after checking for legacy duplicates. Private R2 verification
+documents are exposed to the admin review UI only through short-lived signed
+URLs.
+
+## Cloudflare R2 media storage
+
+Images and verification documents are stored in Cloudflare R2. Supabase stores
+only ownership and metadata in `public.media_assets`. Apply
+`supabase/migrations/0018_media_assets.sql` after `0017_tenancy.sql`.
+
+Add these values to local `.env.local`, Vercel, and Jenkins runtime secrets as
+appropriate:
+
+```dotenv
+R2_ACCOUNT_ID=your-cloudflare-account-id
+R2_BUCKET_NAME=aspen-media
+R2_ACCESS_KEY_ID=server-only-access-key
+R2_SECRET_ACCESS_KEY=server-only-secret-key
+# Optional. Use a custom R2 domain for published images.
+R2_PUBLIC_URL=https://images.example.com
+```
+
+The R2 values must remain server-only. Do not name them `NEXT_PUBLIC_*`, put
+them in browser code, or commit them to the repository. The application creates
+short-lived presigned PUT URLs, uploads directly from the browser, then reads
+the object back server-side to verify its magic bytes and size before marking
+the Supabase metadata row active.
+
+### R2 bucket setup
+
+1. In Cloudflare Dashboard → R2, create a bucket such as `aspen-media`.
+2. Create an R2 API token with Object Read & Write access limited to this
+   bucket. Store the access key ID and secret in the deployment secret store.
+3. Copy the Cloudflare account ID into `R2_ACCOUNT_ID`.
+4. For public business and service images, connect a custom domain to the
+   bucket and set it as `R2_PUBLIC_URL`. Do not expose the bucket publicly if
+   it contains identity documents.
+5. Apply migration `0018_media_assets.sql` in the Supabase SQL editor.
+
+For direct browser uploads, configure the bucket CORS policy with the exact
+application origins (do not use `*` in production):
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://YOUR_PRODUCTION_DOMAIN"
+    ],
+    "AllowedMethods": ["PUT", "GET", "HEAD"],
+    "AllowedHeaders": ["Content-Type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+The media API supports business covers, business galleries, service photos,
+review photos, and private identity documents. Identity documents always use
+private visibility and short-lived signed download URLs. R2 object keys are
+scoped by business, service, application, or user and include a generated UUID
+to prevent accidental overwrites.
+
 ## Authentication providers
 
 In Supabase Dashboard → Authentication → Providers:

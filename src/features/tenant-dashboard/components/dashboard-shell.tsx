@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { clearListingDraft } from "@/features/business-profile/store/onboarding.store";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const logout = async () => {
     await getSupabaseBrowserClient().auth.signOut();
+    clearListingDraft();
     router.replace("/");
   };
 

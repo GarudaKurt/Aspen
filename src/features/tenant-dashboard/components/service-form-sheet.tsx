@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { ServicePhotoPicker } from "./service-photo-picker";
 import type { ServiceItem, ServiceStatus } from "../types";
 
-type ServiceDraft = Omit<ServiceItem, "id">;
+type ServiceDraft = Omit<ServiceItem, "id"> & { photoFiles?: File[]; photoFilePreviews?: string[] };
 const emptyDraft: ServiceDraft = {
   title: "",
   category: "Grooming",
@@ -16,6 +16,7 @@ const emptyDraft: ServiceDraft = {
   price: "",
   duration: "",
   photos: [],
+  photoAssetIds: [],
   status: "Draft",
 };
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -30,9 +31,10 @@ export function ServiceFormSheet({
   open: boolean;
   service: ServiceItem | null;
   onClose: () => void;
-  onSave: (draft: ServiceDraft) => void;
+  onSave: (draft: ServiceDraft) => void | Promise<void>;
 }) {
   const [draft, setDraft] = useState<ServiceDraft>(emptyDraft);
+  const [photoFilesByPreview, setPhotoFilesByPreview] = useState<Record<string, File>>({});
   const [error, setError] = useState("");
   const [photoError, setPhotoError] = useState("");
 
@@ -49,10 +51,12 @@ export function ServiceFormSheet({
               price: service.price,
               duration: service.duration,
               photos: service.photos ?? [],
+              photoAssetIds: service.photoAssetIds ?? service.photos.map(() => null),
               status: service.status,
             }
           : emptyDraft,
       );
+      setPhotoFilesByPreview({});
     }
     setError("");
     setPhotoError("");
@@ -76,29 +80,46 @@ export function ServiceFormSheet({
       return;
     }
     setPhotoError("");
+    const previews = incoming.slice(0, remaining).map((file) => URL.createObjectURL(file));
     setDraft((current) => ({
       ...current,
       photos: [
         ...current.photos,
-        ...incoming
-          .slice(0, remaining)
-          .map((file) => URL.createObjectURL(file)),
+        ...previews,
       ],
+      photoAssetIds: [...(current.photoAssetIds ?? []), ...previews.map(() => null)],
+    }));
+    setPhotoFilesByPreview((current) => ({
+      ...current,
+      ...Object.fromEntries(previews.map((preview, index) => [preview, incoming[index]])),
     }));
   };
 
   const removePhoto = (index: number) =>
-    setDraft((current) => ({
-      ...current,
-      photos: current.photos.filter((_, photoIndex) => photoIndex !== index),
-    }));
+    setDraft((current) => {
+      const removed = current.photos[index];
+      if (removed) {
+        setPhotoFilesByPreview((files) => {
+          const next = { ...files };
+          delete next[removed];
+          return next;
+        });
+      }
+      return {
+        ...current,
+        photos: current.photos.filter((_, photoIndex) => photoIndex !== index),
+        photoAssetIds: (current.photoAssetIds ?? []).filter((_, photoIndex) => photoIndex !== index),
+      };
+    });
   const movePhoto = (index: number, direction: -1 | 1) =>
     setDraft((current) => {
       const nextIndex = index + direction;
       if (nextIndex < 0 || nextIndex >= current.photos.length) return current;
       const photos = [...current.photos];
+      const photoAssetIds = [...(current.photoAssetIds ?? [])];
       [photos[index], photos[nextIndex]] = [photos[nextIndex], photos[index]];
-      return { ...current, photos };
+      [photoAssetIds[index], photoAssetIds[nextIndex]] = [photoAssetIds[nextIndex], photoAssetIds[index]];
+      return { ...current, photos, photoAssetIds };
     });
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -118,6 +139,8 @@ export function ServiceFormSheet({
       price: draft.price.trim(),
       duration: draft.duration.trim() || "By appointment",
       status: draft.status as ServiceStatus,
+      photoFiles: draft.photos.map((photo) => photoFilesByPreview[photo]).filter(Boolean),
+      photoFilePreviews: draft.photos.filter((photo) => Boolean(photoFilesByPreview[photo])),
     });
   };
 

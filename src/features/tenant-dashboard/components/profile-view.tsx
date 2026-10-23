@@ -41,13 +41,32 @@ import {
   formatBusinessAddress,
   type BusinessLocationDetails,
 } from "@/features/business-profile/location";
+import {
+  saveBusinessAmenities,
+  saveBusinessHours,
+  saveBusinessProfile,
+} from "@/features/tenancy/api/actions";
+import { setBusinessCoverAsset } from "@/features/media/api/actions";
+import { uploadMediaFile } from "@/features/media/client";
 
 type EditableProfile = TenantProfile;
 
 const coverageOptions = ["Grooming", "Boarding", "Training", "Veterinary"];
 
-export function ProfileView() {
-  const [profile, setProfile] = useState<EditableProfile>(initialTenantProfile);
+export function ProfileView({
+  initialProfile = initialTenantProfile,
+  businessId,
+  providerType,
+  yearsExperience,
+  facebookPage,
+}: {
+  initialProfile?: TenantProfile;
+  businessId?: string;
+  providerType?: string;
+  yearsExperience?: number | null;
+  facebookPage?: string;
+}) {
+  const [profile, setProfile] = useState<EditableProfile>(initialProfile);
   const updateTenantProfile = (update: Partial<EditableProfile>) =>
     setProfile((current) => ({ ...current, ...update }));
   const [draft, setDraft] = useState<EditableProfile>(profile);
@@ -75,20 +94,26 @@ export function ProfileView() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMaximized, setPreviewMaximized] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
+  const [coverPhotoRemoved, setCoverPhotoRemoved] = useState(false);
 
   const startInfoEdit = () => {
     setDraft(profile);
+    setCoverPhotoFile(null);
+    setCoverPhotoRemoved(false);
     setErrors({});
     setEditingInfo(true);
   };
 
   const cancelInfoEdit = () => {
     setDraft(profile);
+    setCoverPhotoFile(null);
+    setCoverPhotoRemoved(false);
     setErrors({});
     setEditingInfo(false);
   };
 
-  const saveInfo = () => {
+  const saveInfo = async () => {
     const nextErrors: Record<string, string> = {};
     if (!draft.name.trim()) nextErrors.name = "Business name is required.";
     if (!draft.locationDetails.streetAddress.trim()) {
@@ -106,7 +131,7 @@ export function ProfileView() {
       return;
     }
 
-    updateTenantProfile({
+    const nextProfile = {
       ...draft,
       name: draft.name.trim(),
       address: formatBusinessAddress(draft.locationDetails, draft.address.trim()),
@@ -120,7 +145,51 @@ export function ProfileView() {
         additionalDetails: draft.locationDetails.additionalDetails.trim(),
       },
       description: draft.description.trim(),
+    };
+    if (!businessId) {
+      setErrors({ form: "Your provider business has not been created yet." });
+      return;
+    }
+    const result = await saveBusinessProfile({
+      providerType: providerType ?? nextProfile.category,
+      businessName: nextProfile.name,
+      businessDescription: nextProfile.description,
+      yearsExperience: yearsExperience ?? null,
+      facebookPage: facebookPage ?? "",
+      locationDetails: nextProfile.locationDetails,
     });
+    if (!result.ok) {
+      setErrors({ form: result.error });
+      return;
+    }
+    if (coverPhotoFile) {
+      try {
+        const asset = await uploadMediaFile(coverPhotoFile, {
+          businessId: result.id,
+          category: "business_cover",
+          visibility: "public",
+        });
+        const linked = await setBusinessCoverAsset(result.id, asset.id);
+        if (!linked.ok) {
+          setErrors({ photo: linked.error });
+          return;
+        }
+        nextProfile.coverPhoto = asset.url ?? nextProfile.coverPhoto;
+      } catch (error) {
+        setErrors({ photo: error instanceof Error ? error.message : "The cover photo could not be uploaded." });
+        return;
+      }
+    } else if (coverPhotoRemoved) {
+      const cleared = await setBusinessCoverAsset(result.id, null);
+      if (!cleared.ok) {
+        setErrors({ photo: cleared.error });
+        return;
+      }
+      nextProfile.coverPhoto = null;
+    }
+    updateTenantProfile(nextProfile);
+    setCoverPhotoFile(null);
+    setCoverPhotoRemoved(false);
     setErrors({});
     setEditingInfo(false);
   };
@@ -139,7 +208,7 @@ export function ProfileView() {
     setEditingHours(false);
   };
 
-  const saveHours = () => {
+  const saveHours = async () => {
     if (hoursDraft.some((entry) => !isValidBusinessHours(entry))) {
       setErrors({
         businessHours:
@@ -148,6 +217,15 @@ export function ProfileView() {
       return;
     }
 
+    if (!businessId) {
+      setErrors({ businessHours: "Your provider business has not been created yet." });
+      return;
+    }
+    const result = await saveBusinessHours(businessId, { hours: hoursDraft });
+    if (!result.ok) {
+      setErrors({ businessHours: result.error });
+      return;
+    }
     updateTenantProfile({ businessHours: hoursDraft });
     setErrors({});
     setEditingHours(false);
@@ -205,6 +283,8 @@ export function ProfileView() {
       ...current,
       coverPhoto: URL.createObjectURL(file),
     }));
+    setCoverPhotoFile(file);
+    setCoverPhotoRemoved(false);
     setErrors((current) => ({ ...current, photo: "" }));
   };
 
@@ -226,7 +306,16 @@ export function ProfileView() {
     setEditingAmenities(false);
   };
 
-  const saveAmenities = () => {
+  const saveAmenities = async () => {
+    if (!businessId) {
+      setErrors({ amenities: "Your provider business has not been created yet." });
+      return;
+    }
+    const result = await saveBusinessAmenities(businessId, { amenities: amenitiesDraft });
+    if (!result.ok) {
+      setErrors({ amenities: result.error });
+      return;
+    }
     updateTenantProfile({ amenities: amenitiesDraft });
     toast({
       title: "Amenities saved",
@@ -563,12 +652,11 @@ export function ProfileView() {
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() =>
-                        setDraft((current) => ({
-                          ...current,
-                          coverPhoto: null,
-                        }))
-                      }
+                      onClick={() => {
+                        setDraft((current) => ({ ...current, coverPhoto: null }));
+                        setCoverPhotoFile(null);
+                        setCoverPhotoRemoved(true);
+                      }}
                     >
                       <X className="mr-2 size-4" /> Remove
                     </Button>

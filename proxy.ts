@@ -55,9 +55,12 @@ export async function proxy(request: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  const isProviderRoute =
+    request.nextUrl.pathname.startsWith("/tenant-dashboard") ||
+    request.nextUrl.pathname.startsWith("/dashoard");
   const hasRequiredRole = isAdminRoute
     ? profile?.role === "admin"
-    : profile?.role === "provider" || profile?.role === "admin";
+    : isProviderRoute && profile?.role === "provider";
 
   if (!hasRequiredRole) {
     return NextResponse.redirect(new URL("/", request.url));
