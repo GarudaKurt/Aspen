@@ -75,7 +75,6 @@ pipeline {
                         passwordVariable: 'GITHUB_TOKEN'
                     )
                 ]) {
-                    // JSON is parsed with node, so jq is not required on the agent
                     sh '''
                         set -e
 
