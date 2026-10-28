@@ -132,9 +132,9 @@ export function DashboardSidebar({ businessName, onSignOut }: { businessName: st
           className={`mb-7 flex shrink-0 items-center gap-2 ${open ? "justify-between" : "justify-center"}`}
         >
           <Link
-            href="/tenant-dashboard"
-            aria-label="Aspen dashboard"
-            title={open ? undefined : "Aspen dashboard"}
+            href="/"
+            aria-label="Aspen homepage"
+            title={open ? undefined : "Aspen homepage"}
             onClick={() => { if (window.innerWidth < 1024) setOpen(false); }}
             className="inline-flex min-w-0 items-center gap-2 rounded-md text-lg font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]"
           >
