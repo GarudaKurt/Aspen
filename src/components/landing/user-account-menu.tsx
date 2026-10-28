@@ -102,12 +102,12 @@ function AccountItemLabel({ item }: { item: AccountLink }) {
 export function UserAccountMenu({
   user,
   favoriteCount,
-  hasBusiness,
+  isProvider,
   onSignOut,
 }: {
   user: HeaderUser;
   favoriteCount: number;
-  hasBusiness: boolean;
+  isProvider: boolean;
   onSignOut: () => void;
 }) {
   const { fullName } = getNameParts(user.displayName, user.email);
@@ -142,18 +142,20 @@ export function UserAccountMenu({
             <p className="truncate text-xs text-[#8d918f]">{user.email}</p>
           </div>
         </div>
+        {isProvider && (
+          <div className="border-b border-[#ececea] py-2">
+            <DropdownMenuLinkItem render={<Link href="/tenant-dashboard" />}>
+              <LayoutDashboard size={16} className="text-[#3c6355]" aria-hidden="true" />
+              <span>Go to Dashboard</span>
+            </DropdownMenuLinkItem>
+          </div>
+        )}
         <div className="pt-2">
           {accountLinks.map((item) => (
             <DropdownMenuLinkItem key={item.href} render={<Link href={item.href} />}>
               <AccountItemLabel item={item} />
             </DropdownMenuLinkItem>
           ))}
-          {hasBusiness && (
-            <DropdownMenuLinkItem render={<Link href="/tenant-dashboard" />}>
-              <LayoutDashboard size={16} className="text-[#3c6355]" aria-hidden="true" />
-              <span>Manage business</span>
-            </DropdownMenuLinkItem>
-          )}
         </div>
         <DropdownMenuSeparator className="my-2 h-px bg-[#ececea]" />
         <div>
@@ -180,12 +182,12 @@ export function UserAccountMenu({
 
 export function MobileAccountLinks({
   user,
-  hasBusiness,
+  isProvider,
   onSignOut,
   onNavigate,
 }: {
   user: HeaderUser;
-  hasBusiness: boolean;
+  isProvider: boolean;
   onSignOut: () => void;
   onNavigate: () => void;
 }) {
@@ -200,6 +202,16 @@ export function MobileAccountLinks({
           <p className="truncate text-xs text-[#587267]">{user.email}</p>
         </div>
       </div>
+      {isProvider && (
+        <Link
+          href="/tenant-dashboard"
+          onClick={onNavigate}
+          className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
+        >
+          <LayoutDashboard size={18} aria-hidden="true" />
+          Go to Dashboard
+        </Link>
+      )}
       {accountLinks.map((item) => {
         const Icon = item.icon;
         return (
@@ -237,16 +249,6 @@ export function MobileAccountLinks({
         <CircleHelp size={18} className="text-[#3c6355]" aria-hidden="true" />
         Help &amp; Support
       </Link>
-      {hasBusiness && (
-        <Link
-          href="/tenant-dashboard"
-          onClick={onNavigate}
-          className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold text-[#3c6355] outline-none transition-colors hover:bg-[#f5f7f5] focus-visible:ring-2 focus-visible:ring-[#3c6355]/40"
-        >
-          <LayoutDashboard size={18} aria-hidden="true" />
-          Manage business
-        </Link>
-      )}
       <button
         type="button"
         onClick={onSignOut}

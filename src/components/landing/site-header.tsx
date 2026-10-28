@@ -26,12 +26,6 @@ import {
   type HeaderUser,
 } from "./user-account-menu";
 
-type SiteHeaderProps = {
-  /** Kept for compatibility with existing callers; the browser session is authoritative. */
-  isSignedIn?: boolean;
-  hasBusiness?: boolean;
-};
-
 function toHeaderUser(user: {
   id: string;
   email?: string;
@@ -108,7 +102,7 @@ function ListBusinessAction({ onClick }: { onClick?: () => void }) {
   );
 }
 
-export function SiteHeader({ hasBusiness = false }: SiteHeaderProps) {
+export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const isHomePage = pathname === "/";
@@ -118,6 +112,8 @@ export function SiteHeader({ hasBusiness = false }: SiteHeaderProps) {
   const [signInOpen, setSignInOpen] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [user, setUser] = useState<HeaderUser | null>(null);
+  const [providerAccess, setProviderAccess] = useState<{ userId: string; pathname: string } | null>(null);
+  const userId = user?.id;
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -148,17 +144,39 @@ export function SiteHeader({ hasBusiness = false }: SiteHeaderProps) {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    if (!userId) return;
+
+    void getSupabaseBrowserClient()
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (active && !error && data?.role === "provider") {
+          setProviderAccess({ userId, pathname });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userId, pathname]);
+
   const closeMenus = () => setMobileOpen(false);
 
   const signOut = async () => {
     await getSupabaseBrowserClient().auth.signOut();
     clearListingDraft();
     setUser(null);
+    setProviderAccess(null);
     setMobileOpen(false);
     router.refresh();
   };
 
   const showSignedIn = authResolved && Boolean(user);
+  const isProvider = Boolean(userId && providerAccess?.userId === userId && providerAccess.pathname === pathname);
 
   return (
     <>
@@ -193,7 +211,7 @@ export function SiteHeader({ hasBusiness = false }: SiteHeaderProps) {
                   <UserAccountMenu
                     user={user}
                     favoriteCount={favoriteCount}
-                    hasBusiness={hasBusiness}
+                    isProvider={isProvider}
                     onSignOut={() => void signOut()}
                   />
                 </div>
@@ -270,7 +288,7 @@ export function SiteHeader({ hasBusiness = false }: SiteHeaderProps) {
               {showSignedIn && user ? (
                 <MobileAccountLinks
                   user={user}
-                  hasBusiness={hasBusiness}
+                  isProvider={isProvider}
                   onNavigate={closeMenus}
                   onSignOut={() => void signOut()}
                 />

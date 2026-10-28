@@ -47,7 +47,7 @@ function MobileDashboardHeader() {
       >
         <Menu className="size-5" aria-hidden="true" />
       </Button>
-      <Link href="/tenant-dashboard" className="inline-flex items-center gap-2 rounded-md text-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]">
+      <Link href="/" className="inline-flex items-center gap-2 rounded-md text-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]">
         <AspenLogo size={30} decorative />
         Aspen
       </Link>

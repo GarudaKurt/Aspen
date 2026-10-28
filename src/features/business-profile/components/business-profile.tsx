@@ -1,6 +1,7 @@
 "use client";
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
+import { SiteHeader } from "@/components/landing/site-header";
 import { BusinessMap } from "@/components/landing/business-map";
 import { cityCoordinates } from "@/components/landing/philippine-locations";
 import Image from "next/image";
@@ -355,6 +356,8 @@ export function BusinessProfile({
   );
 
   return (
+    <>
+    {!preview && <SiteHeader />}
     <main className="min-h-screen bg-white px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
       <div className="mx-auto max-w-[1120px]">
         <header className="flex items-center justify-between border-b border-[#d9d9d6] pb-4">
@@ -365,13 +368,15 @@ export function BusinessProfile({
             <ArrowLeft size={16} />
             Back to search
           </Link>
-          <Link
-            href="/"
-            className="ml-auto inline-flex items-center gap-2 text-base font-medium tracking-wide"
-          >
-            <AspenLogo size={28} decorative />
-            <span>Aspen</span>
-          </Link>
+          {preview && (
+            <Link
+              href="/"
+              className="ml-auto inline-flex items-center gap-2 text-base font-medium tracking-wide"
+            >
+              <AspenLogo size={28} decorative />
+              <span>Aspen</span>
+            </Link>
+          )}
         </header>
 
         <section className="pt-6 sm:pt-8">
@@ -622,6 +627,7 @@ export function BusinessProfile({
         </div>
       </div>
     </main>
+    </>
   );
 }
 
