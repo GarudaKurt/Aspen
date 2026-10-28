@@ -2,7 +2,7 @@ export type DashboardNavItem = {
   label: string;
   href: string;
   icon: string;
-  group: "main" | "content" | "business";
+  group: "overview" | "business" | "inbox" | "account";
 };
 
 export type CalendarEvent = {

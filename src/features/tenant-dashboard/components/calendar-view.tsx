@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCalendarEvents } from "../mock-data";
 import type { CalendarEvent } from "../types";
-import { MobileDashboardNav } from "./dashboard-shell";
 
 const filters: Array<CalendarEvent["type"] | "all"> = [
   "all",
@@ -82,7 +81,6 @@ export function CalendarView() {
 
   return (
     <>
-      <MobileDashboardNav />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Calendar</h1>

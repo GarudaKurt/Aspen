@@ -1,4 +1,3 @@
-import { MobileDashboardNav } from "@/features/tenant-dashboard/components/dashboard-shell";
 import { NotificationCenter, type AppNotification } from "@/features/notifications";
 
 const notifications: AppNotification[] = [
@@ -26,5 +25,5 @@ const notifications: AppNotification[] = [
 ];
 
 export default function TenantNotificationsPage() {
-  return <NotificationCenter audience="provider" notifications={notifications} navigation={<MobileDashboardNav />} />;
+  return <NotificationCenter audience="provider" notifications={notifications} />;
 }

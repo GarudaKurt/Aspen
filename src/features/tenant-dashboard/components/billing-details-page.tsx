@@ -28,7 +28,6 @@ const professionalPlan = subscriptionPlans.find((plan) => plan.name === "Profess
 import { Switch } from "@/components/ui/switch";
 
 import { useListingStore } from "@/features/business-profile/store/onboarding.store";
-import { MobileDashboardNav } from "./dashboard-shell";
 
 type PaymentMethodType = "debit" | "credit" | "gcash";
 
@@ -175,7 +174,6 @@ export function BillingDetailsPage() {
 
   return (
     <>
-      <MobileDashboardNav />
       <div className="space-y-7">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#3c6355]">

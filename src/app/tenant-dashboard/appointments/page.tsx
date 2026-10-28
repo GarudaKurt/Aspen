@@ -1,4 +1,3 @@
-import { MobileDashboardNav } from "@/features/tenant-dashboard/components/dashboard-shell";
 import {
   AppointmentManagementPage,
 } from "@/features/appointments";
@@ -15,7 +14,6 @@ export default async function TenantAppointmentsPage() {
   if (!business) {
     return (
       <>
-        <MobileDashboardNav />
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
           <h1 className="text-xl font-semibold">Complete your provider profile first</h1>
           <p className="mt-2 text-sm text-slate-500">Your appointment inbox will appear after a business is connected to this provider account.</p>
@@ -32,7 +30,6 @@ export default async function TenantAppointmentsPage() {
 
   return (
     <>
-      <MobileDashboardNav />
       <AppointmentManagementPage
         initialAppointments={(data ?? []).map((row) => mapAppointmentRow(row))}
         businessId={business.slug}

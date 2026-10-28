@@ -68,7 +68,7 @@ function statusClass(status: AppointmentStatus) {
 
 function StatusBadge({ status }: { status: AppointmentStatus }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusClass(status)}`}>
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${statusClass(status)}`}>
       {status}
     </span>
   );
@@ -88,12 +88,12 @@ function SummaryCard({
   return (
     <Card className="bg-white p-5 shadow-none">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm text-slate-500">{label}</p>
           <strong className="mt-2 block text-3xl">{value}</strong>
         </div>
-        <span className={`grid size-11 place-items-center rounded-2xl ${tone}`}>
-          <Icon className="size-5" />
+        <span className={`grid size-11 shrink-0 place-items-center rounded-2xl ${tone}`}>
+          <Icon className="size-5 shrink-0" />
         </span>
       </div>
     </Card>
