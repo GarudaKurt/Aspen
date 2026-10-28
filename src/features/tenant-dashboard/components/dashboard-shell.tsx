@@ -3,14 +3,14 @@
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { clearListingDraft } from "@/features/business-profile/store/onboarding.store";
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({ children, businessName }: { children: React.ReactNode; businessName: string }) {
   const router = useRouter();
   const logout = async () => {
     await getSupabaseBrowserClient().auth.signOut();
@@ -20,60 +20,37 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-[#fafaf9] text-[#171817]">
-        <header className="mx-auto flex max-w-[1440px] items-center 2xl:max-w-[1920px] justify-between border-b border-slate-200 px-5 py-6 sm:px-8">
-          <Link href="/tenant-dashboard" className="inline-flex items-center gap-2 text-2xl font-bold">
-            <AspenLogo size={36} decorative />
-            <span>Aspen</span>
-          </Link>
-          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2">
-            <div className="flex items-center gap-3 px-1">
-
-            <span className="grid size-9 place-items-center rounded-full bg-[#b78a68] text-sm font-semibold text-white">
-              PS
-            </span>
-            <span className="hidden sm:block">
-              <strong className="block leading-4">PawSpot</strong>
-              <small className="text-slate-500">Service provider</small>
-            </span>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={logout}
-              aria-label="Sign out of provider dashboard"
-              title="Sign out"
-              className="text-[#3c6355]"
-            >
-              <LogOut />
-            </Button>
-          </div>
-        </header>
+      <div className="min-h-screen bg-white text-[#171817]">
+        <MobileDashboardHeader />
         <div className="mx-auto flex max-w-[1440px] 2xl:max-w-[1920px]">
-          <DashboardSidebar />
-          <main className="min-w-0 flex-1 p-5 sm:p-8 xl:p-10 2xl:p-14">{children}</main>
+          <DashboardSidebar businessName={businessName} onSignOut={logout} />
+          <main id="dashboard-content" className="min-w-0 flex-1 bg-white p-5 sm:p-8 xl:p-10 2xl:p-14">{children}</main>
         </div>
       </div>
     </SidebarProvider>
   );
 }
 
-export function MobileDashboardNav() {
+function MobileDashboardHeader() {
   const { open, setOpen } = useSidebar();
 
   return (
-    <div className="mb-5 flex lg:hidden">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
       <Button
         type="button"
         variant="outline"
-        size="icon"
+        size="icon-lg"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
+        aria-controls="provider-navigation"
         onClick={() => setOpen(!open)}
       >
-        <Menu />
+        <Menu className="size-5" aria-hidden="true" />
       </Button>
-    </div>
+      <Link href="/tenant-dashboard" className="inline-flex items-center gap-2 rounded-md text-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]">
+        <AspenLogo size={30} decorative />
+        Aspen
+      </Link>
+    </header>
   );
 }

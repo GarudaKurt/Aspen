@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent } from "react";
 import { Check, Maximize2, Minimize2, Pencil, Upload, X, MapPin } from "lucide-react";
 import { BusinessLocationPicker } from "@/features/business-profile/components/business-location-picker";
@@ -31,7 +32,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MobileDashboardNav } from "./dashboard-shell";
 import {
   initialTenantProfile,
   type TenantProfile,
@@ -48,6 +48,7 @@ import {
 } from "@/features/tenancy/api/actions";
 import { setBusinessCoverAsset } from "@/features/media/api/actions";
 import { uploadMediaFile } from "@/features/media/client";
+import { getBusinessInitials } from "../profile/business-initials";
 
 type EditableProfile = TenantProfile;
 
@@ -66,6 +67,7 @@ export function ProfileView({
   yearsExperience?: number | null;
   facebookPage?: string;
 }) {
+  const router = useRouter();
   const [profile, setProfile] = useState<EditableProfile>(initialProfile);
   const updateTenantProfile = (update: Partial<EditableProfile>) =>
     setProfile((current) => ({ ...current, ...update }));
@@ -192,6 +194,7 @@ export function ProfileView({
     setCoverPhotoRemoved(false);
     setErrors({});
     setEditingInfo(false);
+    router.refresh();
   };
 
   const startHoursEdit = () => {
@@ -496,7 +499,6 @@ export function ProfileView({
 
   return (
     <>
-      <MobileDashboardNav />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Profile</h1>
@@ -634,8 +636,8 @@ export function ProfileView({
                       className="h-16 w-22 rounded-lg object-cover"
                     />
                   ) : (
-                    <div className="grid h-16 w-22 place-items-center rounded-lg bg-[#f1f2f8] text-sm font-semibold text-[#3c6355]">
-                      PS
+                    <div className="grid h-16 w-22 place-items-center rounded-lg bg-[#eaf0ed] text-sm font-semibold text-[#3c6355]">
+                      {getBusinessInitials(draft.name)}
                     </div>
                   )}
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50">
@@ -702,7 +704,7 @@ export function ProfileView({
             />
           ) : (
             <span className="mx-auto grid size-20 place-items-center rounded-2xl bg-[#b78a68] text-2xl font-bold text-white">
-              PS
+              {getBusinessInitials(profile.name)}
             </span>
           )}
           <h2 className="mt-4 text-xl font-semibold">{profile.name}</h2>

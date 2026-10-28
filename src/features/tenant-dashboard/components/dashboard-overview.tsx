@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MobileDashboardNav } from "./dashboard-shell";
 import {
   getProfileCompletion,
   getProfileSetupItems,
@@ -38,7 +37,6 @@ export function DashboardOverview() {
 
   return (
     <>
-      <MobileDashboardNav />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold sm:text-4xl">Workspace</h1>

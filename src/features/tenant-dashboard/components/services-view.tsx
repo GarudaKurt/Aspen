@@ -273,7 +273,7 @@ export function ServicesView({
 
       <Card className="overflow-hidden bg-white p-0 shadow-none">
         <div className="flex flex-col gap-4 border-b border-slate-200 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-2 rounded-xl bg-[#f6f3f9] p-1">
+          <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-1">
             {(["All", "Active", "Draft", "Paused"] as StatusFilter[]).map((item) => (
               <Button
                 key={item}
