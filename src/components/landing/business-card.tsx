@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getBusinessInitials } from "@/features/tenant-dashboard/profile/business-initials";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -186,7 +187,7 @@ export function BusinessCard({
             className={`select-none rounded-sm object-cover ${currentImage.position ?? ""}`}
           />
         )}
-        {!hasImages && <div className="grid h-full place-items-center text-sm text-[#3c6355]">No photos yet</div>}
+        {!hasImages && <div className="grid h-full place-items-center bg-[#edf3ef] text-4xl font-semibold text-[#3c6355]">{getBusinessInitials(businessName)}</div>}
         {hasImages && (
           <>
             <Button

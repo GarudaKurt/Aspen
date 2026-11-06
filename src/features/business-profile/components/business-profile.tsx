@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { BusinessMap } from "@/components/landing/business-map";
 import { cityCoordinates } from "@/components/landing/philippine-locations";
 import Image from "next/image";
+import { getBusinessInitials } from "@/features/tenant-dashboard/profile/business-initials";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import {
@@ -208,7 +209,7 @@ export function BusinessProfile({
 
         <section className="pt-6 sm:pt-8">
           <div className="relative block h-[150px] overflow-hidden rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
-            {coverPhoto && (
+            {coverPhoto ? (
               <Image
                 src={coverPhoto}
                 alt="Business cover photo"
@@ -217,7 +218,7 @@ export function BusinessProfile({
                 sizes="(min-width: 1024px) 1120px, 100vw"
                 className="object-cover"
               />
-            )}
+            ) : <div className="grid h-full place-items-center bg-[#edf3ef] text-5xl font-semibold text-[#3c6355]" aria-label={`${provider.name} initials`}>{getBusinessInitials(provider.name)}</div>}
           </div>
           <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">

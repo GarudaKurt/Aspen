@@ -32,7 +32,7 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     // Relevant real tenancy schema and policies; unrelated Storage/appointment
     // compatibility SQL needs the rest of Supabase and is outside this fixture.
     await db.exec(read('0017_tenancy.sql').split('insert into storage.buckets')[0]);
-    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql']) await db.exec(read(migration));
+    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql']) await db.exec(read(migration));
     const as = async (id, role = 'authenticated') => {
       await db.exec('reset role');
       await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id ?? '']);
@@ -62,12 +62,25 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     assert.ok(coverKey.includes(uid(101)));
     await mutate('delete',uid(101));
     assert.notEqual((await db.query('select cover_photo_path from public.businesses where id=$1',[business.id])).rows[0].cover_photo_path,coverKey);
+    // Dedicated cover removal must not silently promote a remaining gallery image.
+    await mutate('cover',uid(102));
+    await assert.rejects(mutate('add_cover',null,uid(140)),/cover photo changed/);
+    await assert.rejects(mutate('replace_cover',uid(103),uid(140)),/cover photo changed/);
+    await assert.rejects(mutate('remove_cover',uid(103)),/cover photo changed/);
+    await mutate('replace_cover',uid(102),uid(140));
+    assert.ok((await db.query('select cover_photo_path from public.businesses where id=$1',[business.id])).rows[0].cover_photo_path.includes(uid(140)));
+    await mutate('remove_cover',uid(140));
+    assert.equal((await db.query('select cover_photo_path from public.businesses where id=$1',[business.id])).rows[0].cover_photo_path,null);
+    assert.equal((await db.query("select count(*)::int as n from public.media_assets where status='active'")).rows[0].n,10);
+    await mutate('add_cover',null,uid(141));
+    assert.ok((await db.query('select cover_photo_path from public.businesses where id=$1',[business.id])).rows[0].cover_photo_path.includes(uid(141)));
     await assert.rejects(db.query("update public.media_assets set object_key='applications/stolen/document' where id=$1",[uid(102)]),/immutable/);
     await assert.rejects(db.query("update public.businesses set status='draft' where id=$1",[business.id]),/Only administrators/);
     await as(uid(3));
     await assert.rejects(mutate('cover',uid(102)),/access denied/);
     await assert.rejects(mutate('delete',uid(102)),/access denied/);
     await assert.rejects(mutate('add',null,uid(130)),/access denied/);
+    for (const action of ['add_cover','replace_cover','remove_cover']) await assert.rejects(mutate(action,uid(141),uid(150)),/access denied/);
     const updated = await db.query("update public.media_assets set status='deleted' where id=$1 returning id",[uid(102)]);
     assert.equal(updated.rows.length,0);
     await as(null,'anon');
@@ -79,6 +92,6 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     await as(null,'anon');
     assert.equal((await db.query('select id from public.businesses')).rows.length,0);
     assert.equal((await db.query('select id from public.media_assets')).rows.length,0);
-    console.log('PostgreSQL checks passed: admin approval/publication, idempotency, gallery cap, replacement, cover reassignment, immutable keys, ownership/RLS, anonymous visibility and archived-business privacy.');
+    console.log('PostgreSQL checks passed: admin approval/publication, idempotency, gallery cap, replacement, cover reassignment, explicit removal/replacement, stale cover rejection, immutable keys, ownership/RLS, anonymous visibility and archived-business privacy.');
   } finally { await db.close(); }
 })().catch((error) => { console.error(error.message); process.exitCode=1; });

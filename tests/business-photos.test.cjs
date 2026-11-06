@@ -44,7 +44,7 @@ const png = new File([new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])], 'photo
 
 function request(action = 'add', file = png, extra = {}) {
   const form = new FormData(); form.set('businessId', bid); form.set('action', action);
-  if (action !== 'add') form.set('photoId', photoId);
+  if (!['add','add_cover'].includes(action)) form.set('photoId', photoId);
   if (file) form.set('file', file);
   return new Request('https://aspen.test/api/business-photos', { method: 'POST', body: form, headers: { origin: 'https://aspen.test', ...extra } });
 }
@@ -197,4 +197,40 @@ test('business hours save by weekday name rather than array position', async () 
   assert.equal((await saveBusinessHours(bid, { hours })).ok, true);
   assert.deepEqual(rows.map((row) => row.day_of_week), [1,2,3,4,5,6,0]);
   assert.equal((await saveBusinessHours(bid, { hours: Array(7).fill(hours[0]) })).ok, false);
+});
+
+
+test('dedicated cover upload, replacement at capacity, and removal use authorized metadata actions', async () => {
+  const add = routeFixture();
+  assert.equal((await add.POST(request('add_cover'))).status, 200);
+  assert.equal(add.calls[0].input.p_action, 'add_cover');
+  const replace = routeFixture({ photos: Array.from({length:12}, () => photo) });
+  assert.equal((await replace.POST(request('replace_cover'))).status, 200);
+  assert.equal(replace.calls[0].input.p_action, 'replace_cover');
+  const remove = routeFixture({photos:[photo]});
+  assert.equal((await remove.POST(request('remove_cover',null))).status, 200);
+  assert.equal(remove.calls[0].input.p_action, 'remove_cover');
+  assert.equal(remove.writes.length, 0);
+});
+
+test('stale cover edits and unauthorized cover actions cannot upload bytes', async () => {
+  const stale = routeFixture({photos:[{...photo,isCover:false}]});
+  for (const action of ['replace_cover','remove_cover']) assert.equal((await stale.POST(request(action))).status,409);
+  assert.equal(stale.writes.length,0);
+  const existing = routeFixture({photos:[photo]});
+  assert.equal((await existing.POST(request('add_cover'))).status,409);
+  assert.equal(existing.writes.length,0);
+  const denied = routeFixture({authorized:false});
+  for (const action of ['add_cover','replace_cover','remove_cover']) assert.equal((await denied.POST(request(action))).status,403);
+  assert.equal(denied.writes.length,0);
+});
+
+test('explicitly cleared cover does not use a remaining gallery image on cards', async () => {
+  const { getPublishedBusinessCards } = load('src/features/tenancy/api/queries.ts', {
+    '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database({
+      businesses:[{id:bid,slug:'real',name:'Real business',status:'published',provider_type:'Clinic',cover_photo_path:null,business_services:[]}],
+      media_assets:[{id:photoId,business_id:bid,object_key:'remaining',status:'active',visibility:'public',category:'business_gallery'}],
+    }) }, '@/lib/r2/client': {}, '@/server/auth/guard': {}, '@/server/auth/session': {},
+  });
+  assert.deepEqual((await getPublishedBusinessCards())[0].images,[]);
 });

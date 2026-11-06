@@ -8,8 +8,9 @@ Apply these migrations in Supabase SQL Editor after the existing tenancy/media/R
 
 1. `supabase/migrations/0024_business_photos.sql`
 2. `supabase/migrations/0025_publish_approved_businesses.sql`
+3. `supabase/migrations/0026_business_cover_photos.sql` (dedicated Business Info cover controls)
 
-Numbers 0022/0023 are reserved for the separate authentication branch; these two migrations do not depend on them. Do not rerun the foundational migrations or disable security triggers. SQL was tested against the existing tenancy/RLS migrations in an isolated PostgreSQL runtime, not applied to the hosted project by this change.
+Numbers 0022/0023 are reserved for the separate authentication branch; these migrations do not depend on them. Do not rerun the foundational migrations or disable security triggers. SQL was tested against the existing tenancy/RLS migrations in an isolated PostgreSQL runtime, not applied to the hosted project by this change.
 
 Set these **server-only** variables locally and in the appropriate Vercel deployment environment, then redeploy:
 
@@ -32,10 +33,18 @@ Use an R2 token with Object Read & Write scoped to the configured bucket. See [C
 - JPEG, PNG and WebP; maximum 4 MiB per file, checked in the browser and server. The limit leaves room for multipart headers under [Vercel's 4.5 MB payload limit](https://vercel.com/docs/functions/limitations).
 - The server validates MIME signatures, uses its own random object key, and uploads the bytes to R2. The browser never receives R2 write credentials or a writable final-object URL.
 - Providers must have a verified Supabase email and own the business. RLS and the metadata RPC enforce ownership independently of UI visibility.
-- Selecting a cover retains the other gallery images. Replacing a cover preserves its cover position. Deleting a cover selects another active photo.
+- Selecting a cover retains the other gallery images. Replacing a cover preserves its cover position. Deleting a cover from the gallery selects another active photo. Using **Remove** in Business Info explicitly clears the cover and restores business initials, even if gallery photos remain.
 - Replacement/deletion marks old metadata as deleted transactionally. After successful R2 cleanup, the metadata is removed. Failed cleanup remains marked deleted and retries on the next gallery change; it cannot appear publicly. Signed download URLs already issued may remain usable for at most 60 seconds.
 - If an RPC connection fails with an unknown commit outcome, the server retains the new object to avoid deleting a potentially committed photo. Reconcile unreferenced gallery objects during storage maintenance; never delete an object that is still referenced by `media_assets`.
 - Unsaved previews exist only in browser memory and object URLs are revoked after upload/removal/unmount.
+
+## Business Info cover control
+
+In Tenant Dashboard > Profile > Business Info, choose **Upload photo** or **Replace photo**, review the preview, and select **Save cover photo**. This saves independently of the text fields. **Remove** deletes that cover and clears the listing image; other gallery images remain on the public Photos tab. Use **Use as cover** in the gallery to select an existing image without uploading again.
+
+The cover and gallery share one mutation lock and photo state. Cover replacement/removal verifies the expected current photo under a database row lock, preventing a stale tab from overwriting another cover selection. Replacement works at the 12-photo limit. Public cards, public profile headers and the dashboard use the explicit cover reference; without one, they display the first letters of the first two business-name words (one for a single word).
+
+Apply **0026** before deploying these controls; do not rerun already-applied migrations. No new environment variables or tables are needed. Verify upload, replacement, removal with remaining gallery photos, refresh persistence and public views using a verified provider account after deployment.
 
 ## Approval and publication
 
@@ -88,4 +97,4 @@ Before deployment acceptance, use actual test accounts after applying the migrat
 4. As another provider/customer/anonymous user, verify gallery mutations are denied. Unpublish/archive a business and verify its card, profile, and image endpoint become unavailable publicly.
 5. Check desktop and narrow mobile layouts; all controls remain reachable. Verify unsupported/oversized files, interrupted uploads, empty galleries, query failures, and an unknown business slug.
 
-The 14 unit/route tests use mocked dependencies. The SQL tests and R2 storage round-trip were run separately. Desktop/mobile browser checks verified the public empty state, no horizontal overflow, and unavailable slug behavior; local production HTTP checks returned 200 for the landing page, 403 for an anonymous upload, and 404 for a missing photo. A full authenticated browser upload → hosted Supabase metadata → public image flow still requires the migrations and an authenticated provider session.
+The unit/route tests use mocked dependencies. The SQL tests and R2 storage round-trip were run separately. Desktop/mobile browser checks verified the public empty state, no horizontal overflow, and unavailable slug behavior; local production HTTP checks returned 200 for the landing page, 403 for an anonymous upload, and 404 for a missing photo. A full authenticated browser upload → hosted Supabase metadata → public image flow still requires the migrations and an authenticated provider session.

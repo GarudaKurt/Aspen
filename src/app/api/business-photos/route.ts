@@ -8,9 +8,9 @@ import { MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-phot
 
 export const runtime = "nodejs";
 const inputSchema = z.object({
-  businessId: z.string().uuid(), action: z.enum(["add", "replace", "cover", "delete"]),
+  businessId: z.string().uuid(), action: z.enum(["add", "replace", "cover", "delete", "add_cover", "replace_cover", "remove_cover"]),
   photoId: z.string().uuid().optional(),
-}).refine((data) => data.action === "add" || Boolean(data.photoId), "Select a photo.");
+}).refine((data) => ["add", "add_cover"].includes(data.action) || Boolean(data.photoId), "Select a photo.");
 
 function failure(error: string, status = 400) { return NextResponse.json({ error }, { status }); }
 class PhotoRequestTooLarge extends Error {}
@@ -44,11 +44,15 @@ export async function POST(request: Request) {
     const { supabase, business } = owned;
     // Check replacement ownership before uploading any bytes.
     const photos = await businessPhotos(supabase, businessId, business.cover_photo_path);
-    if (action !== "add" && !photos.some((photo) => photo.id === photoId)) return failure("Photo not found.", 404);
-    if (action === "add" && photos.length >= 12) return failure("You can upload up to 12 business photos.");
+    if (!["add", "add_cover"].includes(action) && !photos.some((photo) => photo.id === photoId)) return failure("Photo not found.", 404);
+    if (["add", "add_cover"].includes(action) && photos.length >= 12) return failure("You can upload up to 12 business photos.");
+    const cover = photos.find((photo) => photo.isCover);
+    if ((action === "add_cover" && cover) || (["replace_cover", "remove_cover"].includes(action) && cover?.id !== photoId)) {
+      return failure("The cover photo changed. Reload this page before trying again.", 409);
+    }
     const file = form.get("file");
     let newId: string | undefined;
-    if (action === "add" || action === "replace") {
+    if (["add", "replace", "add_cover", "replace_cover"].includes(action)) {
       if (!(file instanceof File)) return failure("Select a photo to upload.");
       const invalid = validateBusinessPhoto(file);
       if (invalid) return failure(invalid);

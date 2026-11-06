@@ -47,6 +47,8 @@ import {
   saveBusinessProfile,
 } from "@/features/tenancy/api/actions";
 import { BusinessPhotoManager } from "@/features/business-photos/components/business-photo-manager";
+import { BusinessCoverPhoto } from "@/features/business-photos/components/business-cover-photo";
+import { useBusinessPhotos } from "@/features/business-photos/use-business-photos";
 import type { BusinessPhoto } from "@/features/business-photos/types";
 import { getBusinessInitials } from "../profile/business-initials";
 
@@ -73,6 +75,12 @@ export function ProfileView({
   const updateTenantProfile = (update: Partial<EditableProfile>) =>
     setProfile((current) => ({ ...current, ...update }));
   const [draft, setDraft] = useState<EditableProfile>(profile);
+  const photoController = useBusinessPhotos(businessId ?? "", photos, (updated) => {
+    const coverPhoto = updated.find((photo) => photo.isCover)?.url ?? null;
+    const photoUrls = updated.map((photo) => photo.url);
+    setProfile((current) => ({ ...current, coverPhoto, photos: photoUrls }));
+    setDraft((current) => ({ ...current, coverPhoto, photos: photoUrls }));
+  });
   const [hoursDraft, setHoursDraft] = useState<BusinessHoursDay[]>(
     profile.businessHours,
   );
@@ -156,7 +164,7 @@ export function ProfileView({
       setErrors({ form: result.error });
       return;
     }
-    updateTenantProfile(nextProfile);
+    setProfile((current) => ({ ...current, ...nextProfile, coverPhoto: current.coverPhoto, photos: current.photos }));
     setErrors({});
     setEditingInfo(false);
     router.refresh();
@@ -416,12 +424,7 @@ export function ProfileView({
         </Button>
       </div>
 
-      {businessId && <div className="mt-7"><BusinessPhotoManager businessId={businessId} initialPhotos={photos} onChange={(updated) => {
-        const coverPhoto = updated.find((photo) => photo.isCover)?.url ?? updated[0]?.url ?? null;
-        const photoUrls = updated.map((photo) => photo.url);
-        setProfile((current) => ({ ...current, coverPhoto, photos: photoUrls }));
-        setDraft((current) => ({ ...current, coverPhoto, photos: photoUrls }));
-      }} /></div>}
+      {businessId && <div className="mt-7"><BusinessPhotoManager controller={photoController} /></div>}
       <div className="mt-7 grid gap-5 xl:grid-cols-[1.5fr_1fr]">
         <Card className="bg-white p-6 shadow-none">
           <div className="flex items-center justify-between gap-3">
@@ -445,6 +448,8 @@ export function ProfileView({
               </div>
             )}
           </div>
+
+          {businessId && <BusinessCoverPhoto businessName={editingInfo ? draft.name : profile.name} controller={photoController} />}
 
           {editingInfo ? (
             <div className="mt-5 space-y-4">

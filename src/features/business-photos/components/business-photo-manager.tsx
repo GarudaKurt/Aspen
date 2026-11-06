@@ -5,43 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Star, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "@/components/ui/toast";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { MAX_BUSINESS_PHOTOS, validateBusinessPhoto, type BusinessPhoto } from "../types";
 
+import type { BusinessPhotosController } from "../use-business-photos";
+
 type QueuedPhoto = { file: File; preview: string; replaceId?: string };
 
-function sendPhoto(form: FormData, onProgress: (progress: number) => void): Promise<BusinessPhoto[]> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/business-photos");
-    xhr.timeout = 60_000;
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) onProgress(Math.round(event.loaded / event.total * 95));
-    };
-    xhr.onerror = () => reject(new Error("Upload interrupted. Check your connection and reload the gallery before retrying."));
-    xhr.ontimeout = () => reject(new Error("Upload timed out. Reload the gallery to check whether it was saved before retrying."));
-    xhr.onload = () => {
-      let result;
-      try { result = JSON.parse(xhr.responseText); } catch { reject(new Error("Unable to save this photo. Please try again.")); return; }
-      if (xhr.status >= 200 && xhr.status < 300 && Array.isArray(result.photos)) {
-        onProgress(100); resolve(result.photos);
-      } else reject(new Error(result.error ?? "Unable to save this photo."));
-    };
-    xhr.send(form);
-  });
-}
-
-export function BusinessPhotoManager({ businessId, initialPhotos, onChange }: {
-  businessId: string; initialPhotos: BusinessPhoto[]; onChange: (photos: BusinessPhoto[]) => void;
-}) {
-  const [photos, setPhotos] = useState(initialPhotos);
+export function BusinessPhotoManager({ controller }: { controller: BusinessPhotosController }) {
+  const { photos, busy, progress, error, setError, setProgress, mutate, run } = controller;
   const [queue, setQueue] = useState<QueuedPhoto[]>([]);
-  const [busy, setBusy] = useState(false);
-  const lock = useRef(false);
   const previews = useRef(new Set<string>());
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState("");
   const [deletePhoto, setDeletePhoto] = useState<BusinessPhoto | null>(null);
   useEffect(() => {
     const urls = previews.current;
@@ -49,7 +23,7 @@ export function BusinessPhotoManager({ businessId, initialPhotos, onChange }: {
   }, []);
 
   const select = (files: FileList | null, replaceId?: string) => {
-    if (!files || lock.current) return;
+    if (!files || busy) return;
     const selected = Array.from(files);
     const invalid = selected.map(validateBusinessPhoto).find(Boolean);
     if (invalid) { setError(invalid); return; }
@@ -68,20 +42,6 @@ export function BusinessPhotoManager({ businessId, initialPhotos, onChange }: {
   const removeQueued = (item: QueuedPhoto) => {
     URL.revokeObjectURL(item.preview); previews.current.delete(item.preview);
     setQueue((current) => current.filter((photo) => photo !== item));
-  };
-  const mutate = async (action: string, photoId?: string, file?: File) => {
-    const form = new FormData(); form.set("businessId", businessId); form.set("action", action);
-    if (photoId) form.set("photoId", photoId);
-    if (file) form.set("file", file);
-    const updated = await sendPhoto(form, setProgress);
-    setPhotos(updated); onChange(updated);
-  };
-  const run = async (work: () => Promise<void>) => {
-    if (lock.current) return;
-    lock.current = true; setBusy(true); setError(""); setProgress(0);
-    try { await work(); toast({ title: "Business photos updated.", variant: "success" }); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to update photos."); }
-    finally { lock.current = false; setBusy(false); }
   };
   return (
     <Card className="space-y-5 bg-white p-5 shadow-none sm:p-6">

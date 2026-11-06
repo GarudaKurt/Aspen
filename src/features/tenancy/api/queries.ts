@@ -120,7 +120,7 @@ export async function getMyBusiness() {
   if (!data) return null;
   const business = mapBusiness(data);
   const photos = await businessPhotos(supabase, business.id, business.coverPhotoPath);
-  return { ...business, photos, coverPhotoPath: photos.find((photo) => photo.isCover)?.url ?? photos[0]?.url ?? null };
+  return { ...business, photos, coverPhotoPath: photos.find((photo) => photo.isCover)?.url ?? null };
 }
 
 export async function getMyServices(businessId?: string) {
@@ -174,7 +174,7 @@ export async function getPublishedBusiness(slug: string) {
   if (!data) return null;
   const business = mapBusiness(data);
   const photos = await businessPhotos(supabase, business.id, business.coverPhotoPath);
-  return { ...business, photos, coverPhotoPath: photos.find((photo) => photo.isCover)?.url ?? photos[0]?.url ?? null };
+  return { ...business, photos, coverPhotoPath: photos.find((photo) => photo.isCover)?.url ?? null };
 }
 
 export async function getPublishedBusinessServices(businessId: string) {
@@ -228,7 +228,8 @@ export async function getPublishedBusinessCards(): Promise<BusinessCardProps[]> 
       locationDetails: location, coordinates: location?.coordinates ?? undefined, rating: "",
       services: [...new Set(services.map((service) => service.category))].join(", ") || String(row.provider_type),
       priceStarts: prices.length ? `₱${Math.min(...prices).toLocaleString("en-PH")}` : "",
-      images: photos.map((photo) => ({ src: `/api/business-photos/${photo.id}`, alt: String(row.name) })),
+      images: photos.some((photo) => photo.object_key === row.cover_photo_path)
+        ? photos.map((photo) => ({ src: `/api/business-photos/${photo.id}`, alt: String(row.name) })) : [],
     };
   });
 }
