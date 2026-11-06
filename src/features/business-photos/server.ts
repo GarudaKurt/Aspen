@@ -10,7 +10,7 @@ export async function ownedPhotoBusiness(businessId: string) {
   const { data, error } = await supabase.from("businesses").select("id, slug, cover_photo_path")
     .eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
   if (error || !data) return null;
-  return { supabase, business: data };
+  return { supabase, business: data, ownerId: current.user.id };
 }
 
 export async function businessPhotos(

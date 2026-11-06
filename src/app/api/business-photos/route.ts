@@ -5,6 +5,7 @@ import { deleteR2Object, putR2Photo } from "@/lib/r2/client";
 import { detectMediaType } from "@/features/media/validation";
 import { businessPhotos, ownedPhotoBusiness } from "@/features/business-photos/server";
 import { MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-photos/types";
+import { BusinessPhotoValidationError, validateBusinessImageUpload } from "@/features/business-photos/validate";
 
 export const runtime = "nodejs";
 const inputSchema = z.object({
@@ -41,32 +42,39 @@ export async function POST(request: Request) {
     const { businessId, action, photoId } = parsed.data;
     const owned = await ownedPhotoBusiness(businessId);
     if (!owned) return failure("Sign in with the verified provider account that owns this business.", 403);
-    const { supabase, business } = owned;
+    const { supabase, business, ownerId } = owned;
     // Check replacement ownership before uploading any bytes.
     const photos = await businessPhotos(supabase, businessId, business.cover_photo_path);
     if (!["add", "add_cover"].includes(action) && !photos.some((photo) => photo.id === photoId)) return failure("Photo not found.", 404);
     if (["add", "add_cover"].includes(action) && photos.length >= 12) return failure("You can upload up to 12 business photos.");
+    if (["add", "replace", "add_cover", "replace_cover"].includes(action)) {
+      const { count } = await supabase.from("media_assets").select("id", { count: "exact", head: true })
+        .eq("owner_id", ownerId).gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString());
+      if ((count ?? 0) >= 30) return failure("Too many uploads. Please wait before uploading more files.", 429);
+    }
     const cover = photos.find((photo) => photo.isCover);
     if ((action === "add_cover" && cover) || (["replace_cover", "remove_cover"].includes(action) && cover?.id !== photoId)) {
       return failure("The cover photo changed. Reload this page before trying again.", 409);
     }
     const file = form.get("file");
     let newId: string | undefined;
+    let validated: Awaited<ReturnType<typeof validateBusinessImageUpload>> | undefined;
     if (["add", "replace", "add_cover", "replace_cover"].includes(action)) {
       if (!(file instanceof File)) return failure("Select a photo to upload.");
       const invalid = validateBusinessPhoto(file);
       if (invalid) return failure(invalid);
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (detectMediaType(bytes) !== file.type) return failure("The file contents do not match its image format.");
+      validated = await validateBusinessImageUpload(bytes, file.name, file.type);
       newId = crypto.randomUUID();
-      newKey = `businesses/${businessId}/business_gallery/${newId}-photo`;
-      await putR2Photo(newKey, bytes, file.type);
+      newKey = `businesses/${businessId}/business_gallery/${newId}-photo${validated.extension}`;
+      await putR2Photo(newKey, bytes, validated.contentType);
     }
     uncertainCommit = true;
     const { error } = await supabase.rpc("manage_business_photo", {
       p_business_id: businessId, p_action: action, p_photo_id: photoId ?? null,
-      p_new_id: newId ?? null, p_filename: file instanceof File ? file.name.slice(0, 255) : null,
-      p_content_type: file instanceof File ? file.type : null, p_byte_size: file instanceof File ? file.size : null,
+      p_new_id: newId ?? null, p_filename: validated?.filename ?? null,
+      p_content_type: validated?.contentType ?? null, p_byte_size: file instanceof File ? file.size : null,
     });
     // A connection failure can occur after commit. Never delete the new object
     // when the database outcome is unknown; retain it for reconciliation.
@@ -76,11 +84,14 @@ export async function POST(request: Request) {
       throw new Error("Photo metadata could not be saved.");
     }
     committed = true;
-    const { data: deleted } = await supabase.from("media_assets").select("id, object_key")
+    const { data: deleted } = await supabase.from("media_assets").select("id, object_key, content_type")
       .eq("business_id", businessId).eq("status", "deleted").in("category", ["business_cover", "business_gallery"]).limit(12);
     for (const photo of deleted ?? []) {
       try {
         await deleteR2Object(String(photo.object_key));
+        if (photo.content_type === "image/webp" && !String(photo.object_key).endsWith(".webp")) {
+          await deleteR2Object(`${photo.object_key}.webp`);
+        }
         await supabase.from("media_assets").delete().eq("id", photo.id).eq("status", "deleted");
       } catch { console.warn("Business photo removed from gallery; R2 cleanup will retry on the next gallery change."); }
     }
@@ -93,6 +104,7 @@ export async function POST(request: Request) {
       try { await deleteR2Object(newKey); } catch { console.warn("Unlinked business photo needs R2 cleanup."); }
     }
     if (cause instanceof PhotoRequestTooLarge) return failure("Each photo must be 4 MB or smaller.", 413);
+    if (cause instanceof BusinessPhotoValidationError) return failure(cause.message);
     return failure(committed ? "The change was saved, but the gallery could not refresh. Reload this page." : "Unable to save the photo. Check the R2 configuration and database migration, then try again.", 503);
   }
 }

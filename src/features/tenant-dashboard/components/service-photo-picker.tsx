@@ -30,7 +30,7 @@ export function ServicePhotoPicker({
         <ImagePlus className="size-7 text-[#3c6355]" />
         <span className="mt-2 text-sm font-medium">Upload photos</span>
         <span className="mt-1 text-xs text-slate-500">
-          JPG, JPEG, PNG, or WebP · up to 5 MB each
+          JPG, JPEG, PNG, or WebP · up to 4 MB each · Original format preserved
         </span>
         <input
           id="service-photos"

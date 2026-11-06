@@ -9,6 +9,8 @@ Apply these migrations in Supabase SQL Editor after the existing tenancy/media/R
 1. `supabase/migrations/0024_business_photos.sql`
 2. `supabase/migrations/0025_publish_approved_businesses.sql`
 3. `supabase/migrations/0026_business_cover_photos.sql` (dedicated Business Info cover controls)
+4. `supabase/migrations/0027_business_photo_webp_keys.sql` (previous WebP key policy, if already applied)
+5. `supabase/migrations/0028_restore_original_business_photo_formats.sql` (restores original-format uploads)
 
 Numbers 0022/0023 are reserved for the separate authentication branch; these migrations do not depend on them. Do not rerun the foundational migrations or disable security triggers. SQL was tested against the existing tenancy/RLS migrations in an isolated PostgreSQL runtime, not applied to the hosted project by this change.
 
@@ -23,7 +25,7 @@ R2_BUCKET_NAME=aspen-dev-uploads
 
 `R2_ACCOUNT_ID` remains a supported alternative to `R2_ENDPOINT`. Use the account S3 endpoint without a bucket path. The old public Cloudflare variable names (including the misspelled endpoint name) were renamed in the ignored local environment file without exposing their values. Make the same change in Vercel; `.env.local` is not uploaded to Vercel automatically.
 
-Keep this bucket private because it may also contain identity documents. Business gallery photos use an access-checked endpoint that issues a short-lived signed R2 download URL. A public R2 domain / `R2_PUBLIC_URL` is **not required** for this gallery. Existing service uploads may still use the older presigned browser upload flow and its existing CORS configuration; the new business gallery does not require browser-to-R2 PUT access.
+Keep this bucket private because it may also contain identity documents. Business gallery and service photos use access-checked, short-lived signed URLs. A public R2 domain / `R2_PUBLIC_URL` is **not required**. Public business images are validated by Aspen's server before R2 storage, so browser-to-R2 uploads are not used for them.
 
 Use an R2 token with Object Read & Write scoped to the configured bucket. See [Cloudflare's S3 SDK setup](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/). If old public-prefixed credentials were actually referenced by a deployed client bundle, rotate those credentials as well as renaming them.
 
@@ -31,6 +33,7 @@ Use an R2 token with Object Read & Write scoped to the configured bucket. See [C
 
 - Up to 12 active/pending business photos per business, enforced under a database row lock.
 - JPEG, PNG and WebP; maximum 4 MiB per file, checked in the browser and server. The limit leaves room for multipart headers under [Vercel's 4.5 MB payload limit](https://vercel.com/docs/functions/limitations).
+- New public business, cover, gallery, and service-photo uploads retain their original JPEG, PNG, or WebP byte stream and format. Before storage, the server checks the MIME type, filename extension, file signature, image dimensions, and a full image decode. It stores the original file with a server-generated UUID key and its correct `Content-Type`. Existing WebP uploads remain accessible and are not rewritten.
 - The server validates MIME signatures, uses its own random object key, and uploads the bytes to R2. The browser never receives R2 write credentials or a writable final-object URL.
 - Providers must have a verified Supabase email and own the business. RLS and the metadata RPC enforce ownership independently of UI visibility.
 - Selecting a cover retains the other gallery images. Replacing a cover preserves its cover position. Deleting a cover from the gallery selects another active photo. Using **Remove** in Business Info explicitly clears the cover and restores business initials, even if gallery photos remain.
@@ -44,7 +47,7 @@ In Tenant Dashboard > Profile > Business Info, choose **Upload photo** or **Repl
 
 The cover and gallery share one mutation lock and photo state. Cover replacement/removal verifies the expected current photo under a database row lock, preventing a stale tab from overwriting another cover selection. Replacement works at the 12-photo limit. Public cards, public profile headers and the dashboard use the explicit cover reference; without one, they display the first letters of the first two business-name words (one for a single word).
 
-Apply **0026** before deploying these controls; do not rerun already-applied migrations. No new environment variables or tables are needed. Verify upload, replacement, removal with remaining gallery photos, refresh persistence and public views using a verified provider account after deployment.
+Apply **0026**, **0027** (if it was previously applied), and then **0028** before deploying these controls; do not rerun already-applied migrations. No new environment variables or tables are needed. Migration **0028** restores PNG/JPEG/WebP uploads while leaving past WebP uploads intact. The delivery endpoint has a read-only fallback for the brief legacy state where a converted WebP object was saved with a suffix-less metadata key. Verify upload, replacement, removal with remaining gallery photos, refresh persistence and public views using a verified provider account after deployment.
 
 ## Approval and publication
 

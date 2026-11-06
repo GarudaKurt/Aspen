@@ -109,6 +109,6 @@ export async function deleteR2Object(objectKey: string) {
 export async function putR2Photo(objectKey: string, bytes: Uint8Array, contentType: string) {
   await getClient().send(new PutObjectCommand({
     Bucket: getR2BucketName(), Key: objectKey, Body: bytes, ContentType: contentType,
-    CacheControl: "private, max-age=300",
+    CacheControl: "private, max-age=300", ContentDisposition: "inline",
   }));
 }

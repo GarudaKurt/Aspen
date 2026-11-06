@@ -20,7 +20,7 @@ const emptyDraft: ServiceDraft = {
   status: "Draft",
 };
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
-const maxFileSize = 5 * 1024 * 1024;
+const maxFileSize = 4 * 1024 * 1024;
 
 export function ServiceFormSheet({
   open,
@@ -71,7 +71,7 @@ export function ServiceFormSheet({
       (file) => !allowedTypes.has(file.type) || file.size > maxFileSize,
     );
     if (invalid) {
-      setPhotoError("Use JPG, PNG, or WebP images up to 5 MB each.");
+      setPhotoError("Use JPG, PNG, or WebP images up to 4 MB each.");
       return;
     }
     const remaining = 6 - draft.photos.length;

@@ -57,6 +57,7 @@ export async function createMediaUpload(input: unknown): Promise<ActionResult<Me
   const parsed = mediaUploadRequestSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "The upload details are invalid." };
   if (["business_cover", "business_gallery"].includes(parsed.data.category)) return { ok: false, error: "Use the Business photos manager to upload gallery images." };
+  if (parsed.data.category === "service_photo") return { ok: false, error: "Use the Services photo uploader so images are validated before storage." };
   const current = await getCurrentProfile();
   if (!current?.user || !current.profile) return { ok: false, error: "You must be signed in to upload files." };
   if (!(await canManageTarget(parsed.data, current.user.id, current.profile.role === "admin"))) return { ok: false, error: "You are not allowed to upload to this record." };

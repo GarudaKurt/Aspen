@@ -32,7 +32,7 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     // Relevant real tenancy schema and policies; unrelated Storage/appointment
     // compatibility SQL needs the rest of Supabase and is outside this fixture.
     await db.exec(read('0017_tenancy.sql').split('insert into storage.buckets')[0]);
-    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql']) await db.exec(read(migration));
+    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql','0027_business_photo_webp_keys.sql','0028_restore_original_business_photo_formats.sql']) await db.exec(read(migration));
     const as = async (id, role = 'authenticated') => {
       await db.exec('reset role');
       await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id ?? '']);
@@ -52,7 +52,11 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     assert.equal((await db.query('select count(*)::int as n from public.businesses')).rows[0].n,1);
     const mutate = (action,id,newId=null) => db.query('select public.manage_business_photo($1,$2,$3,$4,$5,$6,$7)',[business.id,action,id,newId,'test.png','image/png',100]);
     await as(uid(2));
-    for (let n=100;n<112;n++) await mutate('add',null,uid(n));
+    await db.query('select public.manage_business_photo($1,$2,$3,$4,$5,$6,$7)',[business.id,'add',null,uid(99),'photo.jpeg','image/jpeg',100]);
+    assert.match((await db.query('select object_key from public.media_assets where id=$1',[uid(99)])).rows[0].object_key, /-photo\.jpg$/);
+    await assert.rejects(db.query('select public.manage_business_photo($1,$2,$3,$4,$5,$6,$7)',[business.id,'add',null,uid(198),'wrong.jpg','image/png',100]), /filename does not match/);
+    for (let n=100;n<111;n++) await mutate('add',null,uid(n));
+    assert.match((await db.query('select object_key from public.media_assets where id=$1',[uid(100)])).rows[0].object_key, /-photo\.png$/);
     await assert.rejects(mutate('add',null,uid(112)),/at most 12/);
     await mutate('replace',uid(100),uid(120));
     assert.equal((await db.query("select count(*)::int as n from public.media_assets where status='active'")).rows[0].n,12);

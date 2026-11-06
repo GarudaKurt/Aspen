@@ -48,6 +48,7 @@ export function BusinessPhotoManager({ controller }: { controller: BusinessPhoto
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div><h2 className="text-lg font-semibold text-[#3c6355]">Business photos</h2>
           <p className="mt-1 text-sm text-slate-500">{photos.length}/{MAX_BUSINESS_PHOTOS} photos · JPEG, PNG or WebP · up to 4 MB each</p>
+          <p className="mt-1 text-xs text-slate-500">Original image format is preserved after secure server validation.</p>
           <p className="mt-1 text-sm text-slate-500">Choose a cover for your listing. Photos become public when your business is published.</p></div>
         <label className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium text-[#3c6355] focus-within:ring-2 focus-within:ring-[#3c6355] ${busy ? "opacity-50" : "cursor-pointer hover:bg-[#f2f6f3]"}`}>
           <ImagePlus className="size-4" /> Add photos
