@@ -205,9 +205,10 @@ export async function saveBusinessHours(businessId: string, input: unknown): Pro
   const current = await getCurrentProfile();
   if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
   const supabase = await createSupabaseServerClient();
-  const rows = parsed.data.hours.map((entry, dayOfWeek) => ({
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const rows = parsed.data.hours.map((entry) => ({
     business_id: businessId,
-    day_of_week: dayOfWeek,
+    day_of_week: days.indexOf(entry.day),
     is_open: entry.open,
     open_time: entry.open ? entry.openTime : null,
     close_time: entry.open ? entry.closeTime : null,

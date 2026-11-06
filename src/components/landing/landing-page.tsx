@@ -10,10 +10,10 @@ import { OwnerCta } from "./owner-cta";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 import { BusinessMap } from "./business-map";
-import { mockBusinesses } from "./mock-businesses";
+import type { BusinessCardProps } from "./business-card";
 import { filterBusinesses } from "./business-filtering";
 
-export function LandingPage() {
+export function LandingPage({ businesses, error }: { businesses: BusinessCardProps[]; error?: string }) {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [city, setCity] = useState("All Cities");
@@ -28,12 +28,12 @@ export function LandingPage() {
   const filteredBusinesses = useMemo(
     () =>
       filterBusinesses(
-        mockBusinesses,
+        businesses,
         submittedQuery,
         city,
         selectedFilters,
       ),
-    [city, selectedFilters, submittedQuery],
+    [businesses, city, selectedFilters, submittedQuery],
   );
   const mapBusinesses = filteredBusinesses;
 
@@ -93,8 +93,8 @@ export function LandingPage() {
           updateServiceFilters(category === "All Services" ? [] : [category])
         }
       />
-      <FeaturedStores />
-      <BusinessDirectory
+      <FeaturedStores businesses={businesses} />
+      <BusinessDirectory businesses={businesses} error={error}
         query={submittedQuery}
         city={city}
         selectedFilters={selectedFilters}

@@ -165,10 +165,10 @@ function getPopupContent(business: BusinessCardProps) {
         <span style="display:block;margin-top:4px;font-size:12px;color:#69736d;">${escapeHtml(displayLocation)}</span>
         ${business.locationAccuracy === "city" ? '<span style="display:block;margin-top:6px;font-size:11px;color:#8a6b25;">Approximate city area; exact storefront pin not verified.</span>' : ""}
         <div style="display:flex;gap:6px;margin-top:8px;font-size:12px;">
-          <span style="color:#d39b00;">★ ${escapeHtml(getRating(business.rating))}</span>
-          <span style="color:#69736d;">· ${escapeHtml(business.services)}</span>
+          ${business.rating ? `<span style="color:#d39b00;">★ ${escapeHtml(getRating(business.rating))}</span>` : ""}
+          <span style="color:#69736d;">${escapeHtml(business.services)}</span>
         </div>
-        <strong style="display:block;margin-top:7px;font-size:13px;">Starts at ${escapeHtml(business.priceStarts)}</strong>
+        ${business.priceStarts ? `<strong style="display:block;margin-top:7px;font-size:13px;">Starts at ${escapeHtml(business.priceStarts)}</strong>` : ""}
         <a href="${profileHref}" style="display:inline-block;margin-top:10px;color:#3c6355;font-size:12px;font-weight:600;text-decoration:underline;">View business profile</a>
       </div>
     </div>

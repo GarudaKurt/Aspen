@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, SlidersHorizontal } from "lucide-react";
 import { BusinessCard } from "./business-card";
-import { mockBusinesses } from "./mock-businesses";
+import type { BusinessCardProps } from "./business-card";
 import { filterBusinesses } from "./business-filtering";
 
 const serviceFilters = [
@@ -15,18 +15,22 @@ const serviceFilters = [
 ];
 
 export function BusinessDirectory({
+  businesses: availableBusinesses,
+  error,
   query,
   city,
   selectedFilters,
   onSelectedFiltersChange,
 }: {
+  businesses: BusinessCardProps[];
+  error?: string;
   query: string;
   city: string;
   selectedFilters: string[];
   onSelectedFiltersChange: (filters: string[]) => void;
 }) {
   const businesses = filterBusinesses(
-    mockBusinesses,
+    availableBusinesses,
     query,
     city,
     selectedFilters,
@@ -103,9 +107,8 @@ export function BusinessDirectory({
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-[#d8d8d8] p-10 text-center text-sm text-[#777b78]">
-                No businesses matched your current filters. Try another city,
-                search term, or service.
+              <div role={error ? "alert" : "status"} className="rounded-xl border border-dashed border-[#d8d8d8] p-10 text-center text-sm text-[#777b78]">
+                {error ? error : !availableBusinesses.length ? "No businesses are currently available. Please check back soon." : "No businesses match your filters. Try another city, search term, or service."}
               </div>
             )}
           </div>

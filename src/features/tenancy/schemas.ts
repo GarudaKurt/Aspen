@@ -15,7 +15,7 @@ export const businessLocationSchema = z.object({
 });
 
 export const businessHoursSchema = z.object({
-  day: z.string().trim().min(1).max(20),
+  day: z.enum(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]),
   open: z.boolean(),
   openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -67,7 +67,7 @@ export const providerApplicationSchema = businessProfileSchema.extend({
 
 export const businessHoursUpdateSchema = z.object({
   hours: z.array(businessHoursSchema).length(7),
-});
+}).refine((value) => new Set(value.hours.map((day) => day.day)).size === 7, "Each day must appear exactly once.");
 
 export const businessAmenitiesUpdateSchema = z.object({
   amenities: z.array(z.object({

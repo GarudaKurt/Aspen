@@ -1,21 +1,12 @@
 import { notFound } from "next/navigation";
-import { mockBusinesses } from "@/components/landing/mock-businesses";
+import { getPublishedBusiness, getPublishedBusinessServices } from "@/features/tenancy/api/queries";
+import { formatBusinessAddress } from "@/features/business-profile/location";
 import { AppointmentPage } from "./appointment-page";
-
 export async function BusinessAppointmentPage({ slug }: { slug: string }) {
-  const business = mockBusinesses.find((item) => item.slug === slug);
-
+  const business = await getPublishedBusiness(slug);
   if (!business) notFound();
-
-  return (
-    <AppointmentPage
-      businessSlug={slug}
-      businessName={business.businessName}
-      businessLocation={business.location}
-      businessCategory={business.services}
-      businessRating={business.rating.split(" ")[0]}
-      businessImage={business.images?.[0]?.src ?? null}
-      services={business.servicesOffered ?? []}
-    />
-  );
+  const services = await getPublishedBusinessServices(business.id);
+  return <AppointmentPage businessSlug={slug} businessName={business.name}
+    businessLocation={formatBusinessAddress(business.location)} businessCategory={business.providerType}
+    businessRating="" businessImage={business.coverPhotoPath} services={services} />;
 }

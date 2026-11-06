@@ -6,12 +6,11 @@ import { BusinessMap } from "@/components/landing/business-map";
 import { cityCoordinates } from "@/components/landing/philippine-locations";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   Check,
   Heart,
-  ImagePlus,
   Maximize2,
   MessageCircle,
   Minimize2,
@@ -26,19 +25,11 @@ import {
 } from "../location";
 
 import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { amenityOptions, type BusinessAmenity } from "../amenities";
+import { type BusinessAmenity } from "../amenities";
 import { AmenityIcon } from "./amenity-icon";
 import {
   getBusinessHoursDisplayRows,
   getBusinessHoursStatus,
-  initialBusinessHours,
   type BusinessHoursDay,
 } from "../business-hours";
 import { Card } from "@/components/ui/card";
@@ -72,6 +63,8 @@ export type TenantProfileData = {
     photos?: string[];
   }>;
   coverPhoto?: string | null;
+  photos?: string[];
+  startingPrice?: number | null;
   businessHours?: BusinessHoursDay[];
   slug?: string;
   amenities?: BusinessAmenity[];
@@ -81,19 +74,8 @@ export type TenantProfileData = {
 };
 
 type TenantProfileProps = {
-  provider?: TenantProfileData;
+  provider: TenantProfileData;
   preview?: boolean;
-};
-
-const defaultProvider: TenantProfileData = {
-  name: "Kalinga Animal Hospital",
-  rating: "4.9",
-  reviews: "212 reviews",
-  favorites: 64,
-  category: "Vet Clinic",
-  address: "Kalayaan Ave, Quezon City",
-  verified: true,
-  createdAt: "2024-01-15T00:00:00.000Z",
 };
 
 const tabs = ["Overview", "Photos", "Services", "Reviews"];
@@ -111,163 +93,8 @@ type ServiceCategory = {
   services: ServiceItem[];
 };
 
-type ReviewData = {
-  name: string;
-  starRating: number;
-  comment: string;
-  photos?: string[];
-  verified?: boolean;
-};
-
-type MockCustomerAccount = {
-  id: string;
-  name: string;
-  completedBusinessSlugs: string[];
-};
-
-const mockCustomerAccount: MockCustomerAccount = {
-  id: "mock-customer-001",
-  name: "Maya Dela Cruz",
-  completedBusinessSlugs: ["kalinga-animal-hospital"],
-};
-
-const mockReviews: ReviewData[] = [
-  {
-    name: "Marisse T.",
-    starRating: 5,
-    comment:
-      "Staff were gentle with my very anxious cat. Dr. Reyes explained everything clearly before the procedure.",
-    photos: ["/kalinga-anima-hospital.png"],
-    verified: true,
-  },
-  {
-    name: "Daniel R.",
-    starRating: 5,
-    comment:
-      "Very professional team and a smooth appointment from check-in to follow-up.",
-    photos: ["/kalinga-anima-hospital.png"],
-    verified: true,
-  },
-  {
-    name: "Andrea M.",
-    starRating: 4,
-    comment:
-      "Clean clinic, kind staff, and helpful advice for keeping my dog healthy.",
-  },
-  {
-    name: "Nico P.",
-    starRating: 5,
-    comment:
-      "They took great care of my pet and made sure I understood the next steps.",
-  },
-  {
-    name: "Paolo S.",
-    starRating: 5,
-    comment:
-      "The team was welcoming, organized, and made our first visit stress-free.",
-  },
-  {
-    name: "Kim A.",
-    starRating: 4,
-    comment:
-      "The clinic was easy to find and the staff gave us practical aftercare instructions.",
-  },
-  {
-    name: "Jessa L.",
-    starRating: 5,
-    comment:
-      "My puppy received gentle care and the appointment started right on time.",
-  },
-  {
-    name: "Marco V.",
-    starRating: 5,
-    comment:
-      "Helpful recommendations and thoughtful staff. I would gladly return.",
-  },
-  {
-    name: "Rina C.",
-    starRating: 4,
-    comment:
-      "Everything was clean and professional, with clear explanations throughout the visit.",
-  },
-  {
-    name: "Owen B.",
-    starRating: 5,
-    comment:
-      "A great experience from booking through follow-up. Highly recommended for pet owners.",
-  },
-];
-
-const serviceCategories: ServiceCategory[] = [
-  {
-    label: "Veterinary",
-    services: [
-      {
-        title: "General Consultation",
-        description: "Checkup and health assessment",
-        price: "₱500",
-      },
-      {
-        title: "Core Vaccination",
-        description: "Rabies, DHPPi, or feline core vaccines",
-        price: "₱650",
-      },
-      {
-        title: "Dental Cleaning",
-        description: "Scaling and polishing under sedation",
-        price: "₱650",
-      },
-      {
-        title: "Emergency Care",
-        description: "Walk-in urgent and after-hours care",
-        price: "₱650",
-      },
-    ],
-  },
-  {
-    label: "Grooming",
-    services: [
-      {
-        title: "Full Grooming",
-        description: "Bath, haircut, nail trim, and ear cleaning",
-        price: "₱900",
-      },
-      {
-        title: "Grooming Add-on",
-        description: "Bath, nail trim, and ear cleaning",
-        price: "₱500",
-      },
-      {
-        title: "De-shedding Treatment",
-        description: "Deep coat care for heavy shedders",
-        price: "₱750",
-      },
-    ],
-  },
-  {
-    label: "Boarding",
-    services: [
-      {
-        title: "Day Boarding",
-        description: "Supervised daytime care and play",
-        price: "₱800",
-      },
-      {
-        title: "Overnight Boarding",
-        description: "Comfortable overnight stay with check-ins",
-        price: "₱1,500",
-      },
-      {
-        title: "Boarding Add-on",
-        description: "Medication and special care support",
-        price: "₱300",
-      },
-    ],
-  },
-];
-
 export function BusinessProfile({
-  provider = defaultProvider,
+  provider,
   preview = false,
 }: TenantProfileProps) {
   const [activeTab, setActiveTab] = useState("Overview");
@@ -284,9 +111,9 @@ export function BusinessProfile({
     });
   };
   const coverPhoto = provider.coverPhoto ?? null;
-  const schedule = provider.businessHours ?? initialBusinessHours;
-  const businessStatus = getBusinessHoursStatus(schedule);
-  const displayedAmenities = provider.amenities ?? amenityOptions.slice(0, 3);
+  const schedule = provider.businessHours ?? [];
+  const businessStatus = schedule.length ? getBusinessHoursStatus(schedule) : { open: false, label: "Hours unavailable" };
+  const displayedAmenities = provider.amenities ?? [];
   const locationQuery = useMemo(() => {
     const details = provider.locationDetails;
     if (!details) return provider.address.trim();
@@ -337,7 +164,7 @@ export function BusinessProfile({
         : provider.locationDetails,
       rating: provider.rating,
       services: provider.category,
-      priceStarts: provider.servicesOffered?.[0]?.price ?? "Contact for pricing",
+      priceStarts: provider.startingPrice != null ? `₱${provider.startingPrice.toLocaleString("en-PH")}` : "",
       slug: provider.slug,
       images: provider.coverPhoto ? [{ src: provider.coverPhoto }] : [],
     }),
@@ -350,7 +177,7 @@ export function BusinessProfile({
       provider.locationDetails,
       provider.name,
       provider.rating,
-      provider.servicesOffered,
+      provider.startingPrice,
       provider.slug,
     ],
   );
@@ -406,7 +233,7 @@ export function BusinessProfile({
                 )}
               </div>
               <p className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-[#838684] sm:text-xs">
-                <Star size={11} fill="#ffd000" strokeWidth={0} />
+                {provider.rating && <Star size={11} fill="#ffd000" strokeWidth={0} />}
                 <span className="font-semibold text-[#242524]">
                   {provider.rating}
                 </span>
@@ -419,7 +246,7 @@ export function BusinessProfile({
                   className="text-[#3c6355]"
                 />
                 <span>
-                  {(provider.favorites ?? 0) + (isFavorite ? 1 : 0)} favorites
+                  {isFavorite ? "Saved to wishlist" : "Save to wishlist"}
                 </span>
                 <span>·</span>
                 <span>{provider.category}</span>
@@ -464,14 +291,14 @@ export function BusinessProfile({
 
         <Card className="mt-14 grid overflow-hidden rounded-2xl border-[#d8d8d5] bg-white shadow-none sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
           <Stat label="Status" value={businessStatus.label} />
-          <Stat label="Price tier" value="Start at 1500 - Premium" />
-          <Stat label="Response time" value="Usually within 1 hr" />
+          <Stat label="Starting price" value={provider.startingPrice != null ? `₱${provider.startingPrice.toLocaleString("en-PH")}` : "Contact for pricing"} />
+          <Stat label="Services" value={String(provider.servicesOffered?.length ?? 0)} />
           <Stat
             label="Since"
             value={
               provider.createdAt
-                ? `Member since ${new Date(provider.createdAt).getFullYear()}`
-                : "Membership date unavailable"
+                ? `Listed since ${new Date(provider.createdAt).getFullYear()}`
+                : "Listing date unavailable"
             }
           />
         </Card>
@@ -496,8 +323,7 @@ export function BusinessProfile({
               <>
                 <ProfileSection title="About">
                   <p className="max-w-[650px] text-sm font-semibold leading-5 text-[#929492] sm:text-base">
-                    {provider.description ??
-                      "Full-service animal hospital offering general checkups, vaccinations, surgery, and 24/7 emergency care. Our team of licensed veterinarians has cared for pets in Quezon City since 2024, with a focus on gentle handling and clear communication with owners."}
+                    {provider.description || "No description provided."}
                   </p>
                 </ProfileSection>
 
@@ -525,12 +351,9 @@ export function BusinessProfile({
 
                 <ProfileSection title="Service coverage">
                   <div className="flex max-w-[700px] flex-wrap gap-3">
+                    {!provider.serviceCoverage?.length && <p className="text-sm text-[#929492]">No active services listed.</p>}
                     {(
-                      provider.serviceCoverage ?? [
-                        "Grooming",
-                        "Boarding",
-                        "Training",
-                      ]
+                      provider.serviceCoverage ?? []
                     ).map((coverage) => (
                       <span
                         key={coverage}
@@ -611,11 +434,11 @@ export function BusinessProfile({
                 </ProfileSection>
               </>
             ) : activeTab === "Photos" ? (
-              <PhotoGallery providerName={provider.name} />
+              <PhotoGallery providerName={provider.name} photos={provider.photos ?? []} />
             ) : activeTab === "Services" ? (
               <ServicesPanel categories={getServiceCategories(provider)} />
             ) : activeTab === "Reviews" ? (
-              <ReviewsPanel provider={provider} />
+              <ReviewsPanel />
             ) : (
               <div className="rounded-xl border border-dashed border-[#d8d8d5] p-8 text-sm text-[#777b78]">
                 {activeTab} for {provider.name} will appear here.
@@ -657,265 +480,12 @@ function ProfileSection({
   );
 }
 
-function ReviewsPanel({ provider }: { provider: TenantProfileData }) {
-  const reviewsPerPage = 5;
-  const [reviews, setReviews] = useState(mockReviews);
-  const [reviewPage, setReviewPage] = useState(1);
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [reviewPhotos, setReviewPhotos] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(false);
-  const canSubmitReview = Boolean(
-    provider.slug &&
-      mockCustomerAccount.completedBusinessSlugs.includes(provider.slug),
-  );
-  const totalPages = Math.max(1, Math.ceil(reviews.length / reviewsPerPage));
-  const currentPage = Math.min(reviewPage, totalPages);
-  const pageStart = (currentPage - 1) * reviewsPerPage;
-  const visibleReviews = reviews.slice(pageStart, pageStart + reviewsPerPage);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canSubmitReview || !rating || !comment.trim()) return;
-
-    setReviews((current) => [
-      {
-        name: mockCustomerAccount.name,
-        starRating: rating,
-        comment: comment.trim(),
-        photos: reviewPhotos,
-        verified: true,
-      },
-      ...current,
-    ]);
-    setRating(0);
-    setComment("");
-    setReviewPhotos([]);
-    setReviewPage(1);
-    setSubmitted(true);
-  };
-
-  return (
-    <div className="rounded-2xl border border-[#d8d8d5] bg-white p-4 shadow-sm sm:p-6">
-      <div className="flex items-start gap-5 border-b border-[#e5e6e4] pb-5">
-        <div>
-          <p className="text-4xl font-bold text-[#3c6355]">{provider.rating}</p>
-          <div
-            className="mt-1 flex gap-0.5 text-[#ffd000]"
-            aria-label={`Average rating: ${provider.rating} out of 5`}
-          >
-            {Array.from({ length: 5 }, (_, index) => (
-              <Star key={index} size={14} fill="currentColor" strokeWidth={0} />
-            ))}
-          </div>
-        </div>
-        <p className="max-w-[180px] pt-1 text-xs leading-4 text-[#929492]">
-          Based on {provider.reviews}
-          <br />
-          from verified visits
-        </p>
-      </div>
-
-      <section className="mt-6 rounded-xl border border-[#e5e6e4] bg-[#fafcfb] p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-bold text-[#272927]">
-              Share your experience
-            </h3>
-            {canSubmitReview ? (
-              <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
-                <div>
-                  <p className="mb-2 text-xs font-semibold text-[#69716c]">
-                    Your rating
-                  </p>
-                  <div className="flex items-center gap-1" aria-label="Choose a rating">
-                    {Array.from({ length: 5 }, (_, index) => {
-                      const value = index + 1;
-                      return (
-                        <Button
-                          key={value}
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`${value} star${value === 1 ? "" : "s"}`}
-                          aria-pressed={rating === value}
-                          onClick={() => setRating(value)}
-                          className="size-9 rounded-full text-[#c7cdca] hover:bg-[#eef5f0] hover:text-[#3c6355]"
-                        >
-                          <Star
-                            size={18}
-                            fill={value <= rating ? "currentColor" : "none"}
-                            className={value <= rating ? "text-[#d6794f]" : ""}
-                          />
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <textarea
-                  value={comment}
-                  onChange={(event) => setComment(event.target.value)}
-                  placeholder="Tell other pet owners about your visit."
-                  aria-label="Write your review"
-                  className="min-h-24 w-full resize-none rounded-lg border border-[#d2d5d2] bg-white px-3 py-2 text-sm outline-none transition focus:border-[#3c6355] focus:ring-2 focus:ring-[#3c6355]/20"
-                />
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[#cfd4d1] px-3 text-xs font-semibold text-[#3c6355] transition-colors hover:bg-[#f2f5f3]">
-                      <ImagePlus size={16} />
-                      Add photos
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="sr-only"
-                        onChange={(event) => {
-                          const files = Array.from(event.target.files ?? []).slice(0, 3);
-                          setReviewPhotos(files.map((file) => URL.createObjectURL(file)));
-                        }}
-                      />
-                    </label>
-                    {reviewPhotos.map((photo, index) => (
-                      <Image
-                        key={`${photo}-${index}`}
-                        src={photo}
-                        alt={`Selected review photo ${index + 1}`}
-                        width={40}
-                        height={40}
-                        className="size-10 rounded-md object-cover"
-                      />
-                    ))}
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={!rating || !comment.trim()}
-                    className="w-full bg-[#3c6355] text-white hover:bg-[#2f5044] sm:w-auto"
-                  >
-                    Submit review
-                  </Button>
-                </div>
-                {submitted && (
-                  <p role="status" className="text-xs font-semibold text-[#3c6355]">
-                    Your mock verified review was added to this preview.
-                  </p>
-                )}
-              </form>
-            ) : (
-              <p className="mt-2 text-xs leading-5 text-[#777b78]">
-                Complete a service with this business before submitting a review
-                or uploading review photos.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <div className="mt-5 space-y-3">
-        {visibleReviews.map((review) => (
-          <ReviewItem key={`${review.name}-${review.comment}`} {...review} />
-        ))}
-      </div>
-      {totalPages > 1 && (
-        <Pagination className="mt-5 border-t border-[#e5e6e4] pt-4">
-          <PaginationContent className="w-full justify-between gap-2">
-            <PaginationItem>
-              <PaginationPrevious
-                aria-label="Previous reviews"
-                disabled={currentPage === 1}
-                onClick={() => setReviewPage((page) => Math.max(1, page - 1))}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <span className="px-2 text-xs text-[#737773] sm:text-sm">
-                Page {currentPage} of {totalPages}
-              </span>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                aria-label="Next reviews"
-                disabled={currentPage === totalPages}
-                onClick={() =>
-                  setReviewPage((page) => Math.min(totalPages, page + 1))
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
-  );
-}
-
-function ReviewItem({
-  name,
-  starRating,
-  comment,
-  photos = [],
-  verified = true,
-}: ReviewData) {
-  const initials = name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2);
-
-  return (
-    <article className="rounded-xl border border-[#e5e6e4] bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex items-start gap-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7f5ed] text-xs font-bold text-[#3c6355]">
-          {initials}
-        </div>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-bold text-[#272927]">{name}</p>
-            {verified && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                <Check size={11} />
-                Verified customer
-              </span>
-            )}
-          </div>
-          <div
-            className="mt-1 flex gap-0.5 text-[#ffd000]"
-            aria-label={`${starRating} out of 5 stars`}
-          >
-            {Array.from({ length: 5 }, (_, index) => (
-              <Star
-                key={index}
-                size={13}
-                fill={index < Math.round(starRating) ? "currentColor" : "none"}
-                strokeWidth={index < Math.round(starRating) ? 0 : 1.5}
-              />
-            ))}
-          </div>
-          <p className="mt-2 text-xs leading-5 text-[#929492] sm:text-sm">
-            {comment}
-          </p>
-          {photos.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {photos.map((photo, index) => (
-                <Image
-                  key={`${photo}-${index}`}
-                  src={photo}
-                  alt={`${name} review photo ${index + 1}`}
-                  width={72}
-                  height={72}
-                  className="size-16 rounded-lg object-cover"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-        <time className="ml-auto shrink-0 text-[10px] text-[#929492]">
-          2 weeks ago
-        </time>
-      </div>
-    </article>
-  );
+function ReviewsPanel() {
+  return <div className="rounded-xl border border-dashed p-8 text-center text-sm text-[#777b78]">No reviews yet. Verified customer reviews will appear here when available.</div>;
 }
 
 function getServiceCategories(provider: TenantProfileData): ServiceCategory[] {
-  if (!provider.servicesOffered) return serviceCategories;
+  if (!provider.servicesOffered) return [];
 
   const grouped = new Map<string, ServiceItem[]>();
   provider.servicesOffered.forEach((service) => {
@@ -1010,27 +580,23 @@ function ServiceItemRow({ title, description, price }: ServiceItem) {
   );
 }
 
-function PhotoGallery({ providerName }: { providerName: string }) {
-  const photos = [
-    { src: "/kalinga-anima-hospital.png", position: "object-center" },
-    { src: "/kalinga-anima-hospital.png", position: "object-[25%_center]" },
-    { src: "/kalinga-anima-hospital.png", position: "object-[75%_center]" },
-    { src: "/kalinga-anima-hospital.png", position: "object-center" },
-  ];
+function PhotoGallery({ providerName, photos }: { providerName: string; photos: string[] }) {
+  if (!photos.length) return <p className="rounded-xl border border-dashed p-8 text-center text-sm text-[#777b78]">This business has not added any photos yet.</p>;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {photos.map(({ src, position }, index) => (
+      {photos.map((src, index) => (
         <div
           key={`${src}-${index}`}
           className="relative aspect-square overflow-hidden rounded-2xl bg-[#f0f0ef]"
         >
           <Image
             src={src}
+            unoptimized
             alt={`${providerName} photo ${index + 1}`}
             fill
             sizes="(min-width: 640px) 220px, 50vw"
-            className={`object-cover transition-transform duration-300 hover:scale-105 ${position}`}
+            className={`object-cover transition-transform duration-300 hover:scale-105`}
           />
         </div>
       ))}
@@ -1039,6 +605,7 @@ function PhotoGallery({ providerName }: { providerName: string }) {
 }
 
 function BusinessHoursList({ schedule }: { schedule: BusinessHoursDay[] }) {
+  if (!schedule.length) return <p className="text-sm text-[#777b78]">Business hours have not been provided.</p>;
   return (
     <div className="max-w-[420px] space-y-3 text-xs font-semibold text-[#3c6355]">
       {getBusinessHoursDisplayRows(schedule).map((row) => (
@@ -1061,7 +628,7 @@ function ScheduleCard({
   schedule: BusinessHoursDay[];
   businessSlug?: string;
 }) {
-  const businessStatus = getBusinessHoursStatus(schedule);
+  const businessStatus = schedule.length ? getBusinessHoursStatus(schedule) : { open: false, label: "Hours unavailable" };
 
   return (
     <Card className="h-fit rounded-xl border-[#d8d8d5] bg-white p-5 shadow-none">

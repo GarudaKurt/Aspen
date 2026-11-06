@@ -4,6 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { createR2DownloadUrl, getR2PublicUrl } from "@/lib/r2/client";
 import { requireRole } from "@/server/auth/guard";
 import { getCurrentProfile } from "@/server/auth/session";
+import { businessPhotos } from "@/features/business-photos/server";
+import type { BusinessCardProps } from "@/components/landing/business-card";
+import { formatBusinessAddress } from "@/features/business-profile/location";
 import type { BusinessAmenity } from "@/features/business-profile/amenities";
 import type { BusinessLocationDetails } from "@/features/business-profile/location";
 import type { ProviderApplicationSummary, TenancyBusiness, TenancyService } from "../types";
@@ -41,6 +44,7 @@ function mapBusiness(row: Record<string, unknown>): TenancyBusiness {
     ownerId: String(row.owner_id),
     slug: String(row.slug),
     name: String(row.name),
+    createdAt: String(row.created_at),
     providerType: String(row.provider_type),
     description: String(row.description ?? ""),
     yearsExperience: row.years_experience === null ? null : Number(row.years_experience),
@@ -65,11 +69,12 @@ async function resolveMediaUrl(objectKey: string, visibility: string) {
 
 async function getActiveMedia(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, column: "business_id" | "service_id", ids: string[]) {
   if (!ids.length) return [];
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("media_assets")
     .select("id, business_id, service_id, category, object_key, visibility, created_at")
     .in(column, ids)
-    .eq("status", "active");
+    .eq("status", "active").eq("visibility", "public");
+  if (error) throw new Error("Unable to load business media.");
   return Promise.all((data ?? []).map(async (asset) => ({
     ...asset,
     url: await resolveMediaUrl(String(asset.object_key), String(asset.visibility)),
@@ -114,9 +119,8 @@ export async function getMyBusiness() {
   if (error) throw new Error("Unable to load the provider business.");
   if (!data) return null;
   const business = mapBusiness(data);
-  const media = await getActiveMedia(supabase, "business_id", [business.id]);
-  const cover = media.find((asset) => asset.category === "business_cover" && asset.url);
-  return { ...business, coverPhotoPath: cover?.url ?? business.coverPhotoPath };
+  const photos = await businessPhotos(supabase, business.id, business.coverPhotoPath);
+  return { ...business, photos, coverPhotoPath: photos.find((photo) => photo.isCover)?.url ?? photos[0]?.url ?? null };
 }
 
 export async function getMyServices(businessId?: string) {
@@ -169,17 +173,17 @@ export async function getPublishedBusiness(slug: string) {
   if (error) throw new Error("Unable to load this business.");
   if (!data) return null;
   const business = mapBusiness(data);
-  const media = await getActiveMedia(supabase, "business_id", [business.id]);
-  const cover = media.find((asset) => asset.category === "business_cover" && asset.url);
-  return { ...business, coverPhotoPath: cover?.url ?? business.coverPhotoPath };
+  const photos = await businessPhotos(supabase, business.id, business.coverPhotoPath);
+  return { ...business, photos, coverPhotoPath: photos.find((photo) => photo.isCover)?.url ?? photos[0]?.url ?? null };
 }
 
 export async function getPublishedBusinessServices(businessId: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("business_services")
-    .select("id, category, title, description, starting_price, status")
+    .select("id, category, title, description, starting_price, duration_minutes, status, businesses!inner(status)")
     .eq("business_id", businessId)
+    .eq("businesses.status", "published")
     .eq("status", "active")
     .order("created_at", { ascending: true });
   if (error) throw new Error("Unable to load business services.");
@@ -189,9 +193,42 @@ export async function getPublishedBusinessServices(businessId: string) {
     category: String(row.category),
     title: String(row.title),
     description: String(row.description),
+    startingPrice: row.starting_price === null ? null : Number(row.starting_price),
+    duration: row.duration_minutes ? `${row.duration_minutes} min` : "By appointment",
+    status: "Active" as const,
     price: row.starting_price === null ? "Contact for pricing" : `₱${Number(row.starting_price).toLocaleString("en-PH")}`,
     photos: media
       .filter((asset) => asset.service_id === row.id && asset.category === "service_photo" && asset.url)
       .map((asset) => String(asset.url)),
   }));
+}
+
+export async function getPublishedBusinessCards(): Promise<BusinessCardProps[]> {
+  const supabase = await createSupabaseServerClient();
+  // Explicit status filtering also protects owner/admin sessions, whose RLS
+  // permissions can otherwise read unpublished records.
+  const { data, error } = await supabase.from("businesses")
+    .select("id, slug, name, provider_type, cover_photo_path, business_locations(*), business_services(category, starting_price, status)")
+    .eq("status", "published").order("created_at", { ascending: false });
+  if (error) throw new Error("Unable to load businesses.");
+  const ids = (data ?? []).map((business) => String(business.id));
+  const { data: media, error: mediaError } = ids.length ? await supabase.from("media_assets")
+    .select("id, business_id, object_key").in("business_id", ids)
+    .eq("status", "active").eq("visibility", "public")
+    .in("category", ["business_cover", "business_gallery"]).order("created_at").order("id") : { data: [], error: null };
+  if (mediaError) throw new Error("Unable to load business photos.");
+  return (data ?? []).map((row) => {
+    const location = mapLocation(Array.isArray(row.business_locations) ? row.business_locations[0] : row.business_locations);
+    const services = row.business_services.filter((service) => service.status === "active");
+    const prices = services.flatMap((service) => service.starting_price === null ? [] : [Number(service.starting_price)]);
+    const photos = (media ?? []).filter((photo) => photo.business_id === row.id)
+      .sort((a, b) => Number(b.object_key === row.cover_photo_path) - Number(a.object_key === row.cover_photo_path));
+    return {
+      slug: String(row.slug), businessName: String(row.name), location: formatBusinessAddress(location),
+      locationDetails: location, coordinates: location?.coordinates ?? undefined, rating: "",
+      services: [...new Set(services.map((service) => service.category))].join(", ") || String(row.provider_type),
+      priceStarts: prices.length ? `₱${Math.min(...prices).toLocaleString("en-PH")}` : "",
+      images: photos.map((photo) => ({ src: `/api/business-photos/${photo.id}`, alt: String(row.name) })),
+    };
+  });
 }

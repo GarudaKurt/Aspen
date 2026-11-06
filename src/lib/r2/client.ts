@@ -10,7 +10,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 type R2Config = {
-  accountId: string;
+  endpoint: string;
   bucketName: string;
   accessKeyId: string;
   secretAccessKey: string;
@@ -21,14 +21,19 @@ let client: S3Client | undefined;
 
 function getR2Config(): R2Config {
   const accountId = process.env.R2_ACCOUNT_ID;
+  const endpoint = process.env.R2_ENDPOINT?.replace(/\/$/, "") ?? (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : undefined);
   const bucketName = process.env.R2_BUCKET_NAME;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
   const publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
-  if (!accountId || !bucketName || !accessKeyId || !secretAccessKey) {
+  if (!endpoint || !bucketName || !accessKeyId || !secretAccessKey) {
     throw new Error("Cloudflare R2 is not configured on the server.");
   }
-  return { accountId, bucketName, accessKeyId, secretAccessKey, publicUrl };
+  const url = new URL(endpoint);
+  if (url.protocol !== "https:" || !url.hostname.endsWith(".r2.cloudflarestorage.com") || url.pathname !== "/") {
+    throw new Error("R2_ENDPOINT must be the account S3 endpoint, without a bucket path.");
+  }
+  return { endpoint, bucketName, accessKeyId, secretAccessKey, publicUrl };
 }
 
 function getClient() {
@@ -36,7 +41,7 @@ function getClient() {
     const config = getR2Config();
     client = new S3Client({
       region: "auto",
-      endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+      endpoint: config.endpoint,
       credentials: {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
@@ -99,4 +104,11 @@ export async function deleteR2Object(objectKey: string) {
   await getClient().send(
     new DeleteObjectCommand({ Bucket: getR2BucketName(), Key: objectKey }),
   );
+}
+
+export async function putR2Photo(objectKey: string, bytes: Uint8Array, contentType: string) {
+  await getClient().send(new PutObjectCommand({
+    Bucket: getR2BucketName(), Key: objectKey, Body: bytes, ContentType: contentType,
+    CacheControl: "private, max-age=300",
+  }));
 }

@@ -10,6 +10,7 @@ export type TenancyBusiness = {
   ownerId: string;
   slug: string;
   name: string;
+  createdAt: string;
   providerType: string;
   description: string;
   yearsExperience: number | null;
