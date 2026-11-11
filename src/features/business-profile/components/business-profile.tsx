@@ -4,8 +4,6 @@ import { AspenLogo } from "@/components/brand/aspen-logo";
 import { SiteHeader } from "@/components/landing/site-header";
 import { BusinessMap } from "@/components/landing/business-map";
 import { cityCoordinates } from "@/components/landing/philippine-locations";
-import Image from "next/image";
-import { getBusinessInitials } from "@/features/tenant-dashboard/profile/business-initials";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import {
@@ -44,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AppointmentAuthGate } from "@/features/appointments/components/appointment-auth-gate";
+import { BusinessPhotoCollection, BusinessPhotoCover, BusinessPhotoGrid } from "./business-photo-gallery";
 
 export type TenantProfileData = {
   name: string;
@@ -111,7 +110,7 @@ export function BusinessProfile({
       variant: "success",
     });
   };
-  const coverPhoto = provider.coverPhoto ?? null;
+  const profilePhotos = [...new Set([provider.coverPhoto, ...(provider.photos ?? [])].filter((src): src is string => Boolean(src)))];
   const schedule = provider.businessHours ?? [];
   const businessStatus = schedule.length ? getBusinessHoursStatus(schedule) : { open: false, label: "Hours unavailable" };
   const displayedAmenities = provider.amenities ?? [];
@@ -184,7 +183,7 @@ export function BusinessProfile({
   );
 
   return (
-    <>
+    <BusinessPhotoCollection key={provider.slug ?? provider.name} photos={profilePhotos} name={provider.name}>
     {!preview && <SiteHeader />}
     <main className="min-h-screen bg-white px-4 py-6 text-[#171817] sm:px-8 sm:py-10 lg:px-12">
       <div className="mx-auto max-w-[1120px]">
@@ -208,18 +207,7 @@ export function BusinessProfile({
         </header>
 
         <section className="pt-6 sm:pt-8">
-          <div className="relative block h-[150px] overflow-hidden rounded-2xl bg-[#f0f0ef] sm:h-[190px] lg:h-[230px]">
-            {coverPhoto ? (
-              <Image
-                src={coverPhoto}
-                alt="Business cover photo"
-                fill
-                unoptimized
-                sizes="(min-width: 1024px) 1120px, 100vw"
-                className="object-cover"
-              />
-            ) : <div className="grid h-full place-items-center bg-[#edf3ef] text-5xl font-semibold text-[#3c6355]" aria-label={`${provider.name} initials`}>{getBusinessInitials(provider.name)}</div>}
-          </div>
+          <BusinessPhotoCover />
           <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -435,7 +423,7 @@ export function BusinessProfile({
                 </ProfileSection>
               </>
             ) : activeTab === "Photos" ? (
-              <PhotoGallery providerName={provider.name} photos={provider.photos ?? []} />
+              <BusinessPhotoGrid />
             ) : activeTab === "Services" ? (
               <ServicesPanel categories={getServiceCategories(provider)} />
             ) : activeTab === "Reviews" ? (
@@ -451,7 +439,7 @@ export function BusinessProfile({
         </div>
       </div>
     </main>
-    </>
+    </BusinessPhotoCollection>
   );
 }
 
@@ -578,30 +566,6 @@ function ServiceItemRow({ title, description, price }: ServiceItem) {
         {price}
       </p>
     </article>
-  );
-}
-
-function PhotoGallery({ providerName, photos }: { providerName: string; photos: string[] }) {
-  if (!photos.length) return <p className="rounded-xl border border-dashed p-8 text-center text-sm text-[#777b78]">This business has not added any photos yet.</p>;
-
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {photos.map((src, index) => (
-        <div
-          key={`${src}-${index}`}
-          className="relative aspect-square overflow-hidden rounded-2xl bg-[#f0f0ef]"
-        >
-          <Image
-            src={src}
-            unoptimized
-            alt={`${providerName} photo ${index + 1}`}
-            fill
-            sizes="(min-width: 640px) 220px, 50vw"
-            className={`object-cover transition-transform duration-300 hover:scale-105`}
-          />
-        </div>
-      ))}
-    </div>
   );
 }
 

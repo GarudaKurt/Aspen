@@ -27,7 +27,7 @@ export function BusinessCoverPhoto({ businessName, controller }: {
     <section aria-label="Business cover photo" className="mt-5 rounded-xl border border-slate-200 p-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative grid aspect-[4/3] w-full shrink-0 place-items-center overflow-hidden rounded-lg bg-[#edf3ef] sm:w-40">
-          {image ? <Image src={image} alt={`${businessName} cover${selection ? " preview" : ""}`} fill unoptimized sizes="(min-width: 640px) 160px, 90vw" className="object-cover" />
+          {image ? <Image src={image} alt={`${businessName} cover${selection ? " preview" : ""}`} fill unoptimized sizes="(min-width: 640px) 160px, 90vw" className="object-contain p-1" />
             : <span className="text-3xl font-semibold text-[#3c6355]" aria-label={`${businessName} initials`}>{getBusinessInitials(businessName)}</span>}
         </div>
         <div className="min-w-0 space-y-2">
