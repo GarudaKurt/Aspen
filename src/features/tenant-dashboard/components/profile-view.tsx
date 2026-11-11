@@ -568,7 +568,7 @@ export function ProfileView({
               width={80}
               height={80}
               unoptimized
-              className="mx-auto size-20 rounded-2xl bg-[#edf3ef] object-contain p-1"
+              className="mx-auto size-20 rounded-2xl object-contain"
             />
           ) : (
             <span className="mx-auto grid size-20 place-items-center rounded-2xl bg-[#b78a68] text-2xl font-bold text-white">
