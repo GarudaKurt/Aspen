@@ -31,7 +31,10 @@ export const businessServiceSchema = z.object({
   category: z.string().trim().min(1).max(80),
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().min(1).max(2000),
-  price: z.string().trim().min(1).max(40),
+  price: z.string().trim().min(1).max(40).refine((value) => {
+    const normalized = value.replace(/^₱\s*/, "").replace(/,/g, "");
+    return /^\d+(\.\d{1,2})?$/.test(normalized) && Number(normalized) <= 9999999999.99;
+  }, "Enter a valid non-negative price with at most two decimal places."),
   duration: z.string().trim().max(40),
   photos: z.array(z.string().max(500)).max(6).default([]),
   status: z.enum(["Active", "Draft", "Paused"]),

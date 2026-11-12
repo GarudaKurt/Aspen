@@ -314,7 +314,7 @@ test('public cards exclude unpublished businesses and private, deleted or unrela
     ],
   };
   const { getPublishedBusinessCards } = load('src/features/tenancy/api/queries.ts', {
-    '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database(tables) },
+    '@/lib/supabase/server-client': { createSupabasePublicClient: async () => database(tables) },
     '@/lib/r2/client': {}, '@/server/auth/guard': {}, '@/server/auth/session': {},
   });
   const cards = await getPublishedBusinessCards();
@@ -326,10 +326,10 @@ test('public cards exclude unpublished businesses and private, deleted or unrela
 
 test('empty public database returns no mock businesses; query failures propagate', async () => {
   const mocks = { '@/lib/r2/client': {}, '@/server/auth/guard': {}, '@/server/auth/session': {} };
-  const empty = load('src/features/tenancy/api/queries.ts', { ...mocks, '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database() } });
+  const empty = load('src/features/tenancy/api/queries.ts', { ...mocks, '@/lib/supabase/server-client': { createSupabasePublicClient: async () => database() } });
   assert.deepEqual(await empty.getPublishedBusinessCards(), []);
   const failure = database(); failure.from = () => ({ select() { return this; }, eq() { return this; }, async order() { return { data: null, error: { code: 'failure' } }; } });
-  const failed = load('src/features/tenancy/api/queries.ts', { ...mocks, '@/lib/supabase/server-client': { createSupabaseServerClient: async () => failure } });
+  const failed = load('src/features/tenancy/api/queries.ts', { ...mocks, '@/lib/supabase/server-client': { createSupabasePublicClient: async () => failure } });
   await assert.rejects(failed.getPublishedBusinessCards(), /Unable to load businesses/);
 });
 
@@ -401,7 +401,7 @@ test('stale cover edits and unauthorized cover actions cannot upload bytes', asy
 
 test('explicitly cleared cover does not use a remaining gallery image on cards', async () => {
   const { getPublishedBusinessCards } = load('src/features/tenancy/api/queries.ts', {
-    '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database({
+    '@/lib/supabase/server-client': { createSupabasePublicClient: async () => database({
       businesses:[{id:bid,slug:'real',name:'Real business',status:'published',provider_type:'Clinic',cover_photo_path:null,business_services:[]}],
       media_assets:[{id:photoId,business_id:bid,object_key:'remaining',status:'active',visibility:'public',category:'business_gallery'}],
     }) }, '@/lib/r2/client': {}, '@/server/auth/guard': {}, '@/server/auth/session': {},

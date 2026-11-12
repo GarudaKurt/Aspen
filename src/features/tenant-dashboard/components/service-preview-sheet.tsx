@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ServicePhotoCarousel } from "./service-photo-carousel";
 import type { ServiceItem } from "../types";
+import { serviceStatusLabel } from "../service-status";
 
 export function ServicePreviewSheet({
   service,
@@ -40,7 +41,7 @@ export function ServicePreviewSheet({
                   <span>
                     {service.status === "Active"
                       ? "Available to book"
-                      : "Currently unavailable"}
+                      : `${serviceStatusLabel[service.status]} · Not public`}
                   </span>
                 </div>
               </div>

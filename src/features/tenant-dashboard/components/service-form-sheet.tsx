@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { ServicePhotoPicker, type UploadStatus } from "./service-photo-picker";
 import { validateBusinessPhoto } from "@/features/business-photos/types";
@@ -27,6 +28,7 @@ export function ServiceFormSheet({
   service,
   onClose,
   onSave,
+  onPreview,
   onBeforeRemovePhoto,
   busy = false,
   saveError = "",
@@ -36,6 +38,7 @@ export function ServiceFormSheet({
   service: ServiceItem | null;
   onClose: () => void | Promise<void>;
   onSave: (draft: ServiceDraft, retryPreview?: string) => void | Promise<void>;
+  onPreview?: (draft: ServiceDraft) => void;
   onBeforeRemovePhoto?: (preview: string) => Promise<void>;
   busy?: boolean;
   saveError?: string;
@@ -46,10 +49,12 @@ export function ServiceFormSheet({
   const [error, setError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const previewUrls = useRef(new Set<string>());
+  const requestedStatus = useRef<ServiceStatus | null>(null);
 
   useEffect(() => {
     const urls = previewUrls.current;
     if (open) {
+      requestedStatus.current = null;
       // Reset the controlled sheet form whenever a service is opened for editing.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraft(
@@ -167,7 +172,7 @@ export function ServiceFormSheet({
     });
   };
 
-  const saveDraft = (retryPreview?: string) => {
+  const saveDraft = (retryPreview?: string, status?: ServiceStatus) => {
     if (busy) return;
     if (
       !draft.title.trim() ||
@@ -178,13 +183,14 @@ export function ServiceFormSheet({
       return;
     }
     setError("");
+    requestedStatus.current = status ?? requestedStatus.current ?? draft.status;
     void onSave({
       ...draft,
       title: draft.title.trim(),
       description: draft.description.trim(),
       price: draft.price.trim(),
       duration: draft.duration.trim() || "By appointment",
-      status: draft.status as ServiceStatus,
+      status: requestedStatus.current,
       photoFiles: draft.photos.map((photo) => photoFilesByPreview[photo]).filter(Boolean),
       photoFilePreviews: draft.photos.filter((photo) => Boolean(photoFilesByPreview[photo])),
     }, retryPreview);
@@ -192,7 +198,7 @@ export function ServiceFormSheet({
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    saveDraft();
+    saveDraft(undefined, draft.status);
   };
   const close = () => { if (!busy) void onClose(); };
 
@@ -216,16 +222,12 @@ export function ServiceFormSheet({
             </div>
             <div>
               <Label htmlFor="service-category">Category</Label>
-              <select
-                id="service-category"
-                value={draft.category}
-                onChange={(event) => update("category", event.target.value)}
-                className="mt-2 h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-              >
-                <option>Veterinary</option>
-                <option>Grooming</option>
-                <option>Boarding</option>
-              </select>
+              <Select value={draft.category} onValueChange={(value) => { if (value) update("category", value); }}>
+                <SelectTrigger id="service-category" className="mt-2"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[...new Set([draft.category, "Veterinary", "Grooming", "Boarding", "Training", "Pet Supplies"])].filter(Boolean).map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="service-description">Description</Label>
@@ -270,19 +272,7 @@ export function ServiceFormSheet({
               photoFilesByPreview={photoFilesByPreview}
               onRetry={(preview) => saveDraft(preview)}
             />
-            <div>
-              <Label htmlFor="service-status">Availability</Label>
-              <select
-                id="service-status"
-                value={draft.status}
-                onChange={(event) => update("status", event.target.value)}
-                className="mt-2 h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-              >
-                <option value="Active">Published and available</option>
-                <option value="Draft">Draft</option>
-                <option value="Paused">Paused</option>
-              </select>
-            </div>
+            <p className="text-sm text-slate-500">{draft.status === "Active" ? "Saved changes are visible to customers immediately." : "Only published services are visible to customers. Previewing does not publish your service."}</p>
             {(error || saveError) && (
               <p
                 role="alert"
@@ -293,16 +283,20 @@ export function ServiceFormSheet({
             )}
           </fieldset>
           <SheetFooter>
+            <div className="flex w-full flex-wrap justify-end gap-2">
             <Button type="button" variant="outline" disabled={busy} onClick={close}>
               Cancel
             </Button>
+            <Button type="button" variant="outline" disabled={busy} onClick={() => onPreview?.(draft)}>Preview</Button>
             <Button
               type="submit"
               disabled={busy}
               className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
             >
-              {busy ? "Saving…" : "Save service"}
+              {busy ? "Saving…" : draft.status === "Draft" ? "Save draft" : "Save changes"}
             </Button>
+            {draft.status !== "Active" && <Button type="button" disabled={busy} className="bg-[#3c6355] text-white hover:bg-[#2f5044]" onClick={() => saveDraft(undefined, "Active")}>Publish</Button>}
+            </div>
           </SheetFooter>
         </form>
       </SheetContent>

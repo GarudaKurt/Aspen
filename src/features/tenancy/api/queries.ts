@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server-client";
+import { createSupabaseServerClient, createSupabasePublicClient } from "@/lib/supabase/server-client";
 import { createR2DownloadUrl, getR2PublicUrl } from "@/lib/r2/client";
 import { requireRole } from "@/server/auth/guard";
 import { getCurrentProfile } from "@/server/auth/session";
@@ -169,7 +169,7 @@ export async function getMyServices(businessId?: string) {
 }
 
 export async function getPublishedBusiness(slug: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabasePublicClient();
   const { data, error } = await supabase
     .from("businesses")
     .select("*, business_locations(*), business_hours(*), business_amenities(*)")
@@ -184,7 +184,7 @@ export async function getPublishedBusiness(slug: string) {
 }
 
 export async function getPublishedBusinessServices(businessId: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabasePublicClient();
   const { data, error } = await supabase
     .from("business_services")
     .select("id, category, title, description, starting_price, duration_minutes, status, businesses!inner(status)")
@@ -211,7 +211,7 @@ export async function getPublishedBusinessServices(businessId: string) {
 }
 
 export async function getPublishedBusinessCards(): Promise<BusinessCardProps[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabasePublicClient();
   // Explicit status filtering also protects owner/admin sessions, whose RLS
   // permissions can otherwise read unpublished records.
   const { data, error } = await supabase.from("businesses")

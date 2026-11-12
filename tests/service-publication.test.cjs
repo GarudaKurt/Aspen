@@ -26,8 +26,9 @@ const sid = '00000000-0000-4000-8000-000000000002';
 const otherBid = '00000000-0000-4000-8000-000000000003';
 const draft = { id: sid, title: 'Grooming', category: 'Grooming', description: 'Full grooming service', price: '500', duration: '60 min', photos: [], status: 'Active' };
 
-function fixture({ current = { user: { id: 'owner', verified: true }, profile: { role: 'provider' } }, businessStatus = 'published', serviceBusiness = bid, description = draft.description, failWrite = false } = {}) {
+function fixture({ current = { user: { id: 'owner', verified: true }, profile: { role: 'provider' } }, businessStatus = 'published', applicationStatus = 'approved', serviceBusiness = bid, description = draft.description, failWrite = false } = {}) {
   const tables = {
+    provider_applications: [{ id: 'approval', business_id: bid, applicant_id: 'owner', status: applicationStatus }],
     businesses: [{ id: bid, owner_id: 'owner', status: businessStatus }],
     business_services: [{ id: sid, business_id: serviceBusiness, title: draft.title, category: draft.category, description, starting_price: 500, status: 'draft' }],
   };
@@ -40,6 +41,7 @@ function fixture({ current = { user: { id: 'owner', verified: true }, profile: {
     let inserting = false;
     const builder = {
       select() { return this; },
+      limit() { return this; },
       eq(key, value) { rows = rows.filter((r) => r[key] === value); return this; },
       update(value) { payload = value; return this; },
       insert(value) { payload = value; inserting = true; return this; },
@@ -73,12 +75,12 @@ test('publish and pause persist status and refresh public discovery/profile rout
   }
   assert.equal(f.tables.businesses[0].status, 'published');
   assert.ok(f.invalidated.some(([p]) => p === '/'));
-  assert.ok(f.invalidated.some(([p, type]) => p === '/business-profile/[slug]' && type === 'page'));
+  assert.ok(f.invalidated.some(([p, type]) => p === '/business-profile/[slug]' && type === 'layout'));
   assert.equal(f.writes.every((w) => w.table === 'business_services'), true);
 });
 
-test('pending, draft, rejected and archived businesses cannot self-publish through either action', async () => {
-  for (const businessStatus of ['pending', 'draft', 'rejected', 'archived']) {
+test('draft, rejected, archived and suspended businesses cannot publish through either action', async () => {
+  for (const businessStatus of ['draft', 'rejected', 'archived', 'suspended']) {
     const f = fixture({ businessStatus });
     assert.equal((await f.setBusinessServiceStatus({ businessId: bid, serviceId: sid, status: 'Active' })).ok, false);
     assert.equal((await f.saveBusinessService(bid, draft)).ok, false);
@@ -136,5 +138,31 @@ test('service deletion checks ownership before touching public R2 objects', asyn
     const f = fixture(options);
     assert.equal((await f.deleteBusinessService(bid, sid)).ok, false);
     assert.equal(f.deletedObjects.length, 0);
+  }
+});
+
+
+test('initial business approval permits services on legacy pending businesses without another admin action', async () => {
+  const f = fixture({ businessStatus: 'pending' });
+  assert.equal((await f.saveBusinessService(bid, { ...draft, id: undefined, status: 'Draft' })).ok, true);
+  assert.equal((await f.setBusinessServiceStatus({ businessId: bid, serviceId: sid, status: 'Active' })).ok, true);
+});
+
+test('missing, pending, rejected or withdrawn application blocks service writes even with a published business', async () => {
+  for (const applicationStatus of ['pending', 'rejected', 'withdrawn', null]) {
+    const f = fixture({ applicationStatus });
+    assert.equal((await f.saveBusinessService(bid, draft)).ok, false);
+    assert.equal((await f.setBusinessServiceStatus({ businessId: bid, serviceId: sid, status: 'Active' })).ok, false);
+    assert.equal((await f.deleteBusinessService(bid, sid)).ok, false);
+    assert.equal(f.writes.length, 0);
+    assert.equal(f.deletedObjects.length, 0);
+  }
+});
+
+test('malformed and negative prices are rejected before saving or publishing', async () => {
+  for (const price of ['abc', '-10', 'NaN', '10.123', '1e3']) {
+    const f = fixture();
+    assert.equal((await f.saveBusinessService(bid, { ...draft, price })).ok, false);
+    assert.equal(f.writes.length, 0);
   }
 });

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { getCurrentProfile, isEmailVerified } from "@/server/auth/session";
+import { getServiceManagementAccess } from "../service-access";
 import { deleteR2Object } from "@/lib/r2/client";
 import { businessAmenitiesUpdateSchema, businessHoursUpdateSchema, businessProfileSchema, businessServiceSchema, businessServiceStatusSchema, providerApplicationSchema, type BusinessServiceInput } from "../schemas";
 
@@ -137,7 +138,10 @@ function revalidateServicePages() {
   revalidatePath("/tenant-dashboard/profile");
   revalidatePath("/");
   revalidatePath("/wishlist");
-  revalidatePath("/business-profile/[slug]", "page");
+  revalidatePath("/search");
+  revalidatePath("/[category]/[city]", "page");
+  revalidatePath("/b/[slug]", "layout");
+  revalidatePath("/business-profile/[slug]", "layout");
 }
 
 const servicePhotoOrderSchema = z.object({
@@ -155,11 +159,13 @@ export async function saveServicePhotoOrder(serviceId: string, assetIds: string[
   }
   const supabase = await createSupabaseServerClient();
   const { data: service, error: ownershipError } = await supabase.from("business_services")
-    .select("id, businesses!inner(owner_id)")
+    .select("id, business_id, businesses!inner(owner_id)")
     .eq("id", parsed.data.serviceId)
     .eq("businesses.owner_id", current.user.id)
     .maybeSingle();
   if (ownershipError || !service) return { ok: false, error: "You do not own this service." };
+  const access = await getServiceManagementAccess(supabase, service.business_id, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const { error } = await supabase.rpc("set_service_photo_order", {
     p_service_id: parsed.data.serviceId,
     p_ids: parsed.data.assetIds,
@@ -178,12 +184,8 @@ export async function setBusinessServiceStatus(input: unknown): Promise<ActionRe
   }
   const { businessId, serviceId, status } = parsed.data;
   const supabase = await createSupabaseServerClient();
-  const { data: business } = await supabase.from("businesses").select("id, status")
-    .eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
-  if (!business) return { ok: false, error: "You do not own this business." };
-  if (status === "Active" && business.status !== "published") {
-    return { ok: false, error: "Your business must be approved and published by an administrator before its services can go live." };
-  }
+  const access = await getServiceManagementAccess(supabase, businessId, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const { data: service } = await supabase.from("business_services").select("id, title, category, description, starting_price")
     .eq("id", serviceId).eq("business_id", businessId).maybeSingle();
   if (!service) return { ok: false, error: "This service was not found in your business." };
@@ -209,11 +211,8 @@ export async function saveBusinessService(businessId: string, input: unknown): P
   if (!current?.user || !current.profile || current.profile.role !== "provider" || !isEmailVerified(current.user)) return { ok: false, error: "Verified provider access is required." };
   const value: BusinessServiceInput = parsed.data;
   const supabase = await createSupabaseServerClient();
-  const { data: owned } = await supabase.from("businesses").select("id, status").eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
-  if (!owned) return { ok: false, error: "You do not own this business." };
-  if (value.status === "Active" && owned.status !== "published") {
-    return { ok: false, error: "Save as Draft until an administrator has approved and published your business." };
-  }
+  const access = await getServiceManagementAccess(supabase, businessId, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const payload = { business_id: businessId, category: value.category, title: value.title, description: value.description, starting_price: parsePrice(value.price), duration_minutes: parseDuration(value.duration), status: value.status.toLowerCase() };
   const result = value.id
     ? await supabase.from("business_services").update(payload).eq("id", value.id).eq("business_id", businessId).select("id").single()
@@ -225,13 +224,12 @@ export async function saveBusinessService(businessId: string, input: unknown): P
 
 export async function deleteBusinessService(businessId: string, serviceId: string): Promise<ActionResult> {
   const current = await getCurrentProfile();
-  if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
+  if (!current?.user || !current.profile || current.profile.role !== "provider" || !isEmailVerified(current.user)) return { ok: false, error: "Provider access is required." };
   const supabase = await createSupabaseServerClient();
   // Authorize before deleting R2 files: public media may be readable by other
   // providers, but read access must never grant storage deletion privileges.
-  const { data: owned } = await supabase.from("businesses").select("id")
-    .eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
-  if (!owned) return { ok: false, error: "You do not own this business." };
+  const access = await getServiceManagementAccess(supabase, businessId, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const { data: service } = await supabase.from("business_services").select("id")
     .eq("id", serviceId).eq("business_id", businessId).maybeSingle();
   if (!service) return { ok: false, error: "This service was not found in your business." };
@@ -253,15 +251,17 @@ export async function deleteBusinessService(businessId: string, serviceId: strin
 export async function deleteServiceMedia(serviceId: string, assetIds: string[]): Promise<ActionResult> {
   if (!assetIds.length) return { ok: true, id: serviceId };
   const current = await getCurrentProfile();
-  if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
+  if (!current?.user || !current.profile || current.profile.role !== "provider" || !isEmailVerified(current.user)) return { ok: false, error: "Provider access is required." };
   const supabase = await createSupabaseServerClient();
   const { data: service } = await supabase
     .from("business_services")
-    .select("id, businesses!inner(owner_id)")
+    .select("id, business_id, businesses!inner(owner_id)")
     .eq("id", serviceId)
     .eq("businesses.owner_id", current.user.id)
     .maybeSingle();
   if (!service) return { ok: false, error: "You do not own this service." };
+  const access = await getServiceManagementAccess(supabase, service.business_id, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const { data: assets } = await supabase
     .from("media_assets")
     .select("id, object_key")

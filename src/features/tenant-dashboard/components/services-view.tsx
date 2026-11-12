@@ -22,7 +22,7 @@ import type { UploadStatus } from "./service-photo-picker";
 import { ServicePreviewSheet } from "./service-preview-sheet";
 import type { ServiceAnalytics, ServiceItem } from "../types";
 import { deleteBusinessService, deleteServiceMedia, saveBusinessService, saveServicePhotoOrder, setBusinessServiceStatus } from "@/features/tenancy/api/actions";
-import type { BusinessStatus } from "@/features/tenancy/types";
+import { serviceStatusLabel } from "../service-status";
 import { cancelPhotoUpload, uploadServicePhoto } from "@/features/business-photos/upload-client";
 import { runUploadQueue } from "@/features/business-photos/upload-queue";
 import type { MediaAsset } from "@/features/media/types";
@@ -92,12 +92,14 @@ export function ServicesView({
   initialServices,
   initialAnalytics = {},
   businessId,
-  businessStatus,
+  canManage = false,
+  accessMessage = "",
 }: {
   initialServices: ServiceItem[];
   initialAnalytics?: Record<string, ServiceAnalytics>;
   businessId?: string;
-  businessStatus?: BusinessStatus;
+  canManage?: boolean;
+  accessMessage?: string;
 }) {
   const [items, setItems] = useState(initialServices);
   const [analytics, setAnalytics] = useState(initialAnalytics);
@@ -108,6 +110,7 @@ export function ServicesView({
   const [filter, setFilter] = useState<StatusFilter>("All");
   const [query, setQuery] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploadStatuses, setUploadStatuses] = useState<Record<string, UploadStatus>>({});
   const mutationInFlight = useRef(false);
@@ -126,6 +129,7 @@ export function ServicesView({
     mutationInFlight.current = true;
     setBusy(true);
     setSaveError("");
+    setSuccessMessage("");
     try {
       await operation();
     } catch (error) {
@@ -228,11 +232,15 @@ export function ServicesView({
   };
 
   const save = async (draft: ServiceDraft, retryPreview?: string) => {
-    if (!businessId) return;
+    if (!businessId || !canManage) return;
     setSaveError("");
+    const existingId = editing?.id ?? saveProgress.current.serviceId;
+    // New/unpublished listings stay private until every requested photo is saved.
+    let persistedStatus = draft.status === "Active"
+      ? (items.find((item) => item.id === existingId)?.status ?? "Draft") : draft.status;
     let result;
     try {
-      result = await saveBusinessService(businessId, serviceSaveInput(draft, editing?.id ?? saveProgress.current.serviceId));
+      result = await saveBusinessService(businessId, serviceSaveInput({ ...draft, status: persistedStatus }, existingId));
     } catch {
       setSaveError("Could not save the service details. Check your connection and sign-in session, then try again. Photo uploads have not started.");
       return;
@@ -306,7 +314,7 @@ export function ServicesView({
         editing?.photos.forEach((photo, index) => append(photo, editing.photoAssetIds?.[index] ?? null));
         saveProgress.current.uploads.forEach((asset) => append(asset.url ?? "", asset.id));
       }
-      const saved: ServiceItem = { ...details, id: serviceId, photos, photoAssetIds };
+      const saved: ServiceItem = { ...details, status: persistedStatus, id: serviceId, photos, photoAssetIds };
       setItems((current) => current.some((service) => service.id === serviceId)
         ? current.map((service) => service.id === serviceId ? saved : service)
         : [...current, saved]);
@@ -337,6 +345,13 @@ export function ServicesView({
       setSaveError(orderError);
       return;
     }
+    if (draft.status === "Active" && persistedStatus !== "Active") {
+      const publication = await setBusinessServiceStatus({ businessId, serviceId, status: "Active" });
+      if (!publication.ok) { setSaveError(publication.error); return; }
+      persistedStatus = "Active";
+      updateSavedItem(false);
+    }
+    setSuccessMessage(persistedStatus === "Active" ? "Service published. Customers can view it now." : persistedStatus === "Draft" ? "Draft saved. It is only visible to you." : "Changes saved. This service remains unpublished.");
     setFormOpen(false);
   };
 
@@ -356,6 +371,7 @@ export function ServicesView({
       return next;
     });
     setPendingDelete(null);
+    setSuccessMessage("Service deleted.");
   };
 
   const toggle = async (service: ServiceItem) => {
@@ -367,6 +383,7 @@ export function ServicesView({
       return;
     }
     setItems((current) => current.map((item) => item.id === service.id ? { ...item, status } : item));
+    setSuccessMessage(status === "Active" ? "Service published. Customers can view it now." : "Service unpublished. It is hidden from customers.");
   };
 
   return (
@@ -378,13 +395,13 @@ export function ServicesView({
           </p>
           <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Your listings</h1>
           <p className="mt-2 text-slate-500">
-            Create and manage services owned only by this provider account.
+            Save a draft, preview your listing, then publish when it is ready.
           </p>
         </div>
         <Button
           type="button"
           onClick={openCreate}
-          disabled={busy || !businessId}
+          disabled={busy || !businessId || !canManage}
           className="bg-[#3c6355] text-white hover:bg-[#2f5044]"
         >
           <Plus className="mr-2 size-4" />
@@ -392,12 +409,13 @@ export function ServicesView({
         </Button>
       </div>
 
-      {businessId && businessStatus !== "published" && (
+      {!canManage && (
         <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Your business is not public yet (status: {businessStatus ?? "unavailable"}). You can prepare draft services, but an administrator must approve and publish the business before customers can find it. Publishing a service does not approve the business.
+          {accessMessage || "Your business application must be approved before managing services."}
         </p>
       )}
 
+      {successMessage && <p role="status" className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{successMessage}</p>}
       {saveError && (
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
           {saveError}
@@ -405,7 +423,7 @@ export function ServicesView({
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard icon={BarChart3} label="Total listings" value={counts.All} detail={`${counts.Active} currently active`} />
+        <SummaryCard icon={BarChart3} label="Total listings" value={counts.All} detail={`${counts.Active} published`} />
         <SummaryCard icon={Eye} label="Total views" value={totals.views} detail="Across your listings" />
         <SummaryCard icon={MessageCircle} label="Inquiries" value={totals.inquiries} detail="Account-owned inquiries" />
         <SummaryCard icon={CalendarCheck} label="Bookings" value={totals.bookings} detail="Across your listings" />
@@ -422,7 +440,7 @@ export function ServicesView({
                 onClick={() => setFilter(item)}
                 className={`h-9 rounded-lg px-3 text-sm ${filter === item ? "bg-white text-[#3c6355] shadow-sm" : "text-slate-500 hover:bg-white/70"}`}
               >
-                {item}
+                {item === "All" ? item : serviceStatusLabel[item]}
                 <span className="ml-1 text-xs">{counts[item]}</span>
               </Button>
             ))}
@@ -457,7 +475,7 @@ export function ServicesView({
                     </div>
                     <div className="min-w-0">
                       <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass(service.status)}`}>
-                        {service.status}
+                        {serviceStatusLabel[service.status]}
                       </span>
                       <p className="mt-2 text-sm text-[#3c6355]">{service.category}</p>
                       <h2 className="truncate text-xl font-bold">{service.title}</h2>
@@ -477,13 +495,13 @@ export function ServicesView({
                     <Button type="button" variant="outline" onClick={() => setPreviewing(service)} className="flex-1 lg:flex-none">
                       <Eye className="mr-2 size-4" />Preview
                     </Button>
-                    <Button type="button" disabled={busy} onClick={() => openEdit(service)} className="flex-1 bg-[#3c6355] text-white hover:bg-[#2f5044] lg:flex-none">
+                    <Button type="button" disabled={busy || !canManage} onClick={() => openEdit(service)} className="flex-1 bg-[#3c6355] text-white hover:bg-[#2f5044] lg:flex-none">
                       <Pencil className="mr-2 size-4" />Edit
                     </Button>
-                    <Button type="button" variant="outline" disabled={busy || !businessId || (service.status !== "Active" && businessStatus !== "published")} onClick={() => void runMutation(() => toggle(service))} className="flex-1 lg:flex-none">
-                      <Power className="mr-2 size-4" />{service.status === "Active" ? "Pause" : "Publish"}
+                    <Button type="button" variant="outline" disabled={busy || !businessId || !canManage} onClick={() => void runMutation(() => toggle(service))} className="flex-1 lg:flex-none">
+                      <Power className="mr-2 size-4" />{service.status === "Active" ? "Unpublish" : "Publish"}
                     </Button>
-                    <Button type="button" variant="ghost" disabled={busy} onClick={() => setPendingDelete(service)} className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700 lg:flex-none">
+                    <Button type="button" variant="ghost" disabled={busy || !canManage} onClick={() => setPendingDelete(service)} className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700 lg:flex-none">
                       <Trash2 className="mr-2 size-4" />Delete
                     </Button>
                   </div>
@@ -497,7 +515,7 @@ export function ServicesView({
                 {items.length ? "Try another search or filter." : "Add your first service so customers know what you offer."}
               </p>
               {!items.length && (
-                <Button type="button" disabled={busy || !businessId} onClick={openCreate} className="mt-4 bg-[#3c6355] text-white hover:bg-[#2f5044]">
+                <Button type="button" disabled={busy || !businessId || !canManage} onClick={openCreate} className="mt-4 bg-[#3c6355] text-white hover:bg-[#2f5044]">
                   Add service
                 </Button>
               )}
@@ -506,7 +524,7 @@ export function ServicesView({
         </div>
       </Card>
 
-      <ServiceFormSheet open={formOpen} service={editing} busy={busy} saveError={saveError} uploadStatuses={uploadStatuses} onClose={closeForm} onBeforeRemovePhoto={(preview) => runMutation(() => cancelPendingPhoto(preview), true)} onSave={(draft, retryPreview) => runMutation(() => save(draft, retryPreview))} />
+      <ServiceFormSheet open={formOpen} service={editing} busy={busy} saveError={saveError} uploadStatuses={uploadStatuses} onClose={closeForm} onPreview={(draft) => setPreviewing({ ...draft, id: editing?.id ?? "draft-preview" })} onBeforeRemovePhoto={(preview) => runMutation(() => cancelPendingPhoto(preview), true)} onSave={(draft, retryPreview) => runMutation(() => save(draft, retryPreview))} />
       <ServicePreviewSheet service={previewing} onClose={() => setPreviewing(null)} />
 
       <AlertDialog open={Boolean(pendingDelete)} onOpenChange={(open) => { if (!open && !busy) setPendingDelete(null); }}>
