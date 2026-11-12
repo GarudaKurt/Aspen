@@ -6,8 +6,9 @@ import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { getBusinessInitials } from "@/features/tenant-dashboard/profile/business-initials";
-import { MAX_BUSINESS_PHOTOS, validateBusinessPhoto } from "../types";
+import { MAX_BUSINESS_PHOTOS, PHOTO_SIZE_LABEL, validateBusinessPhoto } from "../types";
 import type { BusinessPhotosController } from "../use-business-photos";
+import { cancelPhotoUpload } from "../upload-client";
 
 export function BusinessCoverPhoto({ businessName, controller }: {
   businessName: string;
@@ -16,7 +17,7 @@ export function BusinessCoverPhoto({ businessName, controller }: {
   const { photos, busy, progress, error, setError, mutate, run } = controller;
   const cover = photos.find((photo) => photo.isCover);
   // Capture the cover being replaced so another tab's changes cannot be overwritten.
-  const [selection, setSelection] = useState<{ file: File; url: string; coverId?: string } | null>(null);
+  const [selection, setSelection] = useState<{ file: File; url: string; coverId?: string; uploadId: string } | null>(null);
   const [removing, setRemoving] = useState(false);
   useEffect(() => () => {
     if (selection) URL.revokeObjectURL(selection.url);
@@ -33,7 +34,7 @@ export function BusinessCoverPhoto({ businessName, controller }: {
         <div className="min-w-0 space-y-2">
           <h3 className="text-sm font-semibold">Business cover photo</h3>
           <p className="text-sm text-slate-500">Displayed on your business profile and listing cards.</p>
-          <p className="text-xs text-slate-500">JPEG, PNG or WebP · Up to 4 MB · Landscape recommended · Original format preserved</p>
+          <p className="text-xs text-slate-500">JPEG, PNG or WebP · Up to {PHOTO_SIZE_LABEL} · Landscape recommended · Original format preserved</p>
           <div className="flex flex-wrap items-center gap-2">
             <label className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-[#3c6355] focus-within:ring-2 focus-within:ring-[#3c6355] ${busy ? "opacity-50" : "cursor-pointer hover:bg-[#f2f6f3]"}`}>
               <ImagePlus className="size-4" />{cover ? "Replace photo" : "Upload photo"}
@@ -46,7 +47,7 @@ export function BusinessCoverPhoto({ businessName, controller }: {
                   setError("Your gallery is full. Choose an existing photo as the cover, or remove one before uploading."); return;
                 }
                 setError("");
-                setSelection({ file, url: URL.createObjectURL(file), coverId: cover?.id });
+                setSelection({ file, url: URL.createObjectURL(file), coverId: cover?.id, uploadId: crypto.randomUUID() });
               }} />
             </label>
             {cover && !selection && <Button type="button" variant="ghost" disabled={busy} className="gap-2 text-red-700" onClick={() => setRemoving(true)}><Trash2 className="size-4" />Remove</Button>}
@@ -56,10 +57,10 @@ export function BusinessCoverPhoto({ businessName, controller }: {
       {selection && <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3">
         <p className="w-full truncate text-xs text-slate-500" title={selection.file.name}>Preview: {selection.file.name}</p>
         <Button type="button" disabled={busy} className="bg-[#3c6355] text-white hover:bg-[#2f5044]" onClick={() => void run(async () => {
-          await mutate(selection.coverId ? "replace_cover" : "add_cover", selection.coverId, selection.file);
+          await mutate(selection.coverId ? "replace_cover" : "add_cover", selection.coverId, selection.file, undefined, selection.uploadId);
           setSelection(null);
         })}>Save cover photo</Button>
-        <Button type="button" variant="ghost" disabled={busy} onClick={() => setSelection(null)}>Cancel</Button>
+        <Button type="button" variant="ghost" disabled={busy} onClick={() => void run(async () => { await cancelPhotoUpload(selection.uploadId); setSelection(null); })}>Cancel</Button>
       </div>}
       {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {busy && <div role="status" className="mt-3 space-y-2 text-sm text-[#3c6355]">

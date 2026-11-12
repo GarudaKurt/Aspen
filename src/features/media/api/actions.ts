@@ -100,7 +100,7 @@ export async function completeMediaUpload(assetId: string): Promise<ActionResult
   const owned = await getOwnedAsset(assetId);
   if (!owned) return { ok: false, error: "Media asset not found or access denied." };
   const { data, supabase } = owned;
-  if (["business_cover", "business_gallery"].includes(data.category)) return { ok: false, error: "Use the Business photos manager." };
+  if (["business_cover", "business_gallery", "service_photo"].includes(data.category)) return { ok: false, error: "Use the validated photo uploader." };
   try {
     const object = await readR2Object(data.object_key);
     const detectedType = detectMediaType(object.bytes);

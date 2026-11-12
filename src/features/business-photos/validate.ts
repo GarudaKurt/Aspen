@@ -1,6 +1,7 @@
 import "server-only";
 import sharp from "sharp";
 import { detectMediaType } from "@/features/media/validation";
+import { MAX_PHOTO_BYTES, PHOTO_SIZE_LABEL } from "./types";
 
 const MAX_INPUT_PIXELS = 24_000_000;
 
@@ -13,7 +14,7 @@ const imageFormats = {
 export type SupportedBusinessPhotoType = keyof typeof imageFormats;
 
 export class BusinessPhotoValidationError extends Error {
-  constructor(message = "Choose a valid JPEG, PNG, or WebP image up to 4 MB.") {
+  constructor(message = `Choose a valid JPEG, PNG, or WebP image up to ${PHOTO_SIZE_LABEL}.`) {
     super(message);
   }
 }
@@ -54,6 +55,7 @@ export function imageExtensionFor(type: SupportedBusinessPhotoType) {
  * validates uploads; it never resizes, recompresses, rotates, or converts them.
  */
 export async function validateBusinessImageUpload(bytes: Uint8Array, filename: string, declaredType: string) {
+  if (!bytes.byteLength || bytes.byteLength > MAX_PHOTO_BYTES) throw new BusinessPhotoValidationError();
   if (!isSupportedType(declaredType)) throw new BusinessPhotoValidationError();
   if (!imageFormats[declaredType].includes(extensionOf(filename) as never)) {
     throw new BusinessPhotoValidationError("The file extension does not match its image format.");

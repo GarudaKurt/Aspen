@@ -8,7 +8,7 @@ export default async function TenantServicesPage() {
   const services = business ? await getMyServices(business.id) : [];
   return (
     <>
-      <ServicesView initialServices={services} businessId={business?.id} />
+      <ServicesView initialServices={services} businessId={business?.id} businessStatus={business?.status} />
     </>
   );
 }

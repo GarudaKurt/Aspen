@@ -71,7 +71,7 @@ async function getActiveMedia(supabase: Awaited<ReturnType<typeof createSupabase
   if (!ids.length) return [];
   const { data, error } = await supabase
     .from("media_assets")
-    .select("id, business_id, service_id, category, object_key, visibility, created_at")
+    .select("id, business_id, service_id, category, object_key, visibility, display_order, created_at")
     .in(column, ids)
     .eq("status", "active").eq("visibility", "public");
   if (error) throw new Error("Unable to load business media.");
@@ -79,6 +79,15 @@ async function getActiveMedia(supabase: Awaited<ReturnType<typeof createSupabase
     ...asset,
     url: await resolveMediaUrl(String(asset.object_key), String(asset.visibility)),
   })));
+}
+
+function compareServicePhotos(
+  a: { display_order?: number | null; created_at: unknown; id: unknown },
+  b: { display_order?: number | null; created_at: unknown; id: unknown },
+) {
+  return (a.display_order ?? Number.MAX_SAFE_INTEGER) - (b.display_order ?? Number.MAX_SAFE_INTEGER)
+    || String(a.created_at).localeCompare(String(b.created_at))
+    || String(a.id).localeCompare(String(b.id));
 }
 
 export async function getMyProviderApplication(): Promise<ProviderApplicationSummary | null> {
@@ -139,14 +148,11 @@ export async function getMyServices(businessId?: string) {
   const media = await getActiveMedia(supabase, "service_id", serviceIds);
   return (data ?? []).map((row) => {
     const photos = (Array.isArray(row.business_service_photos) ? row.business_service_photos : []) as Array<Record<string, unknown>>;
-    const r2Photos = media
+    const serviceMedia = media
       .filter((asset) => asset.service_id === row.id && asset.category === "service_photo" && asset.url)
-      .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
-      .map((asset) => String(asset.url));
-    const r2AssetIds = media
-      .filter((asset) => asset.service_id === row.id && asset.category === "service_photo" && asset.url)
-      .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
-      .map((asset) => String(asset.id));
+      .sort(compareServicePhotos);
+    const r2Photos = serviceMedia.map((asset) => String(asset.url));
+    const r2AssetIds = serviceMedia.map((asset) => String(asset.id));
     return ({
     id: String(row.id),
     businessId: String(row.business_id),
@@ -199,6 +205,7 @@ export async function getPublishedBusinessServices(businessId: string) {
     price: row.starting_price === null ? "Contact for pricing" : `₱${Number(row.starting_price).toLocaleString("en-PH")}`,
     photos: media
       .filter((asset) => asset.service_id === row.id && asset.category === "service_photo" && asset.url)
+      .sort(compareServicePhotos)
       .map((asset) => String(asset.url)),
   }));
 }

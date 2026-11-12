@@ -41,6 +41,7 @@ function getClient() {
     const config = getR2Config();
     client = new S3Client({
       region: "auto",
+      requestChecksumCalculation: "WHEN_REQUIRED",
       endpoint: config.endpoint,
       credentials: {
         accessKeyId: config.accessKeyId,
@@ -111,4 +112,69 @@ export async function putR2Photo(objectKey: string, bytes: Uint8Array, contentTy
     Bucket: getR2BucketName(), Key: objectKey, Body: bytes, ContentType: contentType,
     CacheControl: "private, max-age=300", ContentDisposition: "inline",
   }));
+}
+
+function getStagingBucket() {
+  const bucket = process.env.R2_UPLOAD_BUCKET_NAME;
+  if (!bucket || bucket === getR2BucketName()) {
+    throw new Error("Configure a separate private R2_UPLOAD_BUCKET_NAME for photo uploads.");
+  }
+  return bucket;
+}
+
+export async function createPhotoStagingUrl(key: string, contentType: string, byteSize: number) {
+  return getSignedUrl(getClient(), new PutObjectCommand({ Bucket: getStagingBucket(), Key: key, ContentType: contentType, ContentLength: byteSize }), {
+    expiresIn: 600, signableHeaders: new Set(["content-type", "content-length"]),
+  });
+}
+
+/** Stop before buffering an oversized object, including when Content-Length lies. */
+export async function readStagedPhoto(key: string, expectedBytes: number) {
+  const Bucket = getStagingBucket();
+  const head = await getClient().send(new HeadObjectCommand({ Bucket, Key: key }));
+  if (head.ContentLength !== expectedBytes || !head.ETag) throw new Error("Uploaded image size does not match the upload ticket.");
+  const response = await getClient().send(new GetObjectCommand({ Bucket, Key: key, IfMatch: head.ETag }));
+  if (!response.Body) throw new Error("The uploaded image is empty.");
+  const reader = response.Body.transformToWebStream().getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > expectedBytes) throw new Error("Uploaded image exceeds its allowed size.");
+      chunks.push(value);
+    }
+    if (total !== expectedBytes) throw new Error("The uploaded image is incomplete.");
+  } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
+  return Buffer.concat(chunks, total);
+}
+
+export async function deleteStagedPhoto(key: string) {
+  await getClient().send(new DeleteObjectCommand({ Bucket: getStagingBucket(), Key: key }));
+}
+
+export async function finalizedPhotoMatches(key: string, byteSize: number, sha256: string) {
+  try {
+    const object = await headR2Object(key);
+    if (object.ContentLength !== byteSize || object.Metadata?.sha256 !== sha256) throw new Error("The upload ID is already associated with a different image.");
+    return true;
+  } catch (cause) {
+    if ((cause as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404) return false;
+    throw cause;
+  }
+}
+
+/** Only validated original bytes reach the final bucket. Never overwrite a final key. */
+export async function putValidatedPhoto(key: string, bytes: Uint8Array, contentType: string, sha256: string) {
+  try {
+    await getClient().send(new PutObjectCommand({
+      Bucket: getR2BucketName(), Key: key, Body: bytes, ContentType: contentType,
+      IfNoneMatch: "*", Metadata: { sha256 }, CacheControl: "private, max-age=300", ContentDisposition: "inline",
+    }));
+  } catch (cause) {
+    if ((cause as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode !== 412) throw cause;
+    if (!(await finalizedPhotoMatches(key, bytes.byteLength, sha256))) throw cause;
+  }
 }

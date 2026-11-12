@@ -37,6 +37,12 @@ export const businessServiceSchema = z.object({
   status: z.enum(["Active", "Draft", "Paused"]),
 });
 
+export const businessServiceStatusSchema = z.object({
+  businessId: z.string().uuid(),
+  serviceId: z.string().uuid(),
+  status: z.enum(["Active", "Paused"]),
+});
+
 export const businessProfileSchema = z.object({
   providerType: z.string().trim().min(1).max(80),
   businessName: z.string().trim().min(2).max(160),

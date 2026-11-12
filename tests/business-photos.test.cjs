@@ -81,7 +81,7 @@ function serviceRequest(file = png, extra = {}) {
   return new Request('https://aspen.test/api/service-photos', { method: 'POST', body: form, headers: { origin: 'https://aspen.test', ...extra } });
 }
 
-function serviceRouteFixture({ authorized = true } = {}) {
+function serviceRouteFixture({ authorized = true, storageError = null, metadataError = null, countError = null, actualValidation = false } = {}) {
   const writes = []; const deletes = []; let inserted;
   const supabase = { from(table) {
     if (table === 'business_services') return {
@@ -91,14 +91,14 @@ function serviceRouteFixture({ authorized = true } = {}) {
     };
     return {
       select(_columns, options) { this.countMode = Boolean(options?.head); return this; }, eq() { return this; }, gte() { return this; },
-      insert(row) { inserted = row; return this; }, async single() { return { data: inserted, error: null }; },
-      then(resolve) { return Promise.resolve({ data: null, count: 0, error: null }).then(resolve); },
+      insert(row) { inserted = row; return this; }, async single() { return { data: metadataError ? null : inserted, error: metadataError }; },
+      then(resolve) { return Promise.resolve({ data: null, count: 0, error: countError }).then(resolve); },
     };
   } };
   const route = load('src/app/api/service-photos/route.ts', {
     'next/cache': { revalidatePath() {} },
-    '@/lib/r2/client': { putR2Photo: async (...args) => writes.push(args), deleteR2Object: async (key) => deletes.push(key), getR2PublicUrl: () => undefined, createR2DownloadUrl: async () => 'https://r2.test/photo' },
-    '@/features/business-photos/validate': { BusinessPhotoValidationError: class ValidationError extends Error {}, validateBusinessImageUpload: async (_bytes, filename, contentType) => ({ contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename }) },
+    '@/lib/r2/client': { putR2Photo: async (...args) => { if (storageError) throw storageError; writes.push(args); }, deleteR2Object: async (key) => deletes.push(key), getR2PublicUrl: () => undefined, createR2DownloadUrl: async () => 'https://r2.test/photo' },
+    '@/features/business-photos/validate': actualValidation ? load('src/features/business-photos/validate.ts') : { BusinessPhotoValidationError: class ValidationError extends Error {}, validateBusinessImageUpload: async (_bytes, filename, contentType) => ({ contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename }) },
     '@/server/auth/session': { getCurrentProfile: async () => authorized ? { user: { id: 'owner', email_confirmed_at: 'yes' }, profile: { role: 'provider' } } : null },
     '@/lib/supabase/server-client': { createSupabaseServerClient: async () => supabase },
   });
@@ -204,6 +204,71 @@ test('service photo uploads reject spoofed files and unauthorized providers befo
   const denied = serviceRouteFixture({ authorized: false });
   assert.equal((await denied.POST(serviceRequest())).status, 403);
   assert.equal(denied.writes.length, 0);
+});
+
+test('compatibility photo API keeps image bytes out of Server Actions and preserves originals', async () => {
+  const sharp = require('sharp');
+  const bytes = await sharp(require('node:crypto').randomBytes(1000 * 800 * 3), { raw: { width: 1000, height: 800, channels: 3 } }).png().toBuffer();
+  assert.ok(bytes.length > 1024 * 1024 && bytes.length < 4 * 1024 * 1024);
+  const file = new File([bytes], 'service.png', { type: 'image/png' });
+  const { serviceSaveInput } = load('src/features/tenant-dashboard/service-save-input.ts');
+  const draft = { title: 'Grooming', category: 'Grooming', description: 'Full grooming', price: '500', duration: '60 min', status: 'Draft', photos: ['blob:preview', `https://r2.test/photo?${'x'.repeat(600)}`], photoFiles: [file], photoFilePreviews: ['blob:preview'], photoAssetIds: ['asset'] };
+  const input = serviceSaveInput(draft, serviceId);
+  const { encodeReply } = require('next/dist/compiled/react-server-dom-webpack/client.node');
+  const before = await encodeReply([bid, { ...draft, id: serviceId }]);
+  const after = await encodeReply([bid, input]);
+  assert.ok((await new Response(before).arrayBuffer()).byteLength > 1024 * 1024);
+  assert.ok((await new Response(after).arrayBuffer()).byteLength < 1024);
+  assert.deepEqual(Object.keys(input).sort(), ['id','title','category','description','price','duration','status','photos'].sort());
+  assert.deepEqual(input.photos, []);
+  assert.ok(Buffer.byteLength(JSON.stringify(input)) < 1024);
+  const route = serviceRouteFixture({ actualValidation: true });
+  const response = await route.POST(serviceRequest(file));
+  assert.equal(response.status, 200);
+  const { asset } = await response.json();
+  assert.deepEqual(Buffer.from(route.writes[0][1]), bytes);
+  assert.equal(route.inserted.byte_size, bytes.length);
+  assert.equal(route.inserted.service_id, serviceId);
+  assert.equal(asset.url, 'https://r2.test/photo');
+  const { getMyServices } = load('src/features/tenancy/api/queries.ts', {
+    '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database({
+      business_services: [{ id: serviceId, business_id: bid, title: draft.title, category: draft.category, description: draft.description, status: 'draft', starting_price: 500, business_service_photos: [] }],
+      media_assets: [route.inserted],
+    }) },
+    '@/server/auth/guard': { requireRole: async () => ({ user: { id: 'owner' } }) },
+    '@/server/auth/session': {},
+    '@/lib/r2/client': { getR2PublicUrl: () => undefined, createR2DownloadUrl: async () => 'https://r2.test/refreshed-photo' },
+  });
+  const services = await getMyServices(bid);
+  assert.deepEqual(services[0].photos, ['https://r2.test/refreshed-photo']);
+  assert.deepEqual(services[0].photoAssetIds, [asset.id]);
+});
+
+test('service upload client explains non-JSON request-size and connection failures', async (t) => {
+  const { uploadMediaFile } = load('src/features/media/client.ts', { './api/actions': {} });
+  const input = { serviceId, category: 'service_photo', visibility: 'public' };
+  const fetchMock = t.mock.method(globalThis, 'fetch', async () => new Response('Payload too large', { status: 413 }));
+  await assert.rejects(uploadMediaFile(png, input), /too large/);
+  fetchMock.mock.mockImplementation(async () => { throw new TypeError('fetch failed'); });
+  await assert.rejects(uploadMediaFile(png, input), /could not reach the server/);
+});
+
+test('service upload failures identify storage versus metadata and clean up unlinked files', async () => {
+  for (const [options, code] of [
+    [{ storageError: Object.assign(new Error('private provider details'), { name: 'AccessDenied' }) }, 'service_photo_storage_failed'],
+    [{ metadataError: { code: '42501', message: 'private database details' } }, 'service_photo_metadata_failed'],
+    [{ countError: { code: '42501' } }, 'service_photo_upload_limits_failed'],
+  ]) {
+    const route = serviceRouteFixture(options);
+    const response = await route.POST(serviceRequest());
+    const body = await response.json();
+    assert.equal(response.status, 503);
+    assert.equal(body.code, code);
+    assert.ok(body.requestId);
+    assert.doesNotMatch(body.error, /private/);
+    if (options.metadataError) assert.deepEqual(route.deletes, [route.writes[0][0]]);
+    if (options.countError) assert.equal(route.writes.length, 0);
+  }
 });
 
 test('image validation decodes a real image without changing its bytes or format', async () => {

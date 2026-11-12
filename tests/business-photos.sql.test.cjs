@@ -32,7 +32,7 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     // Relevant real tenancy schema and policies; unrelated Storage/appointment
     // compatibility SQL needs the rest of Supabase and is outside this fixture.
     await db.exec(read('0017_tenancy.sql').split('insert into storage.buckets')[0]);
-    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql','0027_business_photo_webp_keys.sql','0028_restore_original_business_photo_formats.sql']) await db.exec(read(migration));
+    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql','0027_business_photo_webp_keys.sql','0028_restore_original_business_photo_formats.sql','0029_public_service_visibility.sql']) await db.exec(read(migration));
     const as = async (id, role = 'authenticated') => {
       await db.exec('reset role');
       await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id ?? '']);
@@ -50,6 +50,33 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     // Idempotent approval never duplicates the business.
     await db.query('select public.approve_provider_application($1)',[uid(10)]);
     assert.equal((await db.query('select count(*)::int as n from public.businesses')).rows[0].n,1);
+    // Exercise service publication against real PostgreSQL RLS and stored rows.
+    const service = (await db.query('select id from public.business_services where business_id=$1',[business.id])).rows[0];
+    await as(null,'anon');
+    assert.equal((await db.query('select id from public.business_services')).rows.length,0);
+    await as(uid(2));
+    await db.query("update public.business_services set description='Full grooming',starting_price=500,status='active' where id=$1",[service.id]);
+    await db.query("insert into public.business_service_photos(service_id,storage_path) values ($1,'fixture.jpg')",[service.id]);
+    for (const n of [190,191]) {
+      await db.query("insert into public.media_assets(id,owner_id,business_id,service_id,category,visibility,object_key,original_filename,content_type,byte_size,status) values ($1,$2,$3,$4,'service_photo','public',$5,'fixture.jpg','image/jpeg',100,'active')", [uid(n),uid(2),n === 190 ? business.id : null,service.id,`services/${service.id}/service_photo/${uid(n)}-fixture.jpg`]);
+    }
+    await as(null,'anon');
+    assert.equal((await db.query("select s.id from public.business_services s join public.businesses b on b.id=s.business_id where s.status='active' and b.status='published'")).rows.length,1);
+    assert.equal((await db.query('select id from public.business_service_photos')).rows.length,1);
+    assert.equal((await db.query('select id from public.media_assets')).rows.length,2);
+    await as(uid(3));
+    assert.equal((await db.query("update public.business_services set status='paused' where id=$1 returning id",[service.id])).rows.length,0);
+    await as(uid(2));
+    await assert.rejects(db.query("update public.businesses set status='published',verified=true where id=$1",[business.id]), /Only administrators/);
+    await db.query("update public.business_services set status='paused' where id=$1",[service.id]);
+    await as(null,'anon');
+    assert.equal((await db.query('select id from public.business_services')).rows.length,0);
+    assert.equal((await db.query('select id from public.business_service_photos')).rows.length,0);
+    assert.equal((await db.query('select id from public.media_assets')).rows.length,0);
+    await as(uid(2));
+    assert.equal((await db.query('select id from public.business_services')).rows.length,1);
+    await db.query('delete from public.media_assets where service_id=$1',[service.id]);
+    console.log('Service SQL checks passed: persisted publish/pause, anonymous discovery, draft/paused privacy, owner visibility, cross-provider denial, and admin publication protection.');
     const mutate = (action,id,newId=null) => db.query('select public.manage_business_photo($1,$2,$3,$4,$5,$6,$7)',[business.id,action,id,newId,'test.png','image/png',100]);
     await as(uid(2));
     await db.query('select public.manage_business_photo($1,$2,$3,$4,$5,$6,$7)',[business.id,'add',null,uid(99),'photo.jpeg','image/jpeg',100]);

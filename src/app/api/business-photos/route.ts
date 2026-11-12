@@ -4,7 +4,7 @@ import { z } from "zod";
 import { deleteR2Object, putR2Photo } from "@/lib/r2/client";
 import { detectMediaType } from "@/features/media/validation";
 import { businessPhotos, ownedPhotoBusiness } from "@/features/business-photos/server";
-import { MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-photos/types";
+import { MAX_PROXY_PHOTO_BYTES as MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-photos/types";
 import { BusinessPhotoValidationError, validateBusinessImageUpload } from "@/features/business-photos/validate";
 
 export const runtime = "nodejs";
@@ -15,6 +15,16 @@ const inputSchema = z.object({
 
 function failure(error: string, status = 400) { return NextResponse.json({ error }, { status }); }
 class PhotoRequestTooLarge extends Error {}
+
+export async function GET(request: Request) {
+  const businessId = new URL(request.url).searchParams.get("businessId");
+  if (!z.string().uuid().safeParse(businessId).success) return failure("Invalid business.");
+  try {
+    const owned = await ownedPhotoBusiness(businessId!);
+    if (!owned) return failure("Sign in with the verified business owner account.", 403);
+    return NextResponse.json({ photos: await businessPhotos(owned.supabase, businessId!, owned.business.cover_photo_path) }, { headers: { "Cache-Control": "no-store" } });
+  } catch { return failure("Unable to refresh the gallery. Your saved photos are retained.", 503); }
+}
 
 async function readPhotoForm(request: Request) {
   let bytes = 0;
@@ -61,6 +71,7 @@ export async function POST(request: Request) {
     let validated: Awaited<ReturnType<typeof validateBusinessImageUpload>> | undefined;
     if (["add", "replace", "add_cover", "replace_cover"].includes(action)) {
       if (!(file instanceof File)) return failure("Select a photo to upload.");
+      if (file.size > MAX_PHOTO_BYTES) return failure("This legacy upload endpoint accepts up to 4 MiB. Refresh the page to use direct uploads.", 413);
       const invalid = validateBusinessPhoto(file);
       if (invalid) return failure(invalid);
       const bytes = new Uint8Array(await file.arrayBuffer());

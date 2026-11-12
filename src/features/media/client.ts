@@ -3,19 +3,15 @@
 import { completeMediaUpload, createMediaUpload, deleteMediaAsset } from "./api/actions";
 import type { MediaUploadRequest } from "./schemas";
 import type { MediaAsset } from "./types";
+import { uploadServicePhoto } from "@/features/business-photos/upload-client";
 
 export async function uploadMediaFile(
   file: File,
   input: Omit<MediaUploadRequest, "fileName" | "contentType" | "byteSize">,
 ): Promise<MediaAsset> {
   if (input.category === "service_photo") {
-    const form = new FormData();
-    form.set("serviceId", input.serviceId ?? "");
-    form.set("file", file);
-    const response = await fetch("/api/service-photos", { method: "POST", body: form });
-    const result = await response.json().catch(() => null);
-    if (!response.ok || !result?.asset) throw new Error(result?.error ?? "The service photo could not be uploaded.");
-    return result.asset as MediaAsset;
+    if (!input.serviceId) throw new Error("Save the service before uploading its photos.");
+    return uploadServicePhoto(file, input.serviceId);
   }
   const ticket = await createMediaUpload({
     ...input,
