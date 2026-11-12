@@ -7,7 +7,7 @@ const crypto = require('node:crypto');
 const ts = require('typescript');
 const sharp = require('sharp');
 function load(filename, mocks = {}) {
-  const module = { exports: {} };
+  const compiledModule = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
   new Function('require', 'module', 'exports', code)((name) => {
     if (Object.hasOwn(mocks, name)) return mocks[name];
@@ -15,8 +15,8 @@ function load(filename, mocks = {}) {
     if (name.startsWith('@/')) return load(`src/${name.slice(2)}.ts`, mocks);
     if (name.startsWith('.')) return load(path.resolve(path.dirname(filename), `${name}.ts`), mocks);
     return require(name);
-  }, module, module.exports);
-  return module.exports;
+  }, compiledModule, compiledModule.exports);
+  return compiledModule.exports;
 }
 const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const ownerId = uid(1), businessId = uid(2), serviceId = uid(3);
