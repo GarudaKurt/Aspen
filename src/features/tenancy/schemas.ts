@@ -15,7 +15,7 @@ export const businessLocationSchema = z.object({
 });
 
 export const businessHoursSchema = z.object({
-  day: z.string().trim().min(1).max(20),
+  day: z.enum(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]),
   open: z.boolean(),
   openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -31,10 +31,19 @@ export const businessServiceSchema = z.object({
   category: z.string().trim().min(1).max(80),
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().min(1).max(2000),
-  price: z.string().trim().min(1).max(40),
+  price: z.string().trim().min(1).max(40).refine((value) => {
+    const normalized = value.replace(/^₱\s*/, "").replace(/,/g, "");
+    return /^\d+(\.\d{1,2})?$/.test(normalized) && Number(normalized) <= 9999999999.99;
+  }, "Enter a valid non-negative price with at most two decimal places."),
   duration: z.string().trim().max(40),
   photos: z.array(z.string().max(500)).max(6).default([]),
   status: z.enum(["Active", "Draft", "Paused"]),
+});
+
+export const businessServiceStatusSchema = z.object({
+  businessId: z.string().uuid(),
+  serviceId: z.string().uuid(),
+  status: z.enum(["Active", "Paused"]),
 });
 
 export const businessProfileSchema = z.object({
@@ -67,7 +76,7 @@ export const providerApplicationSchema = businessProfileSchema.extend({
 
 export const businessHoursUpdateSchema = z.object({
   hours: z.array(businessHoursSchema).length(7),
-});
+}).refine((value) => new Set(value.hours.map((day) => day.day)).size === 7, "Each day must appear exactly once.");
 
 export const businessAmenitiesUpdateSchema = z.object({
   amenities: z.array(z.object({

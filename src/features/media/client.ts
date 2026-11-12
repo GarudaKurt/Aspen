@@ -3,11 +3,16 @@
 import { completeMediaUpload, createMediaUpload, deleteMediaAsset } from "./api/actions";
 import type { MediaUploadRequest } from "./schemas";
 import type { MediaAsset } from "./types";
+import { uploadServicePhoto } from "@/features/business-photos/upload-client";
 
 export async function uploadMediaFile(
   file: File,
   input: Omit<MediaUploadRequest, "fileName" | "contentType" | "byteSize">,
 ): Promise<MediaAsset> {
+  if (input.category === "service_photo") {
+    if (!input.serviceId) throw new Error("Save the service before uploading its photos.");
+    return uploadServicePhoto(file, input.serviceId);
+  }
   const ticket = await createMediaUpload({
     ...input,
     fileName: file.name,

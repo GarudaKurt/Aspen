@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { getCurrentProfile, isEmailVerified } from "@/server/auth/session";
+import { getServiceManagementAccess } from "../service-access";
 import { deleteR2Object } from "@/lib/r2/client";
-import { businessAmenitiesUpdateSchema, businessHoursUpdateSchema, businessProfileSchema, businessServiceSchema, providerApplicationSchema, type BusinessServiceInput } from "../schemas";
+import { businessAmenitiesUpdateSchema, businessHoursUpdateSchema, businessProfileSchema, businessServiceSchema, businessServiceStatusSchema, providerApplicationSchema, type BusinessServiceInput } from "../schemas";
 
 type ActionResult = { ok: true; id: string } | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
 
@@ -131,28 +133,106 @@ function parseDuration(value: string) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+function revalidateServicePages() {
+  revalidatePath("/tenant-dashboard/services");
+  revalidatePath("/tenant-dashboard/profile");
+  revalidatePath("/");
+  revalidatePath("/wishlist");
+  revalidatePath("/search");
+  revalidatePath("/[category]/[city]", "page");
+  revalidatePath("/b/[slug]", "layout");
+  revalidatePath("/business-profile/[slug]", "layout");
+}
+
+const servicePhotoOrderSchema = z.object({
+  serviceId: z.string().uuid().transform((id) => id.toLowerCase()),
+  assetIds: z.array(z.string().uuid().transform((id) => id.toLowerCase())).max(6)
+    .refine((ids) => new Set(ids).size === ids.length, "Each photo must appear only once."),
+});
+
+export async function saveServicePhotoOrder(serviceId: string, assetIds: string[]): Promise<ActionResult> {
+  const parsed = servicePhotoOrderSchema.safeParse({ serviceId, assetIds });
+  if (!parsed.success) return validationError(parsed);
+  const current = await getCurrentProfile();
+  if (!current?.user || current.profile?.role !== "provider" || !isEmailVerified(current.user)) {
+    return { ok: false, error: "Sign in with a verified provider account to manage services." };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data: service, error: ownershipError } = await supabase.from("business_services")
+    .select("id, business_id, businesses!inner(owner_id)")
+    .eq("id", parsed.data.serviceId)
+    .eq("businesses.owner_id", current.user.id)
+    .maybeSingle();
+  if (ownershipError || !service) return { ok: false, error: "You do not own this service." };
+  const access = await getServiceManagementAccess(supabase, service.business_id, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
+  const { error } = await supabase.rpc("set_service_photo_order", {
+    p_service_id: parsed.data.serviceId,
+    p_ids: parsed.data.assetIds,
+  });
+  if (error) return { ok: false, error: "Photos were saved, but their order could not be saved. Save service again to retry." };
+  revalidateServicePages();
+  return { ok: true, id: parsed.data.serviceId };
+}
+
+export async function setBusinessServiceStatus(input: unknown): Promise<ActionResult> {
+  const parsed = businessServiceStatusSchema.safeParse(input);
+  if (!parsed.success) return validationError(parsed);
+  const current = await getCurrentProfile();
+  if (!current?.user || current.profile?.role !== "provider" || !isEmailVerified(current.user)) {
+    return { ok: false, error: "Sign in with a verified provider account to manage services." };
+  }
+  const { businessId, serviceId, status } = parsed.data;
+  const supabase = await createSupabaseServerClient();
+  const access = await getServiceManagementAccess(supabase, businessId, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
+  const { data: service } = await supabase.from("business_services").select("id, title, category, description, starting_price")
+    .eq("id", serviceId).eq("business_id", businessId).maybeSingle();
+  if (!service) return { ok: false, error: "This service was not found in your business." };
+  if (status === "Active" && !businessServiceSchema.pick({ title: true, category: true, description: true, price: true }).safeParse({
+    ...service, price: service.starting_price === null ? "" : String(service.starting_price),
+  }).success) {
+    return { ok: false, error: "Edit this service and add its name, category, description, and starting price before publishing." };
+  }
+  const { data, error } = await supabase.from("business_services").update({ status: status.toLowerCase() })
+    .eq("id", serviceId).eq("business_id", businessId).select("id").single();
+  if (error) return { ok: false, error: "Unable to update the service status. Please try again." };
+  revalidateServicePages();
+  return { ok: true, id: String(data.id) };
+}
+
 export async function saveBusinessService(businessId: string, input: unknown): Promise<ActionResult> {
+  if (!businessServiceStatusSchema.pick({ businessId: true }).safeParse({ businessId }).success) {
+    return { ok: false, error: "A valid business is required." };
+  }
   const parsed = businessServiceSchema.safeParse(input);
   if (!parsed.success) return validationError(parsed);
   const current = await getCurrentProfile();
-  if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
+  if (!current?.user || !current.profile || current.profile.role !== "provider" || !isEmailVerified(current.user)) return { ok: false, error: "Verified provider access is required." };
   const value: BusinessServiceInput = parsed.data;
   const supabase = await createSupabaseServerClient();
-  const { data: owned } = await supabase.from("businesses").select("id").eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
-  if (!owned) return { ok: false, error: "You do not own this business." };
+  const access = await getServiceManagementAccess(supabase, businessId, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const payload = { business_id: businessId, category: value.category, title: value.title, description: value.description, starting_price: parsePrice(value.price), duration_minutes: parseDuration(value.duration), status: value.status.toLowerCase() };
   const result = value.id
-    ? await supabase.from("business_services").update(payload).eq("id", value.id).select("id").single()
+    ? await supabase.from("business_services").update(payload).eq("id", value.id).eq("business_id", businessId).select("id").single()
     : await supabase.from("business_services").insert(payload).select("id").single();
   if (result.error) return { ok: false, error: "Unable to save the service." };
-  revalidatePath("/tenant-dashboard/services");
+  revalidateServicePages();
   return { ok: true, id: String(result.data.id) };
 }
 
 export async function deleteBusinessService(businessId: string, serviceId: string): Promise<ActionResult> {
   const current = await getCurrentProfile();
-  if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
+  if (!current?.user || !current.profile || current.profile.role !== "provider" || !isEmailVerified(current.user)) return { ok: false, error: "Provider access is required." };
   const supabase = await createSupabaseServerClient();
+  // Authorize before deleting R2 files: public media may be readable by other
+  // providers, but read access must never grant storage deletion privileges.
+  const access = await getServiceManagementAccess(supabase, businessId, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
+  const { data: service } = await supabase.from("business_services").select("id")
+    .eq("id", serviceId).eq("business_id", businessId).maybeSingle();
+  if (!service) return { ok: false, error: "This service was not found in your business." };
   const { data: mediaAssets } = await supabase
     .from("media_assets")
     .select("object_key")
@@ -164,22 +244,24 @@ export async function deleteBusinessService(businessId: string, serviceId: strin
   }
   const { error } = await supabase.from("business_services").delete().eq("id", serviceId).eq("business_id", businessId);
   if (error) return { ok: false, error: "Unable to delete the service." };
-  revalidatePath("/tenant-dashboard/services");
+  revalidateServicePages();
   return { ok: true, id: serviceId };
 }
 
 export async function deleteServiceMedia(serviceId: string, assetIds: string[]): Promise<ActionResult> {
   if (!assetIds.length) return { ok: true, id: serviceId };
   const current = await getCurrentProfile();
-  if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
+  if (!current?.user || !current.profile || current.profile.role !== "provider" || !isEmailVerified(current.user)) return { ok: false, error: "Provider access is required." };
   const supabase = await createSupabaseServerClient();
   const { data: service } = await supabase
     .from("business_services")
-    .select("id, businesses!inner(owner_id)")
+    .select("id, business_id, businesses!inner(owner_id)")
     .eq("id", serviceId)
     .eq("businesses.owner_id", current.user.id)
     .maybeSingle();
   if (!service) return { ok: false, error: "You do not own this service." };
+  const access = await getServiceManagementAccess(supabase, service.business_id, current.user.id);
+  if (!access.allowed) return { ok: false, error: access.error };
   const { data: assets } = await supabase
     .from("media_assets")
     .select("id, object_key")
@@ -195,7 +277,7 @@ export async function deleteServiceMedia(serviceId: string, assetIds: string[]):
   } catch {
     return { ok: false, error: "One or more service photos could not be removed." };
   }
-  revalidatePath("/tenant-dashboard/services");
+  revalidateServicePages();
   return { ok: true, id: serviceId };
 }
 
@@ -205,9 +287,10 @@ export async function saveBusinessHours(businessId: string, input: unknown): Pro
   const current = await getCurrentProfile();
   if (!current?.user || !current.profile || current.profile.role !== "provider") return { ok: false, error: "Provider access is required." };
   const supabase = await createSupabaseServerClient();
-  const rows = parsed.data.hours.map((entry, dayOfWeek) => ({
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const rows = parsed.data.hours.map((entry) => ({
     business_id: businessId,
-    day_of_week: dayOfWeek,
+    day_of_week: days.indexOf(entry.day),
     is_open: entry.open,
     open_time: entry.open ? entry.openTime : null,
     close_time: entry.open ? entry.closeTime : null,

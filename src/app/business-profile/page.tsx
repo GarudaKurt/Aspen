@@ -1,5 +1,2 @@
-import { BusinessProfile } from "@/features/business-profile/components/business-profile";
-
-export default function BusinessProfilePage() {
-  return <BusinessProfile />;
-}
+import { redirect } from "next/navigation";
+export default function BusinessProfilePage() { redirect("/#all-businesses"); }

@@ -490,6 +490,7 @@ function ProviderCard({
         {image ? (
           <Image
             src={image}
+            unoptimized
             alt={`${name} profile`}
             fill
             sizes="64px"
@@ -505,9 +506,9 @@ function ProviderCard({
       <p className="text-[10px] text-slate-500">
         {category} · {location}
       </p>
-      <p className="mt-1 text-xs font-semibold text-slate-700">
+      {rating && <p className="mt-1 text-xs font-semibold text-slate-700">
         ⭐ {rating} Ratings
-      </p>
+      </p>}
     </Card>
   );
 }

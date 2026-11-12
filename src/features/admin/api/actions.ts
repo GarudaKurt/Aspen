@@ -31,6 +31,8 @@ export async function reviewProviderApplication(formData: FormData) {
   if (result.error) redirectWithError(result.error.message || "The application could not be reviewed.");
 
   revalidatePath("/admin/provider-applications");
+  revalidatePath("/");
+  revalidatePath("/wishlist");
   revalidatePath("/tenant-dashboard", "layout");
   redirect("/admin/provider-applications?reviewed=1");
 }

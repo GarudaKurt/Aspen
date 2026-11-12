@@ -56,6 +56,8 @@ async function getOwnedAsset(assetId: string) {
 export async function createMediaUpload(input: unknown): Promise<ActionResult<MediaUploadTicket>> {
   const parsed = mediaUploadRequestSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "The upload details are invalid." };
+  if (["business_cover", "business_gallery"].includes(parsed.data.category)) return { ok: false, error: "Use the Business photos manager to upload gallery images." };
+  if (parsed.data.category === "service_photo") return { ok: false, error: "Use the Services photo uploader so images are validated before storage." };
   const current = await getCurrentProfile();
   if (!current?.user || !current.profile) return { ok: false, error: "You must be signed in to upload files." };
   if (!(await canManageTarget(parsed.data, current.user.id, current.profile.role === "admin"))) return { ok: false, error: "You are not allowed to upload to this record." };
@@ -98,6 +100,7 @@ export async function completeMediaUpload(assetId: string): Promise<ActionResult
   const owned = await getOwnedAsset(assetId);
   if (!owned) return { ok: false, error: "Media asset not found or access denied." };
   const { data, supabase } = owned;
+  if (["business_cover", "business_gallery", "service_photo"].includes(data.category)) return { ok: false, error: "Use the validated photo uploader." };
   try {
     const object = await readR2Object(data.object_key);
     const detectedType = detectMediaType(object.bytes);
@@ -145,6 +148,7 @@ export async function getMediaUrl(assetId: string): Promise<ActionResult<{ url: 
 export async function deleteMediaAsset(assetId: string): Promise<ActionResult<{ id: string }>> {
   const owned = await getOwnedAsset(assetId);
   if (!owned) return { ok: false, error: "Media asset not found or access denied." };
+  if (["business_cover", "business_gallery"].includes(owned.data.category)) return { ok: false, error: "Use the Business photos manager." };
   try {
     await deleteR2Object(String(owned.data.object_key));
     const { error } = await owned.supabase.from("media_assets").delete().eq("id", assetId);
@@ -176,54 +180,3 @@ export async function linkApplicationMedia(applicationId: string, assetIds: stri
   const { error } = await supabase.from("provider_applications").update({ identity_documents: assets ?? [] }).eq("id", applicationId);
   return error ? { ok: false, error: "Application files could not be linked." } as const : { ok: true } as const;
 }
-
-export async function setBusinessCoverAsset(businessId: string, assetId: string | null) {
-  const current = await getCurrentProfile();
-  if (!current?.user || !current.profile) return { ok: false, error: "You must be signed in." } as const;
-  const supabase = await createSupabaseServerClient();
-  const isAdmin = current.profile.role === "admin";
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("id, owner_id, cover_photo_path")
-    .eq("id", businessId)
-    .maybeSingle();
-  if (!business || (!isAdmin && business.owner_id !== current.user.id)) {
-    return { ok: false, error: "You do not own this business." } as const;
-  }
-
-  let nextObjectKey: string | null = null;
-  let nextAssetId: string | null = null;
-  if (assetId) {
-    const { data: asset } = await supabase
-      .from("media_assets")
-      .select("id, object_key")
-      .eq("id", assetId)
-      .eq("business_id", businessId)
-      .eq("category", "business_cover")
-      .eq("status", "active")
-      .maybeSingle();
-    if (!asset) return { ok: false, error: "The cover image could not be found." } as const;
-    nextObjectKey = String(asset.object_key);
-    nextAssetId = String(asset.id);
-  }
-
-  const { error } = await supabase
-    .from("businesses")
-    .update({ cover_photo_path: nextObjectKey })
-    .eq("id", businessId);
-  if (error) return { ok: false, error: "The business cover image could not be saved." } as const;
-
-  if (business.cover_photo_path && business.cover_photo_path !== nextObjectKey) {
-    await deleteR2Object(String(business.cover_photo_path)).catch(() => undefined);
-    await supabase
-      .from("media_assets")
-      .delete()
-      .eq("business_id", businessId)
-      .eq("category", "business_cover")
-      .eq("object_key", business.cover_photo_path);
-  }
-  revalidatePath("/tenant-dashboard/profile");
-  revalidatePath("/business-profile", "layout");
-  return { ok: true, assetId: nextAssetId } as const;
-}
-
