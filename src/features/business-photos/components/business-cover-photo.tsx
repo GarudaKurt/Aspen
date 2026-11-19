@@ -34,7 +34,7 @@ export function BusinessCoverPhoto({ businessName, controller }: {
         <div className="min-w-0 space-y-2">
           <h3 className="text-sm font-semibold">Business cover photo</h3>
           <p className="text-sm text-slate-500">Displayed on your business profile and listing cards.</p>
-          <p className="text-xs text-slate-500">JPEG, PNG or WebP · Up to {PHOTO_SIZE_LABEL} · Landscape recommended · Original format preserved</p>
+          <p className="text-xs text-slate-500">JPEG, PNG or WebP · Up to {PHOTO_SIZE_LABEL} · Landscape recommended · Lossless optimization when smaller</p>
           <div className="flex flex-wrap items-center gap-2">
             <label className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium text-[#3c6355] focus-within:ring-2 focus-within:ring-[#3c6355] ${busy ? "opacity-50" : "cursor-pointer hover:bg-[#f2f6f3]"}`}>
               <ImagePlus className="size-4" />{cover ? "Replace photo" : "Upload photo"}

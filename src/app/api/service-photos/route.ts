@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createR2DownloadUrl, deleteR2Object, getR2PublicUrl, putR2Photo } from "@/lib/r2/client";
 import { detectMediaType } from "@/features/media/validation";
-import { BusinessPhotoValidationError, validateBusinessImageUpload } from "@/features/business-photos/validate";
+import { BusinessPhotoValidationError } from "@/features/business-photos/validate";
+import { optimizeBusinessImage } from "@/features/business-photos/optimize";
 import { MAX_PROXY_PHOTO_BYTES as MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-photos/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { getCurrentProfile } from "@/server/auth/session";
@@ -65,12 +66,12 @@ export async function POST(request: Request) {
     stage = "validation";
     const source = new Uint8Array(await file.arrayBuffer());
     if (detectMediaType(source) !== file.type) return failure("The file contents do not match its image format.");
-    const validated = await validateBusinessImageUpload(source, file.name, file.type);
+    const validated = await optimizeBusinessImage(source, file.name, file.type);
 
     const assetId = crypto.randomUUID();
     objectKey = `services/${parsed.data.serviceId}/service_photo/${assetId}-photo${validated.extension}`;
     stage = "storage";
-    await putR2Photo(objectKey, source, validated.contentType);
+    await putR2Photo(objectKey, validated.bytes, validated.contentType);
     // Resolve before committing metadata so a URL/configuration failure can be
     // rolled back rather than reporting failure after saving a durable asset.
     const photoUrl = getR2PublicUrl(objectKey) ?? await createR2DownloadUrl(objectKey);
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
       object_key: objectKey,
       original_filename: validated.filename,
       content_type: validated.contentType,
-      byte_size: source.byteLength,
+      byte_size: validated.bytes.byteLength,
       status: "active",
       uploaded_at: new Date().toISOString(),
     }).select("id, object_key, category, visibility, content_type, byte_size, original_filename, status").single();

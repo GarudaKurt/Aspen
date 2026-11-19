@@ -166,7 +166,7 @@ export async function finalizedPhotoMatches(key: string, byteSize: number, sha25
   }
 }
 
-/** Only validated original bytes reach the final bucket. Never overwrite a final key. */
+/** Only validated final image bytes reach this bucket. Never overwrite a final key. */
 export async function putValidatedPhoto(key: string, bytes: Uint8Array, contentType: string, sha256: string) {
   try {
     await getClient().send(new PutObjectCommand({

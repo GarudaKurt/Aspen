@@ -32,7 +32,7 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     // Relevant real tenancy schema and policies; unrelated Storage/appointment
     // compatibility SQL needs the rest of Supabase and is outside this fixture.
     await db.exec(read('0017_tenancy.sql').split('insert into storage.buckets')[0]);
-    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql','0027_business_photo_webp_keys.sql','0028_restore_original_business_photo_formats.sql','0029_public_service_visibility.sql','0030_direct_photo_uploads.sql','0031_approved_provider_service_management.sql']) await db.exec(read(migration));
+    for (const migration of ['0018_media_assets.sql','0019_rbac_hardening.sql','0020_provider_onboarding_guards.sql','0024_business_photos.sql','0025_publish_approved_businesses.sql','0026_business_cover_photos.sql','0027_business_photo_webp_keys.sql','0028_restore_original_business_photo_formats.sql','0029_public_service_visibility.sql','0030_direct_photo_uploads.sql','0031_approved_provider_service_management.sql','0032_photo_optimization.sql']) await db.exec(read(migration));
     const as = async (id, role = 'authenticated') => {
       await db.exec('reset role');
       await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id ?? '']);
@@ -40,6 +40,7 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     };
 
     await db.exec(read('0031_approved_provider_service_management.sql'));
+    await db.exec(read('0032_photo_optimization.sql'));
     await as(uid(2));
     await db.query("insert into public.provider_applications(id,applicant_id,provider_type,business_name,business_description,selected_services) values ($1,$2,'Clinic','Approved clinic','Description',array['Veterinary'])",[uid(10),uid(2)]);
     await assert.rejects(db.query('select public.approve_provider_application($1)',[uid(10)]), /Only administrators/);
@@ -81,6 +82,20 @@ const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     await assert.rejects(db.query("update public.business_services set starting_price=-10 where id=$1",[uid(20)]), /valid starting price/);
     await assert.rejects(db.query("update public.business_services set starting_price='NaN' where id=$1",[uid(20)]), /valid starting price/);
     await assert.rejects(db.query("insert into public.business_services(business_id,title,category,description,status) values($1,'Incomplete','Veterinary','','active')",[business.id]), /valid starting price/);
+    // Conversion commits final identity and cover atomically; renewals compare source metadata.
+    await db.query("select public.reserve_photo_upload($1,'business',$2,'add_cover',null,'cover.png','image/png',10000,$3)",[uid(40),business.id,'c'.repeat(64)]);
+    await db.query("select public.finish_optimized_photo_upload($1,'image/webp',5000)",[uid(40)]);
+    await db.query("select public.finish_optimized_photo_upload($1,'image/webp',5000)",[uid(40)]);
+    const optimized=(await db.query('select * from public.media_assets where id=$1',[uid(40)])).rows[0];
+    assert.equal(optimized.content_type,'image/webp'); assert.equal(Number(optimized.byte_size),5000);
+    assert.equal(Number(optimized.upload_source_size),10000); assert.match(optimized.object_key,/\.webp$/);
+    assert.equal((await db.query('select cover_photo_path from public.businesses where id=$1',[business.id])).rows[0].cover_photo_path,optimized.object_key);
+    await db.query("select public.reserve_photo_upload($1,'business',$2,'add_cover',null,'cover.png','image/png',10000,$3)",[uid(40),business.id,'c'.repeat(64)]);
+    await assert.rejects(db.query("update public.media_assets set upload_source_size=1 where id=$1",[uid(40)]),/immutable/);
+    await assert.rejects(db.query("update public.media_assets set byte_size=100 where id=$1",[uid(40)]),/immutable/);
+    await db.query("select public.reserve_photo_upload($1,'service',$2,'add',null,'service.jpg','image/jpeg',10000,$3)",[uid(41),uid(20),'d'.repeat(64)]);
+    await assert.rejects(db.query("select public.finish_optimized_photo_upload($1,'image/webp',11000)",[uid(41)]),/immutable/);
+    await db.query("select public.finish_optimized_photo_upload($1,'image/webp',4000)",[uid(41)]);
     // Another provider owns an unapproved draft business.
     await as(uid(3));
     const unapproved = (await db.query("insert into public.businesses(owner_id,slug,name,provider_type) values($1,'unapproved','Unapproved','Clinic') returning id",[uid(3)])).rows[0].id;

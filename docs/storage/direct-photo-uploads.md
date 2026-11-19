@@ -1,6 +1,6 @@
 # Direct business and service photo uploads
 
-Business galleries and service forms support multi-select, drag/drop, previews, two concurrent uploads, individual progress/errors, and retries that retain completed images. Covers remain single-image uploads. PNG, JPG/JPEG and WebP bytes are preserved; images are not resized or compressed.
+Business galleries and service forms support multi-select, drag/drop, previews, two concurrent uploads, individual progress/errors, and retries that retain completed images. Covers remain single-image uploads. PNG and JPG/JPEG now use lossless WebP when smaller; dimensions are preserved. See [image optimization](image-optimization.md) and apply migration 0032 before deploying the optimization update.
 
 ## Required rollout steps
 

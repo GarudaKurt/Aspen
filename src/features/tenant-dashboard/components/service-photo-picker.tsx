@@ -54,7 +54,7 @@ export function ServicePhotoPicker({
         <ImagePlus className="size-7 text-[#3c6355]" />
         <span className="mt-2 text-sm font-medium">Drop photos here or choose files</span>
         <span className="mt-1 text-xs text-slate-500">
-          JPG, JPEG, PNG, or WebP · up to {PHOTO_SIZE_LABEL} each · Original format preserved
+          JPG, JPEG, PNG, or WebP · up to {PHOTO_SIZE_LABEL} each · Lossless optimization when smaller
         </span>
         <input
           id="service-photos"
