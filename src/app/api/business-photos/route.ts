@@ -5,7 +5,8 @@ import { deleteR2Object, putR2Photo } from "@/lib/r2/client";
 import { detectMediaType } from "@/features/media/validation";
 import { businessPhotos, ownedPhotoBusiness } from "@/features/business-photos/server";
 import { MAX_PROXY_PHOTO_BYTES as MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-photos/types";
-import { BusinessPhotoValidationError, validateBusinessImageUpload } from "@/features/business-photos/validate";
+import { BusinessPhotoValidationError } from "@/features/business-photos/validate";
+import { optimizeBusinessImage } from "@/features/business-photos/optimize";
 
 export const runtime = "nodejs";
 const inputSchema = z.object({
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     }
     const file = form.get("file");
     let newId: string | undefined;
-    let validated: Awaited<ReturnType<typeof validateBusinessImageUpload>> | undefined;
+    let validated: Awaited<ReturnType<typeof optimizeBusinessImage>> | undefined;
     if (["add", "replace", "add_cover", "replace_cover"].includes(action)) {
       if (!(file instanceof File)) return failure("Select a photo to upload.");
       if (file.size > MAX_PHOTO_BYTES) return failure("This legacy upload endpoint accepts up to 4 MiB. Refresh the page to use direct uploads.", 413);
@@ -76,16 +77,16 @@ export async function POST(request: Request) {
       if (invalid) return failure(invalid);
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (detectMediaType(bytes) !== file.type) return failure("The file contents do not match its image format.");
-      validated = await validateBusinessImageUpload(bytes, file.name, file.type);
+      validated = await optimizeBusinessImage(bytes, file.name, file.type);
       newId = crypto.randomUUID();
       newKey = `businesses/${businessId}/business_gallery/${newId}-photo${validated.extension}`;
-      await putR2Photo(newKey, bytes, validated.contentType);
+      await putR2Photo(newKey, validated.bytes, validated.contentType);
     }
     uncertainCommit = true;
     const { error } = await supabase.rpc("manage_business_photo", {
       p_business_id: businessId, p_action: action, p_photo_id: photoId ?? null,
       p_new_id: newId ?? null, p_filename: validated?.filename ?? null,
-      p_content_type: validated?.contentType ?? null, p_byte_size: file instanceof File ? file.size : null,
+      p_content_type: validated?.contentType ?? null, p_byte_size: validated?.bytes.byteLength ?? null,
     });
     // A connection failure can occur after commit. Never delete the new object
     // when the database outcome is unknown; retain it for reconciliation.

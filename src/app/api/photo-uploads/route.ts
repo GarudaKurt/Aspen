@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { optimizeBusinessImage } from "@/features/business-photos/optimize";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -79,12 +80,14 @@ export async function POST(request: Request) {
       .eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
     if (businessError) throw businessError;
     if (!business) throw new UploadError("Business not found or access denied.", 403);
-    const key = photoObjectKey(ticket), stagingKey = photoStagingKey(ticket);
+    let key = photoObjectKey(ticket);
+    let finalType = ticket.type, finalSize = ticket.size, finalName = ticket.name;
+    const stagingKey = photoStagingKey(ticket);
     if (input.operation === "init") {
       stage = "configuration";
       const uploadUrl = await createPhotoStagingUrl(stagingKey, ticket.type, ticket.size);
       stage = "reservation";
-      const { error } = await supabase.rpc("reserve_photo_upload", {
+      const { data: reservationStatus, error } = await supabase.rpc("reserve_photo_upload", {
         p_id: ticket.id, p_kind: ticket.kind, p_target_id: ticket.targetId, p_action: ticket.action, p_photo_id: ticket.photoId ?? null,
         p_filename: ticket.name, p_content_type: ticket.type, p_byte_size: ticket.size, p_sha256: ticket.sha256,
       });
@@ -94,17 +97,19 @@ export async function POST(request: Request) {
         throw error;
       }
       stage = "storage";
-      const uploaded = await finalizedPhotoMatches(key, ticket.size, ticket.sha256);
+      // Source and final format can differ. Completion reconciles committed rows.
+      const uploaded = reservationStatus === "active";
       return NextResponse.json({ ticket: signPhotoTicket(ticket), uploadUrl, uploaded }, { headers: { "Cache-Control": "no-store" } });
     }
     stage = "reservation";
     const { data: reservation, error: reservationError } = await supabase.from("media_assets")
-      .select("id, object_key, status, upload_sha256, byte_size, content_type, upload_action, upload_photo_id")
+      .select("id, object_key, status, upload_sha256, byte_size, content_type, original_filename, upload_source_type, upload_source_size, upload_source_filename, upload_action, upload_photo_id")
       .eq("id", ticket.id).eq("owner_id", current.user.id).maybeSingle();
     if (reservationError) throw reservationError;
-    if (!reservation || !["pending", "active"].includes(reservation.status) || reservation.object_key !== key
-      || reservation.upload_sha256 !== ticket.sha256 || Number(reservation.byte_size) !== ticket.size
-      || reservation.content_type !== ticket.type || reservation.upload_action !== ticket.action
+    if (!reservation || !["pending", "active"].includes(reservation.status)
+      || ![key, photoObjectKey({ ...ticket, type: "image/webp" })].includes(reservation.object_key)
+      || reservation.upload_sha256 !== ticket.sha256 || Number(reservation.upload_source_size ?? reservation.byte_size) !== ticket.size
+      || (reservation.upload_source_type ?? reservation.content_type) !== ticket.type || reservation.upload_action !== ticket.action
       || (reservation.upload_photo_id ?? undefined) !== ticket.photoId) throw new UploadError("Upload reservation is missing or has changed.", 409);
     stage = "validation";
     failPending = async () => {
@@ -112,7 +117,12 @@ export async function POST(request: Request) {
       if (error) throw error;
       await deleteStagedPhoto(stagingKey);
     };
-    if (!(await finalizedPhotoMatches(key, ticket.size, ticket.sha256))) {
+    if (reservation.status === "active") {
+      key = reservation.object_key;
+      finalType = reservation.content_type;
+      finalSize = Number(reservation.byte_size);
+      finalName = reservation.original_filename;
+    } else {
       const { error: quotaError } = await supabase.rpc("consume_photo_upload_quota", { p_phase: "validate" });
       if (quotaError) {
         if (/rate limit/i.test(quotaError.message)) throw new UploadError("Image validation limit reached. Wait before retrying.", 429);
@@ -120,12 +130,24 @@ export async function POST(request: Request) {
       }
       const bytes = await readStagedPhoto(stagingKey, ticket.size);
       if (createHash("sha256").update(bytes).digest("hex") !== ticket.sha256) throw new UploadError("The uploaded image does not match the selected file. Retry it.");
-      await validateBusinessImageUpload(bytes, ticket.name, ticket.type);
+      // Reservations made before migration 0032 finish in their original format.
+      const optimized = reservation.upload_source_type
+        ? await optimizeBusinessImage(bytes, ticket.name, ticket.type)
+        : { ...await validateBusinessImageUpload(bytes, ticket.name, ticket.type), bytes };
+      finalType = optimized.contentType;
+      finalSize = optimized.bytes.byteLength;
+      finalName = optimized.filename;
+      key = photoObjectKey({ ...ticket, type: finalType });
       stage = "storage";
-      await putValidatedPhoto(key, bytes, ticket.type, ticket.sha256);
+      const finalHash = createHash("sha256").update(optimized.bytes).digest("hex");
+      if (!(await finalizedPhotoMatches(key, finalSize, finalHash))) {
+        await putValidatedPhoto(key, optimized.bytes, finalType, finalHash);
+      }
     }
     stage = "metadata";
-    const { data: oldKey, error } = await supabase.rpc("finish_photo_upload", { p_id: ticket.id });
+    const { data: oldKey, error } = await supabase.rpc("finish_optimized_photo_upload", {
+      p_id: ticket.id, p_content_type: finalType, p_byte_size: finalSize,
+    });
     if (error) {
       if (error.code === "P0001") throw new UploadError(error.message, 409);
       // Retain the validated object when commit outcome is unknown; retries reconcile.
@@ -147,8 +169,8 @@ export async function POST(request: Request) {
       if (refreshError) throw refreshError;
       return NextResponse.json({ photos: await businessPhotos(supabase, businessId, data.cover_photo_path) }, { headers: { "Cache-Control": "no-store" } });
     }
-    return NextResponse.json({ asset: { id: ticket.id, objectKey: key, category: "service_photo", visibility: "public", contentType: ticket.type,
-      byteSize: ticket.size, originalFilename: ticket.name, status: "active", url: getR2PublicUrl(key) ?? await createR2DownloadUrl(key) } }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ asset: { id: ticket.id, objectKey: key, category: "service_photo", visibility: "public", contentType: finalType,
+      byteSize: finalSize, originalFilename: finalName, status: "active", url: getR2PublicUrl(key) ?? await createR2DownloadUrl(key) } }, { headers: { "Cache-Control": "no-store" } });
   } catch (cause) {
     if (cause instanceof UploadError || cause instanceof BusinessPhotoValidationError) {
       if (cause instanceof BusinessPhotoValidationError || (cause.status === 400 && stage === "validation")) {
@@ -159,7 +181,7 @@ export async function POST(request: Request) {
     const diagnostic = cause as { code?: string; name?: string; $metadata?: { httpStatusCode?: number } };
     console.error("Direct photo upload failed", { requestId, stage, code: diagnostic.code, name: diagnostic.name, storageStatus: diagnostic.$metadata?.httpStatusCode });
     const message = stage === "configuration" ? "Photo uploads need a separate private R2 staging bucket. Contact support."
-      : stage === "reservation" || stage === "metadata" ? "Photo metadata could not be saved. Check migration 0030 and upload permissions."
+      : stage === "reservation" || stage === "metadata" ? "Photo metadata could not be saved. Check migration 0032 and upload permissions."
       : stage === "validation" ? "The uploaded image could not be validated. Retry this image."
       : "The photo upload could not be completed. Retry this image.";
     return NextResponse.json({ error: `${message} Reference: ${requestId}`, requestId }, { status: 503 });

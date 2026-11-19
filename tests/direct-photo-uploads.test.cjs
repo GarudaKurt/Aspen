@@ -57,11 +57,14 @@ function fixture({ authorized = true, own = true, lostCommitResponse = false, qu
       if (name === 'reserve_photo_upload') {
         const ticket = { id:args.p_id, ownerId, kind:args.p_kind, targetId:args.p_target_id, type:args.p_content_type };
         if (!rows.has(args.p_id)) rows.set(args.p_id, { id:args.p_id, owner_id:ownerId, object_key:tickets.photoObjectKey(ticket), status:'pending', upload_sha256:args.p_sha256,
+          original_filename:args.p_filename, upload_source_type:args.p_content_type, upload_source_size:args.p_byte_size,
           byte_size:args.p_byte_size, content_type:args.p_content_type, upload_action:args.p_action, upload_photo_id:args.p_photo_id });
         return { data:rows.get(args.p_id).status, error:null };
       }
-      if (name === 'finish_photo_upload') {
+      if (name === 'finish_optimized_photo_upload') {
         const row = rows.get(args.p_id);
+        if (args.p_content_type === 'image/webp') { row.object_key=row.object_key.replace(/\.(png|jpg)$/,'.webp'); row.original_filename=row.original_filename.replace(/\.[^.]+$/,'.webp'); }
+        row.content_type=args.p_content_type; row.byte_size=args.p_byte_size;
         if (row.status !== 'active') { row.status='active'; commits++; }
         if (lostCommitResponse) { lostCommitResponse=false; return { error: { code:'', message:'connection lost' } }; }
         return { data:null, error:null };
@@ -84,7 +87,10 @@ function fixture({ authorized = true, own = true, lostCommitResponse = false, qu
     deleteStagedPhoto: async (key) => staging.delete(key), deleteR2Object: async (key) => final.delete(key),
     getR2PublicUrl: () => undefined, createR2DownloadUrl: async (key) => `https://photos.test/${key}`,
   };
+  const validation = load('src/features/business-photos/validate.ts');
   const route=load('src/app/api/photo-uploads/route.ts', {
+    '@/features/business-photos/validate': validation,
+    '@/features/business-photos/optimize': load('src/features/business-photos/optimize.ts', { './validate': validation }),
     'next/cache': { revalidatePath() {} }, '@/lib/r2/client':r2,
     '@/server/auth/session': { getCurrentProfile: async () => authorized ? { user:{id:ownerId,email_confirmed_at:'yes'},profile:{role:'provider'} } : null },
     '@/lib/supabase/server-client': { createSupabaseServerClient:async()=>supabase },
@@ -108,8 +114,8 @@ test('real image larger than 4 MiB uploads through metadata-only API and preserv
   const f=fixture(), initialized=await begin(f,bytes);
   const payload={operation:'complete',ticket:initialized.ticket}; assert.ok(JSON.stringify(payload).length<4096);
   const response=await f.post(payload); assert.equal(response.status,200,await response.clone().text());
-  const {asset}=await response.json(); assert.equal(asset.byteSize,bytes.length);
-  assert.deepEqual(f.final.get(asset.objectKey).bytes,bytes); assert.equal(f.commits,1);
+  const {asset}=await response.json(); assert.ok(asset.byteSize<=bytes.length);
+  assert.deepEqual(await sharp(f.final.get(asset.objectKey).bytes).raw().toBuffer(),await sharp(bytes).raw().toBuffer()); assert.equal(f.commits,1);
 });
 
 test('original PNG, JPG, JPEG and WebP pass real decoding and business gallery association', async()=>{
@@ -118,7 +124,7 @@ test('original PNG, JPG, JPEG and WebP pass real decoding and business gallery a
     const f=fixture(), initialized=await begin(f,bytes,{name:`photo.${extension}`,type,kind:'business',targetId:businessId});
     const response=await f.post({operation:'complete',ticket:initialized.ticket});
     assert.equal(response.status,200,await response.clone().text()); assert.equal((await response.json()).photos.length,1);
-    assert.deepEqual([...f.final.values()][0].bytes,bytes);
+    assert.deepEqual(await sharp([...f.final.values()][0].bytes).raw().toBuffer(),await sharp(bytes).raw().toBuffer());
   }
 });
 

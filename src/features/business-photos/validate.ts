@@ -65,7 +65,7 @@ export async function validateBusinessImageUpload(bytes: Uint8Array, filename: s
   }
 
   try {
-    const image = sharp(bytes, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS });
+    const image = sharp(bytes, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS, animated: true }).timeout({ seconds: 20 });
     const metadata = await image.metadata();
     const expectedFormat = declaredType === "image/jpeg" ? "jpeg" : declaredType.slice("image/".length);
     if (!metadata.width || !metadata.height || metadata.format !== expectedFormat) throw new Error("Invalid dimensions or format");

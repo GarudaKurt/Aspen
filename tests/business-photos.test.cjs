@@ -63,9 +63,11 @@ function routeFixture({ authorized = true, photos = [], rpcError = null, validat
     '@/lib/r2/client': { putR2Photo: async (...args) => writes.push(args), deleteR2Object: async (key) => deletes.push(key) },
     '@/features/business-photos/validate': {
       BusinessPhotoValidationError: ValidationError,
-      validateBusinessImageUpload: async (_bytes, filename, contentType) => {
+    },
+    '@/features/business-photos/optimize': {
+      optimizeBusinessImage: async (_bytes, filename, contentType) => {
         if (validationError) throw new ValidationError(validationError);
-        return { contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename };
+        return { bytes: _bytes, contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename };
       },
     },
     '@/features/business-photos/server': {
@@ -96,6 +98,7 @@ function serviceRouteFixture({ authorized = true, storageError = null, metadataE
     };
   } };
   const route = load('src/app/api/service-photos/route.ts', {
+    '@/features/business-photos/optimize': actualValidation ? load('src/features/business-photos/optimize.ts') : { optimizeBusinessImage: async (bytes, filename, contentType) => ({ bytes, contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename }) },
     'next/cache': { revalidatePath() {} },
     '@/lib/r2/client': { putR2Photo: async (...args) => { if (storageError) throw storageError; writes.push(args); }, deleteR2Object: async (key) => deletes.push(key), getR2PublicUrl: () => undefined, createR2DownloadUrl: async () => 'https://r2.test/photo' },
     '@/features/business-photos/validate': actualValidation ? load('src/features/business-photos/validate.ts') : { BusinessPhotoValidationError: class ValidationError extends Error {}, validateBusinessImageUpload: async (_bytes, filename, contentType) => ({ contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename }) },
@@ -226,8 +229,8 @@ test('compatibility photo API keeps image bytes out of Server Actions and preser
   const response = await route.POST(serviceRequest(file));
   assert.equal(response.status, 200);
   const { asset } = await response.json();
-  assert.deepEqual(Buffer.from(route.writes[0][1]), bytes);
-  assert.equal(route.inserted.byte_size, bytes.length);
+  assert.deepEqual(await sharp(route.writes[0][1]).raw().toBuffer(), await sharp(bytes).raw().toBuffer());
+  assert.equal(route.inserted.byte_size, route.writes[0][1].byteLength);
   assert.equal(route.inserted.service_id, serviceId);
   assert.equal(asset.url, 'https://r2.test/photo');
   const { getMyServices } = load('src/features/tenancy/api/queries.ts', {
