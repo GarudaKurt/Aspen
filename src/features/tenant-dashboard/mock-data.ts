@@ -1,46 +1,4 @@
-import type { CalendarEvent, ServiceAnalytics, ServiceItem } from "./types";
-
-export function getCalendarEvents(referenceDate = new Date()): CalendarEvent[] {
-  const year = referenceDate.getFullYear();
-  const month = referenceDate.getMonth();
-  const dateKey = (day: number) =>
-    new Date(year, month, day).toISOString().slice(0, 10);
-
-  return [
-    {
-      id: "e1",
-      title: "Full Grooming",
-      date: dateKey(5),
-      time: "2:00 PM",
-      type: "booking",
-      customer: "Juan D.",
-    },
-    {
-      id: "e2",
-      title: "Boarding drop-off",
-      date: dateKey(12),
-      time: "9:00 AM",
-      type: "booking",
-      customer: "Maria S.",
-    },
-    {
-      id: "e3",
-      title: "Team check-in",
-      date: dateKey(19),
-      time: "11:30 AM",
-      type: "meeting",
-      customer: "Staff",
-    },
-    {
-      id: "e4",
-      title: "Available slot",
-      date: dateKey(26),
-      time: "1:00 PM",
-      type: "availability",
-      customer: "Open",
-    },
-  ];
-}
+import type { ServiceAnalytics, ServiceItem } from "./types";
 
 export const services: ServiceItem[] = [
   {

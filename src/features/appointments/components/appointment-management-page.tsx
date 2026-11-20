@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
@@ -34,7 +34,7 @@ import {
   appointmentStatusUpdateSchema,
 } from "../schemas";
 import { updateAppointmentStatus } from "../api/actions";
-import { getTenantAppointments } from "../api/queries";
+import { getTenantAppointments, mapAppointmentRow } from "../api/queries";
 import type {
   AppointmentDateFilter,
   AppointmentRequest,
@@ -147,6 +147,23 @@ export function AppointmentManagementPage({
   const [page, setPage] = useState(1);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    const receive = ({ new: row }: { new: Record<string, unknown> }) => {
+      const [appointment] = getTenantAppointments([mapAppointmentRow(row)], businessId);
+      if (!appointment) return;
+      setAppointments((current) => [...current.filter((item) => item.appointmentId !== appointment.appointmentId), appointment]
+        .sort((a, b) => a.appointmentDate.localeCompare(b.appointmentDate)));
+      setSelected((current) => current?.appointmentId === appointment.appointmentId ? appointment : current);
+      setPendingReject((current) => current?.appointmentId === appointment.appointmentId ? appointment : current);
+    };
+    const channel = supabase.channel(`appointment-inbox:${businessId}:${crypto.randomUUID()}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "appointments", filter: `business_id=eq.${businessId}` }, receive)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "appointments", filter: `business_id=eq.${businessId}` }, receive)
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [businessId]);
+
   const counts = useMemo(
     () => ({
       total: appointments.length,
@@ -219,13 +236,16 @@ export function AppointmentManagementPage({
     }
 
     setUpdatingId(appointment.appointmentId);
-    const { error } = await getSupabaseBrowserClient()
+    const { data, error } = await getSupabaseBrowserClient()
       .from("appointments")
       .update({ status: result.appointment.status, rejection_reason: result.appointment.rejectionReason ?? null })
-      .eq("id", appointment.appointmentId);
-    if (error) {
+      .eq("id", appointment.appointmentId)
+      .eq("business_id", businessId)
+      .eq("status", appointment.status)
+      .select("id").maybeSingle();
+    if (error || !data) {
       setUpdatingId(null);
-      toast({ title: "Appointment update failed", description: "The change could not be saved. Please try again.", variant: "destructive" });
+      toast({ title: "Appointment update failed", description: error ? "The change could not be saved. Please try again." : "This appointment changed. Refresh the inbox before trying again.", variant: "destructive" });
       return false;
     }
 

@@ -11,7 +11,6 @@ import {
   Check,
   Heart,
   Maximize2,
-  MessageCircle,
   Minimize2,
   Navigation,
   Share2,
@@ -42,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AppointmentAuthGate } from "@/features/appointments/components/appointment-auth-gate";
+import { BusinessMessageButton } from "@/features/chats/components/business-message-button";
 import { BusinessPhotoCollection, BusinessPhotoCover, BusinessPhotoGrid } from "./business-photo-gallery";
 
 export type TenantProfileData = {
@@ -267,13 +267,7 @@ export function BusinessProfile({
               >
                 <Share2 size={16} />
               </Button>
-              <Button
-                type="button"
-                className="h-9 rounded-full bg-[#3c6355] px-3 text-xs text-white hover:bg-[#2f5044]"
-              >
-                <MessageCircle size={14} />
-                Message
-              </Button>
+              <BusinessMessageButton slug={provider.slug} preview={preview} />
             </div>
           </div>
         </section>

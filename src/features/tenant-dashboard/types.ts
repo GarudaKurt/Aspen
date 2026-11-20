@@ -5,15 +5,6 @@ export type DashboardNavItem = {
   group: "overview" | "business" | "inbox" | "account";
 };
 
-export type CalendarEvent = {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  type: "booking" | "meeting" | "availability";
-  customer: string;
-};
-
 export type ServiceAnalytics = {
   views: number;
   favorites: number;

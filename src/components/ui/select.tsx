@@ -32,16 +32,17 @@ const SelectValue = SelectPrimitive.Value;
 
 function SelectContent({
   className,
+  positionerClassName,
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Popup>) {
+}: React.ComponentProps<typeof SelectPrimitive.Popup> & { positionerClassName?: string }) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Positioner
         side="bottom"
         collisionAvoidance={{ side: "none", align: "shift" }}
         sideOffset={4}
-        className="z-50"
+        className={positionerClassName ?? "z-50"}
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
