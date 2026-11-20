@@ -1,20 +1,56 @@
-import type { Message } from "../types";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
-export type ChatRealtimeEvent =
-  | { type: "message.created"; conversationId: string; message: Message }
-  | { type: "message.updated"; conversationId: string; message: Message }
-  | { type: "presence.updated"; conversationId: string; online: boolean };
-
-export type ChatRealtimeListener = (event: ChatRealtimeEvent) => void;
-
+/** Realtime invalidates the view; authenticated HTTP reads reconcile records. */
 export function subscribeToChat(
-  conversationId: string,
-  listener: ChatRealtimeListener,
-): () => void {
-  void conversationId;
-  void listener;
-
-  // Replace this no-op subscription with Supabase Realtime or another
-  // provider without changing the chat components or store API.
-  return () => undefined;
+  userId: string,
+  conversation: string | null,
+  refresh: () => void,
+  connection: (live: boolean) => void,
+) {
+  const client = getSupabaseBrowserClient();
+  let disposed = false;
+  const channel = client.channel(
+    `chat:${conversation ?? userId}:${crypto.randomUUID()}`,
+  );
+  if (conversation) {
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_messages",
+        filter: `conversation_id=eq.${conversation}`,
+      },
+      refresh,
+    );
+    channel.on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "chat_participants",
+        filter: `conversation_id=eq.${conversation}`,
+      },
+      refresh,
+    );
+  } else
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_participants",
+        filter: `user_id=eq.${userId}`,
+      },
+      refresh,
+    );
+  channel.subscribe((status) => {
+    if (disposed) return;
+    connection(status === "SUBSCRIBED");
+    if (status === "SUBSCRIBED") refresh();
+  });
+  return () => {
+    disposed = true;
+    void client.removeChannel(channel);
+  };
 }

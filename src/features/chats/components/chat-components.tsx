@@ -1,332 +1,423 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type TouchEvent } from "react";
-import { createPortal } from "react-dom";
-import { Archive, BellOff, Check, ChevronLeft, MoreVertical, Phone, Send, Trash2, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Dialog } from "@base-ui/react/dialog";
+import {
+  Archive,
+  BellOff,
+  ChevronDown,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { initials } from "../model";
 import type { Conversation, Message } from "../types";
 
-export function ChatHeader({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
-  return <div className="flex items-center gap-3 border-b bg-white p-4">
-    {onBack ? <Button type="button" variant="ghost" size="icon-sm" className="lg:hidden" onClick={onBack} aria-label="Back to conversations"><ChevronLeft /></Button> : null}
-    <Avatar conversation={conversation} />
-    <div className="min-w-0 flex-1">
-      <h2 className="truncate font-semibold">{conversation.name}</h2>
-      <p className="flex items-center gap-1.5 text-sm text-slate-500">
-        <span className={`size-2 rounded-full ${conversation.online ? "bg-emerald-500" : "bg-slate-300"}`} />
-        {conversation.online ? "Active today" : "Offline"}
-      </p>
-    </div>
-    <div className="flex items-center gap-1">
-      <Button type="button" variant="ghost" size="icon" disabled title="Voice calls coming soon" aria-label="Start voice call"><Phone /></Button>
-    </div>
-  </div>;
-}
-
-export function ConversationList({
-  conversations,
-  selectedId,
-  onSelect,
-  onDelete,
-  onArchive,
-  onToggleMute,
-  showActions = true,
-  className,
-}: {
-  conversations: Conversation[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
-  onArchive: (id: string) => void;
-  onToggleMute: (id: string) => void;
-  showActions?: boolean;
-  className?: string;
-}) {
-  const [query, setQuery] = useState("");
-  const visible = conversations.filter((conversation) => conversation.name.toLowerCase().includes(query.toLowerCase()));
-  return <section className={`min-w-0 border-b lg:border-b-0 lg:border-r ${className ?? ""}`} aria-label="Conversations">
-    <div className="p-4"><Input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search conversations" /></div>
-    <OnlineUsers conversations={visible} onSelect={onSelect} />
-    <div className="max-h-[300px] overflow-x-clip overflow-y-auto lg:max-h-[500px]">
-      {visible.length ? visible.map((conversation) => <ConversationItem key={conversation.id} conversation={conversation} selected={conversation.id === selectedId} onSelect={onSelect} onDelete={onDelete} onArchive={onArchive} onToggleMute={onToggleMute} showActions={showActions} />) : <p className="p-5 text-center text-sm text-slate-500">No conversations found.</p>}
-    </div>
-  </section>;
-}
-
-function OnlineUsers({
-  conversations,
-  onSelect,
-}: {
-  conversations: Conversation[];
-  onSelect: (id: string) => void;
-}) {
-  const onlineUsers = conversations.filter((conversation) => conversation.online);
-
-  if (!onlineUsers.length) return null;
-
+export function ChatAvatar({ conversation }: { conversation: Conversation }) {
+  const [failed, setFailed] = useState(false);
   return (
-    <div className="border-b bg-white px-4 py-3 lg:hidden" aria-label="Online users">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-slate-700">Online now</p>
-        <span className="text-[10px] text-slate-400">{onlineUsers.length}</span>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-        {onlineUsers.map((conversation) => (
-          <button
-            key={conversation.id}
-            type="button"
-            onClick={() => onSelect(conversation.id)}
-            className="flex min-w-0 items-center gap-2 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]"
-            aria-label={`Open chat with ${conversation.name}, online now`}
-          >
-            <Avatar conversation={conversation} />
-            <span className="min-w-0 max-w-28">
-              <strong className="block truncate text-xs text-slate-800">{conversation.name}</strong>
-              <span className="block text-[10px] text-emerald-600">Online</span>
-            </span>
-          </button>
-        ))}
-      </div>
+    <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eaf0ed] text-sm font-semibold text-[#3c6355]">
+      {conversation.photo_id && !failed ? (
+        <Image
+          src={`/api/business-photos/${conversation.photo_id}`}
+          alt=""
+          fill
+          sizes="40px"
+          unoptimized
+          className="object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        initials(conversation.name)
+      )}
+    </span>
+  );
+}
+
+export function ChatNotice({
+  children,
+  retry,
+}: {
+  children: ReactNode;
+  retry?: () => void;
+}) {
+  return (
+    <div
+      role="alert"
+      className="m-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
+    >
+      {children}
+      {retry && (
+        <Button variant="ghost" size="sm" className="ml-2" onClick={retry}>
+          Retry
+        </Button>
+      )}
     </div>
   );
 }
 
-function ConversationItem({
+export function ChatSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-label="Loading conversations"
+      className="space-y-5 p-5 motion-safe:animate-pulse"
+    >
+      {[1, 2, 3].map((key) => (
+        <div key={key} className="flex gap-3">
+          <div className="size-10 rounded-full bg-muted" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3 w-2/3 rounded bg-muted" />
+            <div className="h-3 rounded bg-muted" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function ConversationActions({
   conversation,
-  selected,
-  onSelect,
-  onDelete,
-  onArchive,
-  onToggleMute,
-  showActions,
+  onChange,
+  disabled,
 }: {
   conversation: Conversation;
-  selected: boolean;
-  onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
-  onArchive: (id: string) => void;
-  onToggleMute: (id: string) => void;
-  showActions: boolean;
+  disabled: boolean;
+  onChange: (change: {
+    archived?: boolean;
+    muted?: boolean;
+    hidden?: boolean;
+  }) => void;
 }) {
-  const [swiped, setSwiped] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
-  const actionButtonRef = useRef<HTMLButtonElement>(null);
-  const touch = useRef({ x: 0, y: 0 });
-
-  const startTouch = (event: TouchEvent) => {
-    const point = event.touches[0];
-    touch.current = { x: point.clientX, y: point.clientY };
-  };
-  const moveTouch = (event: TouchEvent) => {
-    const point = event.touches[0];
-    const dx = point.clientX - touch.current.x;
-    const dy = point.clientY - touch.current.y;
-    if (Math.abs(dx) > Math.abs(dy) && dx < -24) setSwiped(true);
-    if (dx > 24) setSwiped(false);
-  };
-
-  return <div className="relative overflow-x-clip overflow-y-visible border-t">
-    {showActions && <div className="absolute inset-y-0 right-0 flex items-center gap-1 bg-slate-100 px-2">
-      <Button type="button" variant="ghost" size="icon-sm" onClick={() => onArchive(conversation.id)} title="Archive conversation" aria-label="Archive conversation"><Archive /></Button>
-      <Button type="button" variant="ghost" size="icon-sm" onClick={() => onToggleMute(conversation.id)} title={conversation.muted ? "Unmute notifications" : "Mute notifications"} aria-label={conversation.muted ? "Unmute notifications" : "Mute notifications"}><BellOff /></Button>
-      <Button type="button" variant="ghost" size="icon-sm" onClick={() => onDelete(conversation.id)} title="Delete conversation" aria-label="Delete conversation"><Trash2 /></Button>
-    </div>}
-    <div className={`relative flex items-center gap-3 bg-white p-4 transition-transform duration-200 ${swiped ? "-translate-x-32" : "translate-x-0"} ${selected ? "bg-slate-50" : ""}`} onTouchStart={startTouch} onTouchMove={moveTouch} onTouchEnd={() => undefined}>
-      <button type="button" onClick={() => { onSelect(conversation.id); setSwiped(false); }} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <Avatar conversation={conversation} />
-        <span className="min-w-0 flex-1">
-          <strong className="block truncate">{conversation.name}</strong>
-          <small className="block truncate text-slate-500">{conversation.preview}</small>
-        </span>
-        <span className="flex shrink-0 flex-col items-end gap-1 text-xs text-slate-400"><span>{conversation.timestamp}</span>{conversation.unreadCount ? <span className="grid min-w-5 place-items-center rounded-full bg-[#3c6355] px-1 text-[10px] text-white">{conversation.unreadCount}</span> : null}</span>
-      </button>
-      {showActions && <div className="relative hidden sm:block">
-        <Button
-          ref={actionButtonRef}
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => {
-            const rect = actionButtonRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            const menuHeight = 140;
-            const top = rect.bottom + menuHeight > window.innerHeight ? rect.top - menuHeight - 4 : rect.bottom + 4;
-            setMenuPosition({ top: Math.max(8, top), left: Math.max(8, rect.right - 176) });
-            setMenuOpen((open) => !open);
-          }}
-          aria-expanded={menuOpen}
-          aria-label="Conversation actions"
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Conversation options"
+            disabled={disabled}
+          />
+        }
+      >
+        <MoreHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
+          onClick={() => onChange({ archived: !conversation.archived })}
         >
-          <MoreVertical />
-        </Button>
-        {menuOpen && menuPosition && typeof document !== "undefined" && createPortal(
-          <div className="fixed z-[100] w-44 rounded-lg border bg-white p-1 text-slate-800 shadow-xl" style={{ top: menuPosition.top, left: menuPosition.left }}>
-            <ActionButton icon={Archive} label="Archive" onClick={() => { setMenuOpen(false); setMenuPosition(null); onArchive(conversation.id); }} />
-            <ActionButton icon={BellOff} label={conversation.muted ? "Unmute" : "Mute"} onClick={() => { setMenuOpen(false); setMenuPosition(null); onToggleMute(conversation.id); }} />
-            <ActionButton icon={Trash2} label="Delete" onClick={() => { setMenuOpen(false); setMenuPosition(null); onDelete(conversation.id); }} />
-            <ActionButton icon={X} label="Cancel" onClick={() => { setMenuOpen(false); setMenuPosition(null); }} />
-          </div>,
-          document.body,
-        )}
-      </div>}
-    </div>
-  </div>;
+          <Archive className="size-4" />
+          {conversation.archived ? "Move to inbox" : "Archive conversation"}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onChange({ muted: !conversation.muted })}
+        >
+          <BellOff className="size-4" />
+          {conversation.muted ? "Unmute alerts" : "Mute alerts"}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onChange({ hidden: true })}>
+          <Trash2 className="size-4" />
+          Hide from my inbox
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
-function ActionButton({ icon: Icon, label, onClick }: { icon: typeof Archive; label: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50"><Icon className="size-4" />{label}</button>;
+export function MessageEditor({
+  message,
+  deleting,
+  onClose,
+  onSave,
+}: {
+  message: Message | null;
+  deleting: boolean;
+  onClose: () => void;
+  onSave: (body: string) => Promise<string | null>;
+}) {
+  const [body, setBody] = useState(message?.body ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  return (
+    <Dialog.Root
+      open={!!message}
+      onOpenChange={(open) => {
+        if (!open && !saving) onClose();
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-[1100] bg-black/40" />
+        <Dialog.Popup className="fixed left-1/2 top-1/2 z-[1101] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-white p-6 shadow-lg">
+          <Dialog.Title className="text-lg font-semibold">
+            {deleting ? "Delete this message?" : "Edit message"}
+          </Dialog.Title>
+          <Dialog.Description className="mt-2 text-sm text-muted-foreground">
+            {deleting
+              ? "The message will be replaced with a deleted-message notice for both participants."
+              : "You can edit your messages for 15 minutes after sending."}
+          </Dialog.Description>
+          {!deleting && (
+            <textarea
+              aria-label="Message text"
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              maxLength={4000}
+              rows={5}
+              className="mt-4 w-full resize-none rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]"
+            />
+          )}
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+          <div className="mt-5 flex justify-end gap-2">
+            <Button variant="outline" disabled={saving} onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              disabled={saving || (!deleting && !body.trim())}
+              className={
+                deleting ? "bg-red-700 text-white" : "bg-[#3c6355] text-white"
+              }
+              onClick={async () => {
+                setSaving(true);
+                const failure = await onSave(body);
+                setSaving(false);
+                if (failure) setError(failure);
+                else onClose();
+              }}
+            >
+              {saving ? "Saving…" : deleting ? "Delete" : "Save changes"}
+            </Button>
+          </div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
 }
 
-function Avatar({ conversation }: { conversation: Conversation }) {
-  return <span className="relative grid size-11 shrink-0 place-items-center rounded-full bg-sky-100 font-semibold text-sky-600">{conversation.initials}<span className={`absolute bottom-0 right-0 size-3 rounded-full border-2 border-white ${conversation.online ? "bg-emerald-500" : "bg-slate-300"}`} /></span>;
-}
-
-export function MessageList({
+export function MessageHistory({
   messages,
+  userId,
+  recipientRead,
+  before,
+  loadOlder,
+  onRead,
   onEdit,
   onDelete,
-  currentUser,
+  footer,
 }: {
   messages: Message[];
-  onEdit: (messageId: string, body: string) => void;
-  onDelete: (messageId: string) => void;
-  currentUser?: Message["from"];
+  userId: string;
+  recipientRead: number;
+  before: number | null;
+  loadOlder: (beforeInsert?: () => void) => Promise<void>;
+  onRead: (seq: number) => void;
+  onEdit: (message: Message) => void;
+  onDelete: (message: Message) => void;
+  footer?: ReactNode;
 }) {
-  const endRef = useRef<HTMLDivElement>(null);
-  const [openMessageId, setOpenMessageId] = useState<string | null>(null);
-
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
-
-  if (!messages.length) return <div className="grid flex-1 place-items-center p-5 text-sm text-slate-500">No messages yet. Start the conversation below.</div>;
-
-  return <div className="min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-5">
-    {messages.map((message) => (
-      <MessageBubble
-        key={message.id}
-        message={message}
-        isActionsOpen={openMessageId === message.id}
-        onToggleActions={() => setOpenMessageId((current) => current === message.id ? null : message.id)}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        currentUser={currentUser ?? "provider"}
-      />
-    ))}
-    <div ref={endRef} />
-  </div>;
-}
-
-function MessageBubble({
-  message,
-  isActionsOpen,
-  onToggleActions,
-  onEdit,
-  onDelete,
-  currentUser,
-}: {
-  message: Message;
-  isActionsOpen: boolean;
-  onToggleActions: () => void;
-  onEdit: (messageId: string, body: string) => void;
-  onDelete: (messageId: string) => void;
-  currentUser: Message["from"];
-}) {
-  const sent = message.from === currentUser;
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(message.body);
-  const [dragX, setDragX] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const pointer = useRef({ x: 0, y: 0, axis: "none" as "none" | "vertical" | "horizontal", active: false });
-
-  if (message.deleted) return <div className="flex justify-end"><p className="rounded-2xl bg-slate-100 px-4 py-2 text-sm italic text-slate-400">Message deleted</p></div>;
-
-  if (editing) return <div className="flex justify-end"><form onSubmit={(event) => { event.preventDefault(); const body = draft.trim(); if (body) onEdit(message.id, body); setEditing(false); }} className="flex w-full max-w-[75%] gap-2"><Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label="Edit message" autoFocus /><Button type="submit" size="icon-sm" aria-label="Save message"><Check /></Button><Button type="button" variant="ghost" size="icon-sm" onClick={() => { setDraft(message.body); setEditing(false); }} aria-label="Cancel editing"><X /></Button></form></div>;
-
-  if (!sent) return <div className="flex min-w-0 justify-start"><div className="w-fit min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-800"><p className="break-words [overflow-wrap:anywhere]">{message.body}</p><span className="mt-1 block text-[10px] opacity-70">{message.timestamp}</span></div></div>;
-
-  const offset = isActionsOpen ? -160 : dragX;
-  return <div
-    className="relative min-w-0 touch-pan-y overflow-hidden"
-    onPointerDown={(event) => {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      pointer.current = {
-        x: event.clientX,
-        y: event.clientY,
-        axis: "none",
-        active: true,
-      };
-    }}
-    onPointerMove={(event) => {
-      if (!pointer.current.active) return;
-      const dx = event.clientX - pointer.current.x;
-      const dy = event.clientY - pointer.current.y;
-
-      if (pointer.current.axis === "none") {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
-        pointer.current.axis =
-          Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
-      }
-
-      if (pointer.current.axis !== "horizontal") {
-        pointer.current.active = false;
-        setDragging(false);
-        setDragX(0);
-        return;
-      }
-
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      setDragging(true);
-      setDragX(Math.max(-160, Math.min(0, dx)));
-    }}
-    onPointerUp={(event) => {
-      if (pointer.current.axis === "horizontal") {
-        event.currentTarget.releasePointerCapture?.(event.pointerId);
-        setDragging(false);
-        pointer.current.active = false;
-        pointer.current.axis = "none";
-        if (dragX < -60) onToggleActions();
-        else {
-          setDragX(0);
-          if (isActionsOpen) onToggleActions();
-        }
-      } else {
-        pointer.current.active = false;
-        pointer.current.axis = "none";
-      }
-    }}
-    onPointerCancel={() => {
-      pointer.current.active = false;
-      pointer.current.axis = "none";
-      setDragging(false);
-      setDragX(0);
-    }}>
-    <div className={`absolute inset-y-0 right-0 z-0 flex w-40 items-center justify-end gap-1 bg-slate-100 px-2 transition-opacity duration-150 ${isActionsOpen || dragging ? "visible opacity-100" : "invisible pointer-events-none opacity-0"}`}>
-      <MessageActionButton icon={Check} label="Edit" onClick={() => { setDraft(message.body); setDragX(0); setEditing(true); onToggleActions(); }} />
-      <MessageActionButton icon={Trash2} label="Delete" onClick={() => { setDragX(0); onToggleActions(); onDelete(message.id); }} />
-      <MessageActionButton icon={X} label="Cancel" onClick={() => { setDragX(0); if (isActionsOpen) onToggleActions(); }} />
+  const scroll = useRef<HTMLDivElement>(null);
+  const bottom = useRef(true);
+  const latest = useRef<Message | undefined>(undefined);
+  const anchor = useRef<{ height: number; top: number } | null>(null);
+  const [older, setOlder] = useState(false);
+  const [error, setError] = useState("");
+  const [newMessages, setNewMessages] = useState(false);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+  const newest = messages.at(-1);
+  useEffect(() => {
+    const box = scroll.current;
+    if (!box) return;
+    if (anchor.current) {
+      box.scrollTop =
+        anchor.current.top + box.scrollHeight - anchor.current.height;
+      anchor.current = null;
+    } else if (bottom.current) {
+      box.scrollTop = box.scrollHeight;
+      if (newest) onRead(newest.seq);
+    } else if (latest.current && newest && newest.seq > latest.current.seq)
+      setNewMessages(true);
+    latest.current = newest;
+  }, [messages, newest, onRead]);
+  useEffect(() => {
+    const visible = () => {
+      if (bottom.current && newest) onRead(newest.seq);
+    };
+    document.addEventListener("visibilitychange", visible);
+    return () => document.removeEventListener("visibilitychange", visible);
+  }, [newest, onRead]);
+  return (
+    <div className="relative min-h-0 flex-1">
+      <div
+        ref={scroll}
+        aria-label="Message history"
+        className="h-full overflow-y-auto overscroll-contain p-4 sm:p-6"
+        onScroll={() => {
+          const box = scroll.current!;
+          bottom.current =
+            box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+          if (bottom.current) {
+            setNewMessages(false);
+            if (newest) onRead(newest.seq);
+          }
+        }}
+      >
+        {before && (
+          <div className="mb-5 text-center">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={older}
+              onClick={async () => {
+                if (older) return;
+                setOlder(true);
+                setError("");
+                bottom.current = false;
+                try {
+                  await loadOlder(() => {
+                    const box = scroll.current!;
+                    anchor.current = {
+                      height: box.scrollHeight,
+                      top: box.scrollTop,
+                    };
+                  });
+                } catch {
+                  anchor.current = null;
+                  setError("Older messages could not be loaded. Please retry.");
+                } finally {
+                  setOlder(false);
+                }
+              }}
+            >
+              {older ? "Loading…" : "Load older messages"}
+            </Button>
+          </div>
+        )}
+        {error && <ChatNotice>{error}</ChatNotice>}
+        {!messages.length && (
+          <p className="py-16 text-center text-sm text-muted-foreground">
+            Start the conversation. Ask about services or an upcoming visit.
+          </p>
+        )}
+        {messages.map((message, index) => {
+          const own = message.sender_id === userId;
+          const date = new Date(message.created_at);
+          const day = date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          });
+          const previousDay = index
+            ? new Date(messages[index - 1].created_at).toLocaleDateString(
+                undefined,
+                { month: "short", day: "numeric", year: "numeric" },
+              )
+            : "";
+          const age = now - date.getTime();
+          return (
+            <div key={message.id}>
+              {day !== previousDay && (
+                <p className="my-5 text-center text-xs text-muted-foreground">
+                  {day}
+                </p>
+              )}
+              <div
+                className={`mb-4 flex items-start gap-1 ${own ? "justify-end" : "justify-start"}`}
+              >
+                {own && !message.deleted_at && age < 86400000 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Message options"
+                          className="size-8 shrink-0"
+                        />
+                      }
+                    >
+                      <MoreHorizontal className="size-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {age < 900000 && (
+                        <DropdownMenuItem onClick={() => onEdit(message)}>
+                          <Pencil className="size-4" />
+                          Edit message
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => onDelete(message)}>
+                        <Trash2 className="size-4" />
+                        Delete message
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+                <div className="max-w-[85%] sm:max-w-[75%]">
+                  <div
+                    className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm [overflow-wrap:anywhere] ${own ? "rounded-tr-sm bg-[#3c6355] text-white" : "rounded-tl-sm bg-[#f1f4f2] text-[#242524]"} ${message.deleted_at ? "italic opacity-70" : ""}`}
+                  >
+                    {message.deleted_at ? "Message deleted" : message.body}
+                  </div>
+                  <p
+                    className={`mt-1 text-[11px] text-muted-foreground ${own ? "text-right" : ""}`}
+                  >
+                    <span className="sr-only">
+                      {own ? "You" : "Received"},{" "}
+                    </span>
+                    <time
+                      dateTime={message.created_at}
+                      title={date.toLocaleString()}
+                    >
+                      {date.toLocaleTimeString(undefined, {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </time>
+                    {message.edited_at && !message.deleted_at
+                      ? " · Edited"
+                      : ""}
+                    {own && !message.deleted_at
+                      ? message.seq <= recipientRead
+                        ? " · Read"
+                        : " · Sent"
+                      : ""}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {footer}
+      </div>
+      {newMessages && (
+        <Button
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#3c6355] text-white shadow-sm"
+          size="sm"
+          onClick={() => {
+            bottom.current = true;
+            scroll.current!.scrollTop = scroll.current!.scrollHeight;
+            setNewMessages(false);
+            if (newest) onRead(newest.seq);
+          }}
+        >
+          New messages <ChevronDown className="size-4" />
+        </Button>
+      )}
     </div>
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Sent message. Press Enter or ArrowLeft to show actions."
-      aria-expanded={isActionsOpen}
-      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " " || event.key === "ArrowLeft") { event.preventDefault(); onToggleActions(); } if (event.key === "Escape" && isActionsOpen) { event.preventDefault(); onToggleActions(); } }}
-      className={`relative ml-auto w-fit min-w-0 max-w-[min(75%,28rem)] rounded-2xl bg-[#3c6355] px-4 py-2 text-sm text-white transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] ${dragging ? "duration-0" : ""}`}
-      style={{ transform: `translateX(${offset}px)` }}
-    >
-      <p className="break-words [overflow-wrap:anywhere]">{message.body}</p>
-      <span className="mt-1 block text-[10px] opacity-70">{message.edited ? "Edited · " : ""}{message.timestamp}</span>
-    </div>
-  </div>;
-}
-
-function MessageActionButton({ icon: Icon, label, onClick }: { icon: typeof Check; label: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="flex min-w-10 flex-col items-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium text-slate-700 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]" aria-label={label}><Icon className="size-4" />{label}</button>;
-}
-
-
-export function MessageComposer({ value, onChange, onSend }: { value: string; onChange: (value: string) => void; onSend: (event: FormEvent<HTMLFormElement>) => void }) {
-  return <form onSubmit={onSend} className="flex gap-2 border-t bg-white p-4"><Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Write a reply..." aria-label="Write a reply" /><Button type="submit" size="icon" className="bg-[#3c6355] text-white" aria-label="Send message"><Send /></Button></form>;
+  );
 }
