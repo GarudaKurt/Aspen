@@ -39,6 +39,7 @@ import {
 import { barangaysByCity } from "@/features/business-profile/philippine-barangays";
 import {
   formatBusinessAddress,
+  formatBusinessLandmark,
   type BusinessLocationDetails,
 } from "@/features/business-profile/location";
 import {
@@ -500,7 +501,7 @@ export function ProfileView({
               </div>
               <div>
                 <label htmlFor="business-landmark" className="text-sm text-slate-500">Nearby landmark <span className="text-slate-400">(optional)</span></label>
-                <Input id="business-landmark" value={draft.locationDetails.landmark} onChange={(event) => updateLocation({ landmark: event.target.value })} placeholder="Near Cebu IT Park" />
+                <Input id="business-landmark" value={draft.locationDetails.landmark} onChange={(event) => updateLocation({ landmark: event.target.value })} placeholder="Enter a nearby landmark (optional)" />
               </div>
               <div>
                 <label htmlFor="business-address-details" className="text-sm text-slate-500">Additional address details <span className="text-slate-400">(optional)</span></label>
@@ -550,7 +551,7 @@ export function ProfileView({
               <div>
                 <dt className="text-sm text-slate-400">Address</dt>
                 <dd className="font-semibold">{formatBusinessAddress(profile.locationDetails, profile.address)}</dd>
-                {profile.locationDetails.landmark && <dd className="mt-1 text-sm text-slate-500">Near {profile.locationDetails.landmark}</dd>}
+                {profile.locationDetails.landmark.trim() && <dd className="mt-1 text-sm text-slate-500">{formatBusinessLandmark(profile.locationDetails.landmark)}</dd>}
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-sm text-slate-400">Description</dt>

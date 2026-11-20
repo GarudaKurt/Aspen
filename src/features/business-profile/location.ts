@@ -28,7 +28,7 @@ export const initialBusinessLocation: BusinessLocationDetails = {
   cityMunicipality: "",
   barangay: "",
   streetAddress: "",
-  landmark: "Near Cebu IT Park",
+  landmark: "",
   additionalDetails: "",
   coordinates: null,
 };
@@ -47,6 +47,12 @@ export function formatBusinessAddress(
   return parts.length ? parts.join(", ") : fallback;
 }
 
+export function formatBusinessLandmark(landmark: string | undefined) {
+  const value = landmark?.trim();
+  if (!value) return "";
+  return /^near\s/i.test(value) ? value : `Near ${value}`;
+}
+
 export function getBusinessLocationSummary(
   location: Partial<BusinessLocationDetails> | undefined,
   fallback: string,
@@ -54,14 +60,10 @@ export function getBusinessLocationSummary(
   if (!location) return fallback;
   const city = location.cityMunicipality?.trim();
   const street = location.streetAddress?.trim();
-  const landmark = location.landmark?.trim();
+  const landmark = formatBusinessLandmark(location.landmark);
   const parts = [
     street,
-    landmark
-      ? landmark.toLowerCase().startsWith("near ")
-        ? landmark
-        : `Near ${landmark}`
-      : "",
+    landmark,
     city,
   ].filter(Boolean);
   return parts.length ? parts.join(", ") : fallback;
