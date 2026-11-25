@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CalendarGridSkeleton } from "@/components/loading/skeletons";
 import { Input } from "@/components/ui/input";
 import { CalendarSelect } from "@/features/tenant-calendar/components/calendar-controls";
 import { Agenda, MonthGrid, statusStyles, TimeGrid } from "@/features/tenant-calendar/components/calendar-views";
@@ -62,7 +63,7 @@ export function CalendarView({ businessId, businessName, initialDate }: { busine
     {!!data?.unscheduled && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{data.unscheduled} appointment(s) have an invalid saved time and cannot be positioned. <Link className="underline" href="/tenant-dashboard/appointments">Review the appointment inbox.</Link></p>}
     {!!conflicts.size && <p className="flex items-center gap-2 text-sm text-amber-800"><AlertTriangle className="size-4 shrink-0" />{conflicts.size} events overlap in this range. Check staff availability.</p>}
 
-    {loading ? <div role="status" aria-label="Loading calendar" className="h-96 animate-pulse rounded-xl border bg-slate-50" /> : data && <>
+    {loading && !data ? <CalendarGridSkeleton mode={mode} /> : data && <>
       {!visible.length && <div className="flex items-center gap-3 rounded-xl border border-dashed p-5 text-sm"><CalendarDays className="size-6 text-[#3c6355]" /><div><p className="font-semibold">No events for this range and filter</p><p className="mt-1 text-slate-500">Customer appointments appear automatically. Use New event for an internal meeting or schedule.</p></div></div>}
       {mode === "month" ? <MonthGrid {...viewProps} days={range.days} anchor={anchor} today={today} onDay={(day) => { setAnchor(day); setMode("day"); }} />
         : mode === "agenda" ? !!visible.length && <Agenda key={`${range.start}:${type}:${status}`} {...viewProps} />

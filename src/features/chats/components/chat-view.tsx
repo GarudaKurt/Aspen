@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, BellOff, MessageCircle, Search, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  ConversationListSkeleton,
+  ConversationPanelSkeleton,
+  MessageContentSkeleton,
+} from "@/components/loading/chat-skeletons";
 import { Input } from "@/components/ui/input";
 import { chatAction } from "../api/actions";
 import { chatQuery } from "../api/queries";
@@ -12,7 +17,6 @@ import { useInbox, useMessages } from "../use-chat";
 import {
   ChatAvatar,
   ChatNotice,
-  ChatSkeleton,
   ConversationActions,
   MessageEditor,
   MessageHistory,
@@ -36,11 +40,16 @@ export function ChatView({
   const [selected, setSelected] = useState<Conversation | null>(null);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const [opening, setOpening] = useState(false);
+  const [opening, setOpening] = useState(
+    !!(initialConversation || initialBusiness),
+  );
   const [retry, setRetry] = useState(0);
   const route = role === "provider" ? "/tenant-dashboard/chat" : "/chats";
   useEffect(() => {
-    if (!initialConversation && !initialBusiness) return;
+    if (!initialConversation && !initialBusiness) {
+      const timer = setTimeout(() => setOpening(false), 0);
+      return () => clearTimeout(timer);
+    }
     const controller = new AbortController();
     const openConversation = async () => {
       setOpening(true);
@@ -110,18 +119,10 @@ export function ChatView({
           {error}
         </ChatNotice>
       )}
-      {opening && !active && (
-        <p
-          role="status"
-          className="mb-3 text-sm text-muted-foreground md:hidden"
-        >
-          Opening your conversation…
-        </p>
-      )}
       <div className="grid h-[min(740px,78dvh)] min-h-[420px] overflow-hidden rounded-2xl border bg-white md:grid-cols-[290px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside
           aria-label="Conversations"
-          className={`min-h-0 flex-col border-r ${active ? "hidden md:flex" : "flex"}`}
+          className={`min-h-0 flex-col border-r ${active || opening ? "hidden md:flex" : "flex"}`}
         >
           <div className="space-y-3 border-b p-4">
             <div className="flex gap-1 rounded-lg bg-[#f3f5f3] p-1">
@@ -153,9 +154,9 @@ export function ChatView({
             <ChatNotice retry={inbox.refresh}>{inbox.error}</ChatNotice>
           )}
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            {inbox.loading ? (
-              <ChatSkeleton />
-            ) : !rows.length ? (
+            {inbox.loading && !inbox.items.length ? (
+              <ConversationListSkeleton />
+            ) : !rows.length && !inbox.error ? (
               <div className="px-5 py-14 text-center">
                 <MessageCircle className="mx-auto mb-3 size-7 text-[#789286]" />
                 <p className="text-sm font-medium">
@@ -257,6 +258,8 @@ export function ChatView({
               inbox.refresh();
             }}
           />
+        ) : opening ? (
+          <ConversationPanelSkeleton />
         ) : (
           <div className="hidden flex-col items-center justify-center p-8 text-center md:flex">
             <span className="mb-5 rounded-2xl bg-[#edf3ef] p-5 text-[#3c6355]">
@@ -420,10 +423,10 @@ function ConversationPanel({
           {history.error || error}
         </ChatNotice>
       )}
-      {history.loading ? (
-        <div className="flex-1">
-          <ChatSkeleton />
-        </div>
+      {history.loading && !history.messages.length ? (
+        <MessageContentSkeleton />
+      ) : history.error && !history.messages.length && !waiting ? (
+        <div className="flex-1" />
       ) : (
         <MessageHistory
           messages={history.messages}

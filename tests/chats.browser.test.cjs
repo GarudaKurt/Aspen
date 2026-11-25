@@ -271,8 +271,71 @@ const add = (body, sender_id, client_id) => {
     const errors = [];
     for (const view of [page, tenant])
       view.on("pageerror", (error) => errors.push(error.message));
-    await page.goto(`${base}?start`);
-    await page.getByText("Earlier message 60", { exact: true }).waitFor();
+    // Hold real UI requests so cold loading and refresh behavior are observable.
+    let releaseInbox, releaseHistory;
+    const inboxGate = new Promise((resolve) => {
+      releaseInbox = resolve;
+    });
+    const historyGate = new Promise((resolve) => {
+      releaseHistory = resolve;
+    });
+    await page.route("**/api/chats?*", async (route) => {
+      const op = new URL(route.request().url()).searchParams.get("op");
+      if (op === "inbox") await inboxGate;
+      if (op === "history") await historyGate;
+      await route.continue();
+    });
+    await page.goto(`${base}?start`, { waitUntil: "domcontentloaded" });
+    await page
+      .getByRole("status", { name: "Loading conversations", exact: true })
+      .waitFor();
+    await page
+      .getByRole("status", { name: "Loading messages", exact: true })
+      .waitFor();
+    assert.equal(
+      await page.getByText("No conversations yet", { exact: true }).count(),
+      0,
+    );
+    await page.screenshot({
+      path: path.join(directory, "desktop-loading.png"),
+      fullPage: true,
+    });
+    releaseInbox();
+    releaseHistory();
+    await page
+      .getByLabel("Message history")
+      .getByText("Earlier message 60", { exact: true })
+      .waitFor();
+    await page.unrouteAll({ behavior: "wait" });
+    let releaseRefresh;
+    const refreshGate = new Promise((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let refreshStarted;
+    const requested = new Promise((resolve) => {
+      refreshStarted = resolve;
+    });
+    await page.route("**/api/chats?*", async (route) => {
+      refreshStarted();
+      await refreshGate;
+      await route.continue();
+    });
+    await page.evaluate(() => window.emitChat());
+    await requested;
+    assert.equal(
+      await page
+        .getByRole("status", { name: /^Loading (messages|conversations)$/ })
+        .count(),
+      0,
+    );
+    assert.ok(
+      await page
+        .getByLabel("Message history")
+        .getByText("Earlier message 60", { exact: true })
+        .isVisible(),
+    );
+    releaseRefresh();
+    await page.unrouteAll({ behavior: "wait" });
     assert.equal(
       starts,
       1,
@@ -416,8 +479,85 @@ const add = (body, sender_id, client_id) => {
       fullPage: true,
     });
     assert.deepEqual(errors, []);
+    const failed = await customerContext.newPage();
+    await failed.route("**/api/chats?*", (route) =>
+      route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Fixture connection unavailable" }),
+      }),
+    );
+    await failed.goto(base);
+    await failed.getByRole("alert").first().waitFor();
+    await failed.waitForFunction(
+      () => !document.querySelector('[aria-busy="true"]'),
+    );
+    assert.equal(
+      await failed.getByText("No conversations yet", { exact: true }).count(),
+      0,
+    );
+    await failed.close();
+    const failedHistory = await customerContext.newPage();
+    await failedHistory.setViewportSize({ width: 390, height: 844 });
+    let releaseMobile;
+    const mobileGate = new Promise((resolve) => {
+      releaseMobile = resolve;
+    });
+    await failedHistory.route("**/api/chats?*", async (route) => {
+      const op = new URL(route.request().url()).searchParams.get("op");
+      if (op === "detail") await mobileGate;
+      if (op === "history")
+        return route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Fixture history unavailable" }),
+        });
+      await route.continue();
+    });
+    await failedHistory.goto(base, { waitUntil: "domcontentloaded" });
+    await failedHistory
+      .getByRole("status", { name: "Loading messages", exact: true })
+      .waitFor();
+    assert.equal(
+      await failedHistory
+        .getByRole("complementary", { name: "Conversations" })
+        .isVisible(),
+      false,
+    );
+    assert.ok(
+      await failedHistory.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    releaseMobile();
+    await failedHistory
+      .getByRole("alert")
+      .filter({ hasText: "Fixture history unavailable" })
+      .waitFor();
+    assert.equal(
+      await failedHistory
+        .getByText(
+          "Start the conversation. Ask about services or an upcoming visit.",
+          { exact: true },
+        )
+        .count(),
+      0,
+    );
+    await failedHistory.unrouteAll({ behavior: "wait" });
+    await failedHistory
+      .getByRole("alert")
+      .getByRole("button", { name: "Retry", exact: true })
+      .click();
+    await failedHistory.getByLabel("Message history").waitFor();
+    assert.equal(
+      await failedHistory
+        .getByRole("status", { name: "Loading messages", exact: true })
+        .count(),
+      0,
+    );
+    await failedHistory.close();
     console.log(
-      `Chat browser checks passed: desktop/mobile, older history scroll, retry idempotency, both roles, reconnect, editing, mute/archive. Screenshots: ${directory}`,
+      `Chat browser checks passed: cold skeletons, retained refresh data, loading/error separation, desktop/mobile, older history scroll, retry idempotency, both roles, reconnect, editing, mute/archive. Screenshots: ${directory}`,
     );
   } finally {
     await browser?.close();

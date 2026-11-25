@@ -1,2 +1,1 @@
-import { BusinessListLoading } from "@/components/landing/business-list-loading";
-export default function Loading() { return <BusinessListLoading />; }
+export { WishlistSkeleton as default } from "@/components/loading/public-skeletons";

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowLeft, ArrowRight, Images, ImageOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getBusinessInitials } from "@/features/tenant-dashboard/profile/business-initials";
 
 type Collection = { photos: string[]; name: string; openPhoto: (index: number, trigger: HTMLButtonElement) => void };
@@ -75,7 +76,7 @@ function PhotoImage({ src, alt, sizes, full = false, eager = false }: { src: str
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [portrait, setPortrait] = useState(false);
   return <>
-    {status === "loading" && <span className={`absolute inset-0 grid place-items-center ${full ? "text-white/60" : "bg-[#edf1ee] text-[#63736a]"}`} role="status"><span className="text-xs">Loading photo…</span></span>}
+    {status === "loading" && <span className="absolute inset-0" role="status"><span className="sr-only">Loading photo…</span><Skeleton className={`h-full w-full rounded-none ${full ? "bg-white/10" : ""}`} /></span>}
     {status === "error" ? <span className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${full ? "text-white/70" : "bg-[#edf1ee] text-[#63736a]"}`}><ImageOff className="size-6" aria-hidden="true" /><span className="text-xs">Photo unavailable</span></span> : <Image
       src={src} alt={alt} fill unoptimized sizes={sizes} loading={eager || full ? "eager" : "lazy"}
       className={`${full || portrait ? "object-contain" : "object-cover"} object-center transition-opacity duration-200 motion-reduce:transition-none ${status === "ready" ? "opacity-100" : "opacity-0"}`}
