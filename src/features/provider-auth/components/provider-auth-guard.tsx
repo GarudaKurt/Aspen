@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
-export function ProviderAuthGuard({ children }: { children: ReactNode }) {
+export function ProviderAuthGuard({ children, fallback }: { children: ReactNode; fallback?: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "authenticated" | "signed-out" | "unverified">("loading");
@@ -51,6 +51,7 @@ export function ProviderAuthGuard({ children }: { children: ReactNode }) {
   }, [pathname, router, status]);
 
   if (status !== "authenticated") {
+    if (fallback) return fallback;
     return (
       <main className="grid min-h-screen place-items-center bg-[#f7faf8] px-6 text-center">
         <p className="text-sm text-[#69736d]">Checking provider access…</p>

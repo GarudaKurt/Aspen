@@ -64,26 +64,6 @@ export function ChatNotice({
   );
 }
 
-export function ChatSkeleton() {
-  return (
-    <div
-      role="status"
-      aria-label="Loading conversations"
-      className="space-y-5 p-5 motion-safe:animate-pulse"
-    >
-      {[1, 2, 3].map((key) => (
-        <div key={key} className="flex gap-3">
-          <div className="size-10 rounded-full bg-muted" />
-          <div className="flex-1 space-y-2">
-            <div className="h-3 w-2/3 rounded bg-muted" />
-            <div className="h-3 rounded bg-muted" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export function ConversationActions({
   conversation,
   onChange,

@@ -15,6 +15,7 @@ import { AspenLogo } from "@/components/brand/aspen-logo";
 import { AuthDialog } from "@/features/auth/components/auth-dialog";
 import { CreateAccountDialog } from "@/features/auth/components/create-account-dialog";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
@@ -233,7 +234,7 @@ export function SiteHeader() {
                   </button>
                 </div>
               ) : (
-                <div className="hidden h-9 w-24 animate-pulse rounded-full bg-[#eef3f0] sm:block" aria-label="Loading account" />
+                <span role="status" aria-label="Loading account" className="hidden sm:block"><Skeleton className="h-9 w-24 rounded-full" /></span>
               )}
             </div>
 
@@ -311,7 +312,7 @@ export function SiteHeader() {
                   </button>
                 </div>
               ) : (
-                <div className="mt-2 h-24 animate-pulse rounded-xl bg-[#eef3f0]" aria-label="Loading account" />
+                <span role="status" aria-label="Loading account" className="mt-2 block"><Skeleton className="h-24 rounded-xl" /></span>
               )}
             </nav>
 
