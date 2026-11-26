@@ -1,5 +1,6 @@
 "use client";
 
+import { useFavoritesStore } from "@/features/favorites/store/favorites.store";
 import { useEffect } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
@@ -15,41 +16,30 @@ import {
 export function ListingDraftAuthBoundary() {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
-    let active = true;
-
-    const claimDraftForUser = (userId: string) => {
-      if (!active) return;
-
-      const previousOwner = window.sessionStorage.getItem(
-        LISTING_DRAFT_OWNER_STORAGE_KEY,
-      );
-
-      if (previousOwner && previousOwner !== userId) {
-        clearListingDraft();
-      }
-
-      window.sessionStorage.setItem(LISTING_DRAFT_OWNER_STORAGE_KEY, userId);
-    };
-
-    void supabase.auth.getUser().then(({ data }) => {
-      if (data.user) claimDraftForUser(data.user.id);
-    });
+    let previousOwner = window.sessionStorage.getItem(LISTING_DRAFT_OWNER_STORAGE_KEY);
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
+      const owner = session?.user.id;
+      if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !owner && previousOwner)) {
+        useFavoritesStore.setState({ favoriteSlugs: [] });
         clearListingDraft();
+        previousOwner = null;
         return;
       }
 
-      if (session?.user) claimDraftForUser(session.user.id);
+      if (owner) {
+        if (previousOwner && previousOwner !== owner) {
+          useFavoritesStore.setState({ favoriteSlugs: [] });
+          clearListingDraft();
+        }
+        previousOwner = owner;
+        window.sessionStorage.setItem(LISTING_DRAFT_OWNER_STORAGE_KEY, owner);
+      }
     });
 
-    return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   return null;

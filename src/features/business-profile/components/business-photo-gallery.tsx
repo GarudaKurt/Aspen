@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { Dialog } from "@base-ui/react/dialog";
 import { ArrowLeft, ArrowRight, Images, ImageOff, X } from "lucide-react";
@@ -75,12 +75,18 @@ export function BusinessPhotoCollection({ photos, name, children }: { photos: st
 function PhotoImage({ src, alt, sizes, full = false, eager = false }: { src: string; alt: string; sizes: string; full?: boolean; eager?: boolean }) {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [portrait, setPortrait] = useState(false);
+  const showDecodedPhoto = useCallback((image: HTMLImageElement | null) => {
+    if (image?.complete && image.naturalWidth) {
+      setPortrait(image.naturalHeight > image.naturalWidth);
+      setStatus("ready");
+    }
+  }, []);
   return <>
     {status === "loading" && <span className="absolute inset-0" role="status"><span className="sr-only">Loading photo…</span><Skeleton className={`h-full w-full rounded-none ${full ? "bg-white/10" : ""}`} /></span>}
     {status === "error" ? <span className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${full ? "text-white/70" : "bg-[#edf1ee] text-[#63736a]"}`}><ImageOff className="size-6" aria-hidden="true" /><span className="text-xs">Photo unavailable</span></span> : <Image
-      src={src} alt={alt} fill unoptimized sizes={sizes} loading={eager || full ? "eager" : "lazy"}
+      ref={showDecodedPhoto} src={src} alt={alt} fill unoptimized sizes={sizes} loading={eager || full ? "eager" : "lazy"}
       className={`${full || portrait ? "object-contain" : "object-cover"} object-center transition-opacity duration-200 motion-reduce:transition-none ${status === "ready" ? "opacity-100" : "opacity-0"}`}
-      onLoad={(event) => { setPortrait(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth); setStatus("ready"); }}
+      onLoad={(event) => showDecodedPhoto(event.currentTarget)}
       onError={() => setStatus("error")}
     />}
   </>;

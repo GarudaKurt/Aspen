@@ -1,6 +1,8 @@
 "use client";
 
 import { create } from "zustand";
+import { z } from "zod";
+import { businessLocationSchema } from "@/features/tenancy/schemas";
 import { createJSONStorage, persist } from "zustand/middleware";
 import {
   initialBusinessLocation,
@@ -33,6 +35,20 @@ export type ListingDraft = {
   uploadedFiles: Record<string, string>;
   billing: BillingDetails;
 };
+
+// Drafts may contain incomplete input. Whitelist only the editable, non-sensitive fields.
+export const persistedDraftSchema = z.object({
+  providerType: z.string().max(80),
+  businessName: z.string().max(160),
+  businessDescription: z.string().max(3000),
+  yearsExperience: z.string().max(16),
+  facebookPage: z.string().max(500),
+  locationDetails: businessLocationSchema.extend({
+    cityMunicipality: z.string().max(120),
+    streetAddress: z.string().max(240),
+  }),
+  selectedServices: z.array(z.string().max(80)).max(20),
+});
 
 export const LISTING_DRAFT_OWNER_STORAGE_KEY = "aspen-listing-draft-owner";
 
@@ -122,6 +138,10 @@ export const useListingStore = create<ListingStore>()(
       storage: createJSONStorage(() => sessionStorage),
       // Persist only non-sensitive draft fields. Identity details/files and
       // billing details remain in memory and are never written to storage.
+      merge: (saved, current) => {
+        const parsed = persistedDraftSchema.safeParse(saved);
+        return parsed.success ? { ...current, ...parsed.data } : current;
+      },
       partialize: (state) => ({
         providerType: state.providerType,
         businessName: state.businessName,
@@ -130,8 +150,6 @@ export const useListingStore = create<ListingStore>()(
         facebookPage: state.facebookPage,
         locationDetails: state.locationDetails,
         selectedServices: state.selectedServices,
-        uploadedFiles: {},
-        billing: initialListingDraft.billing,
       }),
     },
   ),

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPublishedBusiness, getPublishedBusinessServices } from "@/features/tenancy/api/queries";
+import { getPublishedBusiness, getPublishedBusinessServices } from "@/features/tenancy/api/public-catalog";
 import { formatBusinessAddress } from "@/features/business-profile/location";
 import { AppointmentPage } from "./appointment-page";
 export async function BusinessAppointmentPage({ slug }: { slug: string }) {

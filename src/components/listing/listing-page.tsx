@@ -1,5 +1,7 @@
 "use client";
 
+import { loadLocationOptions, useLocationOptions } from "@/features/business-profile/store/location-options";
+
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -759,12 +761,6 @@ function BusinessStep({
   );
 }
 
-type LocationOption = {
-  code: string;
-  name: string;
-  type?: string;
-};
-
 type AddressResult = {
   id: number;
   label: string;
@@ -850,41 +846,26 @@ function AdministrativeLocationField({
   onChange: (value: string) => void;
 }) {
   const [query, setQuery] = useState(value);
-  const [options, setOptions] = useState<LocationOption[]>([]);
   const [open, setOpen] = useState(false);
-  const shouldLoad = !disabled && (level === "provinces" || Boolean(parent));
-  const [loading, setLoading] = useState(shouldLoad);
-  const [error, setError] = useState("");
+  const params = new URLSearchParams({ level });
+  if (parent) params.set(level === "cities" ? "province" : "city", parent);
+  const url = !disabled && (level === "provinces" || parent) ? `/api/locations?${params}` : "";
+  const entry = useLocationOptions((state) => state.entries[url]);
+  const [failure, setFailure] = useState({ url: "", message: "" });
+  const error = failure.url === url ? failure.message : "";
+  const loading = Boolean(url && !entry && !error);
+  const options = entry?.options ?? [];
 
   useEffect(() => {
-    if (disabled || (level !== "provinces" && !parent)) {
-      return;
-    }
-
-    let cancelled = false;
-    const params = new URLSearchParams({ level });
-    if (parent) params.set(level === "cities" ? "province" : "city", parent);
-
-    fetch(`/api/locations?${params.toString()}`)
-      .then(async (response) => {
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error ?? "Unable to load locations.");
-        return payload as LocationOption[];
-      })
-      .then((items) => {
-        if (!cancelled) setOptions(items);
-      })
-      .catch((reason: Error) => {
-        if (!cancelled) setError(reason.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [disabled, level, parent]);
+    if (!url) return;
+    let active = true;
+    loadLocationOptions(url).then(() => {
+      if (active) setFailure({ url: "", message: "" });
+    }).catch(() => {
+      if (active) setFailure({ url, message: "Unable to load locations." });
+    });
+    return () => { active = false; };
+  }, [url]);
 
   const filteredOptions = options
     .filter((option) => option.name.toLowerCase().includes(query.trim().toLowerCase()))
@@ -926,7 +907,7 @@ function AdministrativeLocationField({
           {loading && <p className="flex items-center gap-2 px-3 py-3 text-xs font-normal text-[#777b78]"><Loader2 className="size-4 animate-spin" /> Loading locations…</p>}
           {!loading && error && <p className="px-3 py-3 text-xs font-normal text-red-600">{error}</p>}
           {!loading && !error && filteredOptions.length === 0 && <p className="px-3 py-3 text-xs font-normal text-[#777b78]">No matching {label.toLowerCase()} found.</p>}
-          {!loading && !error && filteredOptions.map((option) => (
+          {!loading && filteredOptions.map((option) => (
             <button
               type="button"
               role="option"

@@ -59,7 +59,7 @@ function routeFixture({ authorized = true, photos = [], rpcError = null, validat
   });
   supabase.rpc = async (name, input) => { calls.push({ name, input }); return { data: null, error: rpcError }; };
   const route = load('src/app/api/business-photos/route.ts', {
-    'next/cache': { revalidatePath() {} },
+    'next/cache': { revalidateTag() {}, revalidatePath() {} },
     '@/lib/r2/client': { putR2Photo: async (...args) => writes.push(args), deleteR2Object: async (key) => deletes.push(key) },
     '@/features/business-photos/validate': {
       BusinessPhotoValidationError: ValidationError,
@@ -99,7 +99,7 @@ function serviceRouteFixture({ authorized = true, storageError = null, metadataE
   } };
   const route = load('src/app/api/service-photos/route.ts', {
     '@/features/business-photos/optimize': actualValidation ? load('src/features/business-photos/optimize.ts') : { optimizeBusinessImage: async (bytes, filename, contentType) => ({ bytes, contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename }) },
-    'next/cache': { revalidatePath() {} },
+    'next/cache': { revalidateTag() {}, revalidatePath() {} },
     '@/lib/r2/client': { putR2Photo: async (...args) => { if (storageError) throw storageError; writes.push(args); }, deleteR2Object: async (key) => deletes.push(key), getR2PublicUrl: () => undefined, createR2DownloadUrl: async () => 'https://r2.test/photo' },
     '@/features/business-photos/validate': actualValidation ? load('src/features/business-photos/validate.ts') : { BusinessPhotoValidationError: class ValidationError extends Error {}, validateBusinessImageUpload: async (_bytes, filename, contentType) => ({ contentType, extension: contentType === 'image/png' ? '.png' : contentType === 'image/jpeg' ? '.jpg' : '.webp', filename }) },
     '@/server/auth/session': { getCurrentProfile: async () => authorized ? { user: { id: 'owner', email_confirmed_at: 'yes' }, profile: { role: 'provider' } } : null },
@@ -232,7 +232,7 @@ test('compatibility photo API keeps image bytes out of Server Actions and preser
   assert.deepEqual(await sharp(route.writes[0][1]).raw().toBuffer(), await sharp(bytes).raw().toBuffer());
   assert.equal(route.inserted.byte_size, route.writes[0][1].byteLength);
   assert.equal(route.inserted.service_id, serviceId);
-  assert.equal(asset.url, 'https://r2.test/photo');
+  assert.equal(asset.url, `/api/business-photos/${asset.id}`);
   const { getMyServices } = load('src/features/tenancy/api/queries.ts', {
     '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database({
       business_services: [{ id: serviceId, business_id: bid, title: draft.title, category: draft.category, description: draft.description, status: 'draft', starting_price: 500, business_service_photos: [] }],
@@ -243,7 +243,7 @@ test('compatibility photo API keeps image bytes out of Server Actions and preser
     '@/lib/r2/client': { getR2PublicUrl: () => undefined, createR2DownloadUrl: async () => 'https://r2.test/refreshed-photo' },
   });
   const services = await getMyServices(bid);
-  assert.deepEqual(services[0].photos, ['https://r2.test/refreshed-photo']);
+  assert.deepEqual(services[0].photos, [asset.url]);
   assert.deepEqual(services[0].photoAssetIds, [asset.id]);
 });
 
@@ -339,7 +339,7 @@ test('empty public database returns no mock businesses; query failures propagate
 test('image endpoint refuses private documents and missing photos', async () => {
   let signed = false;
   const { GET } = load('src/app/api/business-photos/[id]/route.ts', {
-    '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database({ media_assets: [{ id: photoId, category: 'identity_document', status: 'active', visibility: 'private' }] }) },
+    '@/lib/supabase/server-client': { createSupabasePublicClient: async () => database({ media_assets: [{ id: photoId, category: 'identity_document', status: 'active', visibility: 'private' }] }) },
     '@/lib/r2/client': { createR2DownloadUrl: async () => { signed = true; return 'https://r2.test'; } },
   });
   assert.equal((await GET(new Request('https://aspen.test'), { params: Promise.resolve({ id: photoId }) })).status, 404);
@@ -349,7 +349,7 @@ test('image endpoint refuses private documents and missing photos', async () => 
 test('image endpoint resolves WebP objects uploaded before the metadata-key migration', async () => {
   const heads = [];
   const { GET } = load('src/app/api/business-photos/[id]/route.ts', {
-    '@/lib/supabase/server-client': { createSupabaseServerClient: async () => database({
+    '@/lib/supabase/server-client': { createSupabasePublicClient: async () => database({
       media_assets: [{ id: photoId, object_key: 'businesses/example/business_gallery/legacy-photo', content_type: 'image/webp', category: 'business_gallery', status: 'active', visibility: 'public' }],
     }) },
     '@/lib/r2/client': {
@@ -366,7 +366,7 @@ test('image endpoint resolves WebP objects uploaded before the metadata-key migr
 test('business hours save by weekday name rather than array position', async () => {
   let rows;
   const { saveBusinessHours } = load('src/features/tenancy/api/actions.ts', {
-    'next/cache': { revalidatePath() {} }, '@/lib/r2/client': {},
+    'next/cache': { revalidateTag() {}, revalidatePath() {} }, '@/lib/r2/client': {},
     '@/server/auth/session': { getCurrentProfile: async () => ({ user: { id: 'owner' }, profile: { role: 'provider' } }) },
     '@/lib/supabase/server-client': { createSupabaseServerClient: async () => ({ from: () => ({ upsert: async (value) => { rows = value; return { error: null }; } }) }) },
   });
@@ -410,4 +410,150 @@ test('explicitly cleared cover does not use a remaining gallery image on cards',
     }) }, '@/lib/r2/client': {}, '@/server/auth/guard': {}, '@/server/auth/session': {},
   });
   assert.deepEqual((await getPublishedBusinessCards())[0].images,[]);
+});
+
+test('only anonymously visible raster assets get reusable redirects', async () => {
+  const ownerDb = database({ media_assets: [{ id: photoId, object_key: "service.png", content_type: "image/png", category: "service_photo", status: "active", visibility: "public" }] });
+  let published = false;
+  let signedPolicy;
+  const route = load("src/app/api/business-photos/[id]/route.ts", {
+    "@/lib/supabase/server-client": {
+      createSupabasePublicClient: async () => published ? ownerDb : database(),
+      createSupabaseServerClient: async () => ownerDb,
+    },
+    "@/lib/r2/client": { createR2DownloadUrl: async (_key, _ttl, policy) => { signedPolicy = policy; return "https://r2.test/photo"; } },
+  });
+  const get = (headers) => route.GET(new Request("https://aspen.test", { headers }), { params: Promise.resolve({ id: photoId }) });
+  assert.equal((await get()).status, 404);
+  assert.equal((await get({ cookie: "session=owner" })).headers.get("cache-control"), "private, no-store");
+  assert.equal(signedPolicy, "private, no-store");
+  published = true;
+  assert.match((await get()).headers.get("cache-control"), /max-age=240/);
+  published = false;
+  assert.equal((await get()).status, 404);
+});
+
+test('location options deduplicate requests, evict old entries and recover after invalid data', async (t) => {
+  const { loadLocationOptions, useLocationOptions } = load("src/features/business-profile/store/location-options.ts");
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    calls++;
+    return Response.json(calls === 1 ? [{ name: 3 }] : [{ name: "Cebu", code: "07" }]);
+  });
+  const url = "/api/locations?level=provinces";
+  await assert.rejects(loadLocationOptions(url));
+  assert.equal(useLocationOptions.getState().entries[url], undefined);
+  await Promise.all([loadLocationOptions(url), loadLocationOptions(url)]);
+  await loadLocationOptions(url);
+  assert.equal(calls, 2);
+  for (let i = 0; i < 24; i++) await loadLocationOptions(url + i);
+  assert.equal(Object.keys(useLocationOptions.getState().entries).length, 24);
+  assert.equal(useLocationOptions.getState().entries[url], undefined);
+});
+
+test('draft hydration accepts incomplete forms and rejects corrupted or sensitive cached fields', () => {
+  const { persistedDraftSchema, initialListingDraft } = load("src/features/business-profile/store/onboarding.store.ts");
+  const draft = { ...initialListingDraft, businessName: "Paw", role: "admin" };
+  const restored = persistedDraftSchema.parse(draft);
+  assert.equal(restored.businessName, "Paw");
+  for (const key of ["role", "billing", "identity", "uploadedFiles"]) assert.equal(key in restored, false);
+  assert.equal(persistedDraftSchema.safeParse({ ...draft, selectedServices: "wrong type" }).success, false);
+});
+
+test('Chrome reuses the published photo across page navigation', { skip: !process.env.PHOTO_BROWSER_TOOLS }, async () => {
+  const { chromium } = require(path.join(process.env.PHOTO_BROWSER_TOOLS, "playwright"));
+  const http = require("node:http");
+  const pngBytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9WC0p2IAAAAASUVORK5CYII=", "base64");
+  const asset = { id: photoId, object_key: "photo.png", content_type: "image/png", category: "business_cover", status: "active", visibility: "public" };
+  let origin, lookups = 0, downloads = 0;
+  const { GET } = load("src/app/api/business-photos/[id]/route.ts", {
+    "@/lib/supabase/server-client": { createSupabasePublicClient: async () => database({ media_assets: [asset] }) },
+    "@/lib/r2/client": { createR2DownloadUrl: async () => origin + "/object?signature=" + lookups },
+  });
+  const server = http.createServer(async (req, res) => {
+    if (req.url.startsWith("/image/")) {
+      lookups++;
+      const result = await GET(new Request(origin + req.url), { params: Promise.resolve({ id: photoId }) });
+      res.writeHead(307, { location: result.headers.get("location"), "cache-control": req.url.endsWith("baseline") ? "private, no-store" : result.headers.get("cache-control") });
+      res.end();
+    } else if (req.url.startsWith("/object?")) {
+      downloads++;
+      await new Promise((resolve) => setTimeout(resolve, 75));
+      res.writeHead(200, { "content-type": "image/png", "cache-control": "private, max-age=240" });
+      res.end(pngBytes);
+    } else {
+      res.writeHead(200, { "content-type": "text/html", "cache-control": "no-store" });
+      res.end('<img src="/image/' + (req.url.includes("baseline") ? "baseline" : "current") + '">');
+    }
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  origin = "http://127.0.0.1:" + server.address().port;
+  let browser;
+  try {
+    browser = await chromium.launch({ executablePath: process.env.CHAT_BROWSER_EXECUTABLE || "C:/Program Files/Google/Chrome/Application/chrome.exe" });
+    for (const mode of ["baseline", "current"]) {
+      const page = await browser.newPage();
+      await page.goto(origin + "/profile-" + mode);
+      const before = [lookups, downloads];
+      const start = performance.now();
+      await page.goto(origin + "/directory-" + mode);
+      assert.ok(await page.locator("img").evaluate((img) => img.complete && img.naturalWidth === 1));
+      const repeat = [lookups - before[0], downloads - before[1]];
+      console.log(mode, "repeat visit ms", Math.round(performance.now() - start), "metadata/byte requests", repeat);
+      assert.deepEqual(repeat, mode === "baseline" ? [1, 1] : [0, 0]);
+      const previous = downloads;
+      await page.reload();
+      assert.ok(await page.locator("img").evaluate((img) => img.naturalWidth === 1));
+      console.log(mode, "normal reload byte requests", downloads - previous);
+      assert.equal(downloads - previous, mode === "baseline" ? 1 : 0);
+      await page.close();
+    }
+  } finally {
+    await browser?.close();
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('auth boundary preserves guest and same-user progress, clears on logout and account switches', (t) => {
+  const storage = new Map();
+  const favorites = load('src/features/favorites/store/favorites.store.ts').useFavoritesStore;
+  const previousWindow = global.window;
+  global.window = { sessionStorage: {
+    getItem: (key) => storage.get(key) ?? null,
+    setItem: (key, value) => storage.set(key, value),
+  } };
+  t.after(() => {
+    if (previousWindow === undefined) delete global.window;
+    else global.window = previousWindow;
+  });
+  let notify, draft = 'guest progress';
+  const { ListingDraftAuthBoundary } = load('src/features/business-profile/components/listing-draft-auth-boundary.tsx', {
+    react: { useEffect: (effect) => effect() },
+    '@/features/favorites/store/favorites.store': { useFavoritesStore: favorites },
+    '@/lib/supabase/browser-client': { getSupabaseBrowserClient: () => ({ auth: {
+      onAuthStateChange(callback) { notify = callback; return { data: { subscription: { unsubscribe() {} } } }; },
+    } }) },
+    '../store/onboarding.store': {
+      LISTING_DRAFT_OWNER_STORAGE_KEY: 'owner',
+      clearListingDraft() { draft = ''; storage.delete('owner'); },
+    },
+  });
+  ListingDraftAuthBoundary();
+  notify('INITIAL_SESSION', null);
+  notify('SIGNED_IN', { user: { id: 'first' } });
+  favorites.getState().toggleFavorite('clinic');
+  notify('TOKEN_REFRESHED', { user: { id: 'first' } });
+  assert.equal(draft, 'guest progress');
+  assert.deepEqual(favorites.getState().favoriteSlugs, ['clinic']);
+  storage.delete('owner'); // A completed registration removes its draft marker.
+  notify('SIGNED_IN', { user: { id: 'second' } });
+  assert.equal(draft, '');
+  assert.deepEqual(favorites.getState().favoriteSlugs, []);
+  assert.equal(storage.get('owner'), 'second');
+  favorites.getState().toggleFavorite('salon');
+  draft = 'second account';
+  notify('SIGNED_OUT', null);
+  assert.equal(draft, '');
+  assert.deepEqual(favorites.getState().favoriteSlugs, []);
+  assert.equal(storage.has('owner'), false);
 });

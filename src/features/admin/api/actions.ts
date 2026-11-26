@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { invalidatePublicCatalog } from "@/features/tenancy/api/catalog-invalidation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { getCurrentProfile } from "@/server/auth/session";
@@ -30,6 +31,7 @@ export async function reviewProviderApplication(formData: FormData) {
       });
   if (result.error) redirectWithError(result.error.message || "The application could not be reviewed.");
 
+  invalidatePublicCatalog();
   revalidatePath("/admin/provider-applications");
   revalidatePath("/");
   revalidatePath("/wishlist");

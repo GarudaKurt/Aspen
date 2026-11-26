@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { optimizeBusinessImage } from "@/features/business-photos/optimize";
 import { NextResponse } from "next/server";
+import { invalidatePublicCatalog } from "@/features/tenancy/api/catalog-invalidation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentProfile } from "@/server/auth/session";
@@ -9,7 +10,7 @@ import { businessPhotos } from "@/features/business-photos/server";
 import { MAX_PHOTO_BYTES, validateBusinessPhoto } from "@/features/business-photos/types";
 import { BusinessPhotoValidationError, safeOriginalImageFilename, validateBusinessImageUpload } from "@/features/business-photos/validate";
 import { photoObjectKey, photoStagingKey, signPhotoTicket, verifyPhotoTicket, type PhotoTicket } from "@/features/business-photos/upload-ticket";
-import { createPhotoStagingUrl, createR2DownloadUrl, deleteR2Object, deleteStagedPhoto, finalizedPhotoMatches, getR2PublicUrl, putValidatedPhoto, readStagedPhoto } from "@/lib/r2/client";
+import { createPhotoStagingUrl, deleteR2Object, deleteStagedPhoto, finalizedPhotoMatches, putValidatedPhoto, readStagedPhoto } from "@/lib/r2/client";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -162,7 +163,12 @@ export async function POST(request: Request) {
       replacedKey = data?.object_key;
     }
     if (replacedKey) await deleteR2Object(String(replacedKey)).catch(() => console.warn("Replaced photo cleanup pending", { requestId }));
-    try { revalidatePath("/"); revalidatePath(`/business-profile/${business.slug}`); revalidatePath(`/tenant-dashboard/${ticket.kind === "business" ? "profile" : "services"}`); }
+    try {
+      invalidatePublicCatalog();
+      revalidatePath("/");
+      revalidatePath(`/business-profile/${business.slug}`);
+      revalidatePath(`/tenant-dashboard/${ticket.kind === "business" ? "profile" : "services"}`);
+    }
     catch { console.warn("Photo saved; page revalidation pending", { requestId }); }
     if (ticket.kind === "business") {
       const { data, error: refreshError } = await supabase.from("businesses").select("cover_photo_path").eq("id", businessId).single();
@@ -170,7 +176,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ photos: await businessPhotos(supabase, businessId, data.cover_photo_path) }, { headers: { "Cache-Control": "no-store" } });
     }
     return NextResponse.json({ asset: { id: ticket.id, objectKey: key, category: "service_photo", visibility: "public", contentType: finalType,
-      byteSize: finalSize, originalFilename: finalName, status: "active", url: getR2PublicUrl(key) ?? await createR2DownloadUrl(key) } }, { headers: { "Cache-Control": "no-store" } });
+      byteSize: finalSize, originalFilename: finalName, status: "active", url: `/api/business-photos/${ticket.id}` } }, { headers: { "Cache-Control": "no-store" } });
   } catch (cause) {
     if (cause instanceof UploadError || cause instanceof BusinessPhotoValidationError) {
       if (cause instanceof BusinessPhotoValidationError || (cause.status === 400 && stage === "validation")) {

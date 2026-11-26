@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createSupabaseServerClient, createSupabasePublicClient } from "@/lib/supabase/server-client";
-import { createR2DownloadUrl, getR2PublicUrl } from "@/lib/r2/client";
 import { requireRole } from "@/server/auth/guard";
 import { getCurrentProfile } from "@/server/auth/session";
 import { businessPhotos } from "@/features/business-photos/server";
@@ -58,15 +57,6 @@ function mapBusiness(row: Record<string, unknown>): TenancyBusiness {
   };
 }
 
-async function resolveMediaUrl(objectKey: string, visibility: string) {
-  try {
-    if (visibility === "public") return getR2PublicUrl(objectKey) ?? await createR2DownloadUrl(objectKey);
-    return await createR2DownloadUrl(objectKey);
-  } catch {
-    return null;
-  }
-}
-
 async function getActiveMedia(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, column: "business_id" | "service_id", ids: string[]) {
   if (!ids.length) return [];
   const { data, error } = await supabase
@@ -75,10 +65,10 @@ async function getActiveMedia(supabase: Awaited<ReturnType<typeof createSupabase
     .in(column, ids)
     .eq("status", "active").eq("visibility", "public");
   if (error) throw new Error("Unable to load business media.");
-  return Promise.all((data ?? []).map(async (asset) => ({
+  return (data ?? []).map((asset) => ({
     ...asset,
-    url: await resolveMediaUrl(String(asset.object_key), String(asset.visibility)),
-  })));
+    url: `/api/business-photos/${asset.id}`,
+  }));
 }
 
 function compareServicePhotos(

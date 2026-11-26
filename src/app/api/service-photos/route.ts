@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { invalidatePublicCatalog } from "@/features/tenancy/api/catalog-invalidation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createR2DownloadUrl, deleteR2Object, getR2PublicUrl, putR2Photo } from "@/lib/r2/client";
+import { deleteR2Object, putR2Photo } from "@/lib/r2/client";
 import { detectMediaType } from "@/features/media/validation";
 import { BusinessPhotoValidationError } from "@/features/business-photos/validate";
 import { optimizeBusinessImage } from "@/features/business-photos/optimize";
@@ -72,10 +73,6 @@ export async function POST(request: Request) {
     objectKey = `services/${parsed.data.serviceId}/service_photo/${assetId}-photo${validated.extension}`;
     stage = "storage";
     await putR2Photo(objectKey, validated.bytes, validated.contentType);
-    // Resolve before committing metadata so a URL/configuration failure can be
-    // rolled back rather than reporting failure after saving a durable asset.
-    const photoUrl = getR2PublicUrl(objectKey) ?? await createR2DownloadUrl(objectKey);
-
     stage = "metadata";
     const { data: asset, error } = await supabase.from("media_assets").insert({
       id: assetId,
@@ -97,6 +94,7 @@ export async function POST(request: Request) {
     const businesses = service.businesses as unknown as { slug?: string } | { slug?: string }[];
     const slug = Array.isArray(businesses) ? businesses[0]?.slug : businesses?.slug;
     try {
+      invalidatePublicCatalog();
       revalidatePath("/tenant-dashboard/services");
       if (slug) revalidatePath(`/business-profile/${slug}`);
     } catch {
@@ -106,7 +104,7 @@ export async function POST(request: Request) {
       asset: {
         id: String(asset.id), objectKey: String(asset.object_key), category: "service_photo", visibility: "public",
         contentType: String(asset.content_type), byteSize: Number(asset.byte_size), originalFilename: String(asset.original_filename),
-        status: "active", url: photoUrl,
+        status: "active", url: `/api/business-photos/${asset.id}`,
       },
     });
   } catch (cause) {
