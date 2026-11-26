@@ -33,6 +33,7 @@ function fixture({ current = { user: { id: 'owner', verified: true }, profile: {
     business_services: [{ id: sid, business_id: serviceBusiness, title: draft.title, category: draft.category, description, starting_price: 500, status: 'draft' }],
   };
   const invalidated = [];
+  const expiredTags = [];
   const writes = [];
   const deletedObjects = [];
   const client = { from(table) {
@@ -59,12 +60,12 @@ function fixture({ current = { user: { id: 'owner', verified: true }, profile: {
     return builder;
   } };
   const actions = load('src/features/tenancy/api/actions.ts', {
-    'next/cache': { revalidatePath: (...args) => invalidated.push(args) },
+    'next/cache': { revalidateTag: (...args) => expiredTags.push(args), revalidatePath: (...args) => invalidated.push(args) },
     '@/lib/supabase/server-client': { createSupabaseServerClient: async () => client },
     '@/server/auth/session': { getCurrentProfile: async () => current, isEmailVerified: (u) => u.verified },
     '@/lib/r2/client': { deleteR2Object: async (key) => deletedObjects.push(key) },
   });
-  return { ...actions, tables, writes, invalidated, deletedObjects };
+  return { ...actions, tables, writes, invalidated, expiredTags, deletedObjects };
 }
 
 test('publish and pause persist status and refresh public discovery/profile routes', async () => {
@@ -73,6 +74,7 @@ test('publish and pause persist status and refresh public discovery/profile rout
     assert.equal((await f.setBusinessServiceStatus({ businessId: bid, serviceId: sid, status })).ok, true);
     assert.equal(f.tables.business_services[0].status, status.toLowerCase());
   }
+  assert.deepEqual(f.expiredTags, Array(2).fill(['public-business-catalog', { expire: 0 }]));
   assert.equal(f.tables.businesses[0].status, 'published');
   assert.ok(f.invalidated.some(([p]) => p === '/'));
   assert.ok(f.invalidated.some(([p, type]) => p === '/business-profile/[slug]' && type === 'layout'));
@@ -115,6 +117,7 @@ test('failed writes do not report success or invalidate public pages', async () 
   assert.equal((await f.setBusinessServiceStatus({ businessId: bid, serviceId: sid, status: 'Active' })).ok, false);
   assert.equal(f.tables.business_services[0].status, 'draft');
   assert.equal(f.invalidated.length, 0);
+  assert.equal(f.expiredTags.length, 0);
 });
 
 test('editing an existing service keeps its ID and does not create a duplicate', async () => {

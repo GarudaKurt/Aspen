@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { BusinessProfile } from "@/features/business-profile/components/business-profile";
-import { getPublishedBusiness, getPublishedBusinessServices } from "@/features/tenancy/api/queries";
+import { getPublishedBusiness, getPublishedBusinessServices } from "@/features/tenancy/api/public-catalog";
 import { formatBusinessAddress } from "@/features/business-profile/location";
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+// Generate public profiles on first visit. Authenticated booking routes stay dynamic.
+export function generateStaticParams() { return []; }
 export default async function BusinessProfileBySlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const business = await getPublishedBusiness(slug);

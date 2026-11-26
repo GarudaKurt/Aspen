@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidatePublicCatalog } from "@/features/tenancy/api/catalog-invalidation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
@@ -117,6 +118,7 @@ export async function saveBusinessProfile(input: unknown): Promise<ActionResult>
     longitude,
     latitude,
   });
+  invalidatePublicCatalog();
   if (locationError) return { ok: false, error: "Business saved, but the location could not be saved." };
   revalidatePath("/tenant-dashboard/profile");
   revalidatePath(`/business-profile/${slug}`);
@@ -135,6 +137,7 @@ function parseDuration(value: string) {
 
 function revalidateServicePages() {
   revalidatePath("/tenant-dashboard/services");
+  invalidatePublicCatalog();
   revalidatePath("/tenant-dashboard/profile");
   revalidatePath("/");
   revalidatePath("/wishlist");
@@ -297,6 +300,7 @@ export async function saveBusinessHours(businessId: string, input: unknown): Pro
   }));
   const { error } = await supabase.from("business_hours").upsert(rows, { onConflict: "business_id,day_of_week" });
   if (error) return { ok: false, error: "Unable to save business hours." };
+  invalidatePublicCatalog();
   revalidatePath("/tenant-dashboard/profile");
   return { ok: true, id: businessId };
 }
@@ -316,8 +320,12 @@ export async function saveBusinessAmenities(businessId: string, input: unknown):
       label: amenity.label,
       is_custom: Boolean(amenity.custom),
     })));
-    if (error) return { ok: false, error: "Unable to update amenities." };
+    if (error) {
+      invalidatePublicCatalog();
+      return { ok: false, error: "Unable to update amenities." };
+    }
   }
+  invalidatePublicCatalog();
   revalidatePath("/tenant-dashboard/profile");
   return { ok: true, id: businessId };
 }

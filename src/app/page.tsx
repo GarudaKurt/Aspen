@@ -1,8 +1,8 @@
 import { LandingPage } from "@/components/landing/landing-page";
-import { getPublishedBusinessCards } from "@/features/tenancy/api/queries";
+import { getPublishedBusinessCards } from "@/features/tenancy/api/public-catalog";
 import { Suspense } from "react";
 import { LandingSkeleton } from "@/components/loading/public-skeletons";
-export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export default function Home() {
   return <Suspense fallback={<LandingSkeleton />}><BusinessListings /></Suspense>;
 }

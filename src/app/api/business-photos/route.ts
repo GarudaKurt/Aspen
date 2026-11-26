@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { invalidatePublicCatalog } from "@/features/tenancy/api/catalog-invalidation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { deleteR2Object, putR2Photo } from "@/lib/r2/client";
@@ -107,6 +108,7 @@ export async function POST(request: Request) {
         await supabase.from("media_assets").delete().eq("id", photo.id).eq("status", "deleted");
       } catch { console.warn("Business photo removed from gallery; R2 cleanup will retry on the next gallery change."); }
     }
+    invalidatePublicCatalog();
     revalidatePath("/"); revalidatePath("/wishlist");
     revalidatePath(`/business-profile/${business.slug}`); revalidatePath("/tenant-dashboard/profile");
     const { data: updated } = await supabase.from("businesses").select("cover_photo_path").eq("id", businessId).single();

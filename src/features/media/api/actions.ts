@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidatePublicCatalog } from "@/features/tenancy/api/catalog-invalidation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { getCurrentProfile } from "@/server/auth/session";
@@ -111,6 +112,7 @@ export async function completeMediaUpload(assetId: string): Promise<ActionResult
     }
     const { data: updated, error } = await supabase.from("media_assets").update({ status: "active", uploaded_at: new Date().toISOString() }).eq("id", assetId).select("*").single();
     if (error) throw error;
+    if (updated.visibility === "public") invalidatePublicCatalog();
     return { ok: true, data: await mapAsset(updated) };
   } catch {
     await supabase.from("media_assets").update({ status: "failed" }).eq("id", assetId);
@@ -153,6 +155,7 @@ export async function deleteMediaAsset(assetId: string): Promise<ActionResult<{ 
     await deleteR2Object(String(owned.data.object_key));
     const { error } = await owned.supabase.from("media_assets").delete().eq("id", assetId);
     if (error) throw error;
+    invalidatePublicCatalog();
     revalidatePath("/tenant-dashboard/profile");
     revalidatePath("/tenant-dashboard/services");
     return { ok: true, data: { id: assetId } };

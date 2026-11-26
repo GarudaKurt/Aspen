@@ -74,10 +74,11 @@ export async function createR2UploadUrl(
   return getSignedUrl(getClient(), command, { expiresIn });
 }
 
-export async function createR2DownloadUrl(objectKey: string, expiresIn = 300) {
+export async function createR2DownloadUrl(objectKey: string, expiresIn = 300, cacheControl = "private, no-store") {
   const command = new GetObjectCommand({
     Bucket: getR2BucketName(),
     Key: objectKey,
+    ResponseCacheControl: cacheControl,
   });
   return getSignedUrl(getClient(), command, { expiresIn });
 }

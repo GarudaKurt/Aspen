@@ -91,7 +91,7 @@ function fixture({ authorized = true, own = true, lostCommitResponse = false, qu
   const route=load('src/app/api/photo-uploads/route.ts', {
     '@/features/business-photos/validate': validation,
     '@/features/business-photos/optimize': load('src/features/business-photos/optimize.ts', { './validate': validation }),
-    'next/cache': { revalidatePath() {} }, '@/lib/r2/client':r2,
+    'next/cache': { revalidateTag() {}, revalidatePath() {} }, '@/lib/r2/client':r2,
     '@/server/auth/session': { getCurrentProfile: async () => authorized ? { user:{id:ownerId,email_confirmed_at:'yes'},profile:{role:'provider'} } : null },
     '@/lib/supabase/server-client': { createSupabaseServerClient:async()=>supabase },
     '@/features/business-photos/server': { businessPhotos: async () => [...rows.values()].filter(r=>r.status==='active').map(r=>({id:r.id,name:'photo.png',isCover:false,url:`/api/business-photos/${r.id}`})) },
