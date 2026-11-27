@@ -12,6 +12,29 @@ export function DashboardContentSkeleton({
 }: {
   kind?: "overview" | "profile" | "services" | "appointments" | "calendar";
 }) {
+  if (kind === "overview") {
+    return (
+      <LoadingRegion label="Loading dashboard">
+        <SkeletonHeading />
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center justify-between gap-3 rounded-xl border p-4 sm:flex-col sm:items-start lg:p-5">
+              <Skeleton className="h-5 w-32 max-w-full" />
+              <Skeleton className="h-9 w-12" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 grid gap-5 xl:grid-cols-2">
+          {[0, 1].map((i) => (
+            <div key={i} className="space-y-4 rounded-xl border p-5">
+              <Skeleton className="h-6 w-40 max-w-full" />
+              <SkeletonLines rows={2} />
+            </div>
+          ))}
+        </div>
+      </LoadingRegion>
+    );
+  }
   return (
     <LoadingRegion label={`Loading ${kind}`}>
       {(kind === "services" || kind === "appointments") && (
@@ -63,7 +86,7 @@ export function DashboardContentSkeleton({
                       <Skeleton className="h-4 w-full max-w-32" />
                       <Skeleton className="h-9 w-12 max-w-full" />
                     </div>
-                    <Skeleton className="size-11 shrink-0 rounded-2xl" />
+                    <Skeleton className="size-11 shrink-0 rounded-xl" />
                   </div>
                   {kind === "services" && (
                     <Skeleton className="mt-2 h-3 w-32 max-w-full" />

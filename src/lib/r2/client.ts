@@ -179,3 +179,25 @@ export async function putValidatedPhoto(key: string, bytes: Uint8Array, contentT
     if (!(await finalizedPhotoMatches(key, bytes.byteLength, sha256))) throw cause;
   }
 }
+
+// Receipt objects require private, durable storage independent of public listing media.
+function receiptBucket() {
+  const bucket = process.env.R2_BILLING_BUCKET_NAME?.trim();
+  if (!bucket || bucket === getR2BucketName()) throw new Error("Configure a private R2 billing bucket.");
+  return bucket;
+}
+
+export async function putReceipt(key: string, bytes: Uint8Array, mime: string) {
+  await getClient().send(new PutObjectCommand({
+    Bucket: receiptBucket(), Key: key, Body: bytes, ContentType: mime,
+    ContentDisposition: "attachment", CacheControl: "private, no-store", IfNoneMatch: "*",
+  }));
+}
+export async function readReceipt(key: string) {
+  const object = await getClient().send(new GetObjectCommand({Bucket:receiptBucket(),Key:key}));
+  if (!object.Body) throw new Error("Missing receipt");
+  return object.Body.transformToWebStream();
+}
+export async function discardReceipt(key: string) {
+  await getClient().send(new DeleteObjectCommand({Bucket:receiptBucket(),Key:key}));
+}

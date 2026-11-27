@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile } from "@/components/ui/icon-tile";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, RefreshCw, AlertTriangle } from "lucide-react";
@@ -64,7 +65,7 @@ export function CalendarView({ businessId, businessName, initialDate }: { busine
     {!!conflicts.size && <p className="flex items-center gap-2 text-sm text-amber-800"><AlertTriangle className="size-4 shrink-0" />{conflicts.size} events overlap in this range. Check staff availability.</p>}
 
     {loading && !data ? <CalendarGridSkeleton mode={mode} /> : data && <>
-      {!visible.length && <div className="flex items-center gap-3 rounded-xl border border-dashed p-5 text-sm"><CalendarDays className="size-6 text-[#3c6355]" /><div><p className="font-semibold">No events for this range and filter</p><p className="mt-1 text-slate-500">Customer appointments appear automatically. Use New event for an internal meeting or schedule.</p></div></div>}
+      {!visible.length && <div className="flex items-center gap-3 rounded-xl border border-dashed p-5 text-sm"><IconTile icon={CalendarDays} /><div><p className="font-semibold">No events for this range and filter</p><p className="mt-1 text-slate-500">Customer appointments appear automatically. Use New event for an internal meeting or schedule.</p></div></div>}
       {mode === "month" ? <MonthGrid {...viewProps} days={range.days} anchor={anchor} today={today} onDay={(day) => { setAnchor(day); setMode("day"); }} />
         : mode === "agenda" ? !!visible.length && <Agenda key={`${range.start}:${type}:${status}`} {...viewProps} />
           : <TimeGrid key={`${mode}:${range.start}`} {...viewProps} days={range.days} />}

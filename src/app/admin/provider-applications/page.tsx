@@ -1,3 +1,5 @@
+import {createSupabaseServerClient} from "@/lib/supabase/server-client";
+import Link from "next/link";
 import { reviewProviderApplication } from "@/features/admin/api/actions";
 import { getProviderApplications } from "@/features/admin/api/queries";
 
@@ -7,12 +9,16 @@ export default async function ProviderApplicationsPage({
   searchParams?: Promise<{ error?: string; reviewed?: string }>;
 }) {
   const applications = await getProviderApplications();
+  const db=await createSupabaseServerClient();
+  const {count}=await db.from("tenant_payments").select("id",{count:"exact",head:true}).eq("status","pending");
   const params = await searchParams;
 
   return (
     <main className="min-h-screen bg-[#f7faf8] px-4 py-10 text-slate-900 sm:px-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8">
+          <Link href="/admin/billing" className="float-right text-sm font-semibold text-[#3c6355]">Manage tenant billing</Link>
+          <Link href="/admin/notifications" className="mb-3 inline-block text-sm text-[#3c6355] underline">Payment notifications{count ? ` (${count} awaiting review)` : ""}</Link>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#3c6355]">Admin control plane</p>
           <h1 className="mt-2 text-3xl font-bold">Provider applications</h1>
           <p className="mt-2 text-slate-500">Review business registrations independently from provider business management.</p>
@@ -76,6 +82,10 @@ export default async function ProviderApplicationsPage({
                   <form action={reviewProviderApplication}>
                     <input type="hidden" name="applicationId" value={application.id} />
                     <input type="hidden" name="decision" value="approved" />
+                    {application.plan && <p className="mb-2 text-sm">Selected plan · {application.plan}</p>}
+                    {application.plan && application.plan !== "Free" && <label className="mb-2 block text-sm font-medium">First payment due date
+                      <input required type="date" name="due" className="block rounded border px-3 py-2"/>
+                    </label>}
                     <button type="submit" className="w-full rounded-lg bg-[#3c6355] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#2f5044] sm:w-auto">Approve and create provider business</button>
                   </form>
                 </div>

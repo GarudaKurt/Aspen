@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Star, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImagePlus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PHOTO_SIZE_LABEL } from "@/features/business-photos/types";
@@ -105,7 +105,7 @@ export function ServicePhotoPicker({
                       onClick={() => onMove(index, -1)}
                       aria-label="Move photo earlier"
                     >
-                      ←
+                      <ChevronLeft aria-hidden="true" />
                     </Button>
                     <Button
                       type="button"
@@ -127,7 +127,7 @@ export function ServicePhotoPicker({
                       onClick={() => onMove(index, 1)}
                       aria-label="Move photo later"
                     >
-                      →
+                      <ChevronRight aria-hidden="true" />
                     </Button>
                   </div>
                 </div>

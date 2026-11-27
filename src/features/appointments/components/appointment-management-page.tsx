@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile, type IconTone } from "@/components/ui/icon-tile";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
@@ -83,7 +84,7 @@ function SummaryCard({
   label: string;
   value: number;
   icon: LucideIcon;
-  tone: string;
+  tone?: IconTone;
 }) {
   return (
     <Card className="bg-white p-5 shadow-none">
@@ -92,9 +93,7 @@ function SummaryCard({
           <p className="text-sm text-slate-500">{label}</p>
           <strong className="mt-2 block text-3xl">{value}</strong>
         </div>
-        <span className={`grid size-11 shrink-0 place-items-center rounded-2xl ${tone}`}>
-          <Icon className="size-5 shrink-0" />
-        </span>
+        <IconTile icon={Icon} tone={tone} />
       </div>
     </Card>
   );
@@ -300,11 +299,11 @@ export function AppointmentManagementPage({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <SummaryCard label="Total requests" value={counts.total} icon={CalendarDays} tone="bg-emerald-50 text-[#3c6355]" />
-        <SummaryCard label="Pending" value={counts.pending} icon={Clock3} tone="bg-amber-50 text-amber-700" />
-        <SummaryCard label="Confirmed" value={counts.confirmed} icon={CheckCircle2} tone="bg-emerald-50 text-emerald-700" />
-        <SummaryCard label="Completed" value={counts.completed} icon={Check} tone="bg-sky-50 text-sky-700" />
-        <SummaryCard label="Rejected / Cancelled" value={counts.rejectedCancelled} icon={XCircle} tone="bg-red-50 text-red-700" />
+        <SummaryCard label="Total requests" value={counts.total} icon={CalendarDays} />
+        <SummaryCard label="Pending" value={counts.pending} icon={Clock3} tone="warning" />
+        <SummaryCard label="Confirmed" value={counts.confirmed} icon={CheckCircle2} tone="success" />
+        <SummaryCard label="Completed" value={counts.completed} icon={Check} tone="info" />
+        <SummaryCard label="Rejected / Cancelled" value={counts.rejectedCancelled} icon={XCircle} tone="danger" />
       </div>
 
       <Card className="overflow-hidden bg-white p-0 shadow-none">
@@ -411,7 +410,7 @@ export function AppointmentManagementPage({
             ))
           ) : (
             <div className="p-10 text-center">
-              <CalendarDays className="mx-auto size-8 text-slate-300" />
+              <IconTile icon={CalendarDays} className="mx-auto" />
               <h2 className="mt-3 font-semibold">No appointments found</h2>
               <p className="mt-1 text-sm text-slate-500">
                 Try changing your search or filters.

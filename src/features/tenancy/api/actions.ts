@@ -55,6 +55,7 @@ export async function submitProviderApplication(input: unknown): Promise<ActionR
     selected_services: value.selectedServices,
     identity_details: value.identity,
     identity_documents: Object.entries(value.uploadedFiles).map(([label, path]) => ({ label, path })),
+    selected_plan: value.selectedPlan,
     billing_details: value.billing,
   }).select("id").single();
   if (error) {

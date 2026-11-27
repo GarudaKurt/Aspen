@@ -129,7 +129,7 @@ export function DashboardSidebar({ businessName, onSignOut }: { businessName: st
         className={`flex flex-col transition-[padding] duration-200 ${open ? "p-3 lg:p-5" : "p-2 lg:p-2"}`}
       >
         <div
-          className={`mb-7 flex shrink-0 items-center gap-2 ${open ? "justify-between" : "justify-center"}`}
+          className={`mb-7 flex shrink-0 items-center gap-2 ${open ? "justify-between" : "flex-col justify-center"}`}
         >
           <Link
             href="/"
@@ -146,12 +146,13 @@ export function DashboardSidebar({ businessName, onSignOut }: { businessName: st
               type="button"
               aria-label="Close navigation menu"
               onClick={() => setOpen(false)}
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] lg:hidden"
+              data-dashboard-icon-control
+              className="inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355] lg:hidden"
             >
               <X className="size-5" aria-hidden="true" />
             </button>
           )}
-          <SidebarTrigger className="hidden lg:inline-flex" />
+          <SidebarTrigger data-dashboard-icon-control className="hidden items-center justify-center lg:inline-flex" />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {groups.map(([group, label]) => (

@@ -13,7 +13,7 @@ const read = (file) => fs.readFileSync(`supabase/migrations/${file}`, "utf8");
 (async () => {
   const db = new PGlite();
   try {
-    await db.exec(`create role anon; create role authenticated; create schema auth;
+    await db.exec(`create role anon; create role authenticated; create role service_role; create schema auth;
       create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
       create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
       create function auth.jwt() returns jsonb language sql stable as $$select jsonb_build_object('email','fixture@example.test')$$;
@@ -47,6 +47,7 @@ const read = (file) => fs.readFileSync(`supabase/migrations/${file}`, "utf8");
       "0031_approved_provider_service_management.sql",
       "0032_photo_optimization.sql",
       "0034_customer_provider_chat.sql",
+      "0035_provider_unread_messages.sql",
     ])
       await db.exec(read(file));
     await db.exec(read("0034_customer_provider_chat.sql"));
@@ -75,6 +76,7 @@ const read = (file) => fs.readFileSync(`supabase/migrations/${file}`, "utf8");
       ]);
       businesses.push(business);
     }
+    await require("./tenant-billing-checks.cjs")({ db, as, businesses, uid, read });
     const start = async (slug) =>
       (await db.query("select start_business_chat($1) as id", [slug])).rows[0]
         .id;
@@ -122,7 +124,12 @@ const read = (file) => fs.readFileSync(`supabase/migrations/${file}`, "utf8");
     await assert.rejects(
       db.query("select * from get_chat_history($1)", [thread]),
     );
+    const unread = async (business) => Number((await db.query(
+      "select provider_unread_messages($1) as total", [business.id],
+    )).rows[0].total);
+    assert.equal(await unread(businesses[0]), 0);
     await as(uid(3));
+    assert.equal(await unread(businesses[0]), 0);
     await assert.rejects(send(104));
     await as(uid(1));
     assert.equal(
@@ -138,6 +145,8 @@ const read = (file) => fs.readFileSync(`supabase/migrations/${file}`, "utf8");
     const inbox = (
       await db.query("select * from list_chat_conversations('provider')")
     ).rows;
+    assert.equal(await unread(businesses[0]), 1);
+    assert.equal(await unread(businesses[1]), 0);
     assert.equal(inbox[0].unread_count, 1);
     assert.equal(inbox[0].name, "User 4");
     await db.query("select read_chat_conversation($1,$2)", [thread, first.seq]);
@@ -153,6 +162,7 @@ const read = (file) => fs.readFileSync(`supabase/migrations/${file}`, "utf8");
     );
     const reply = await send(105, "Welcome");
     assert.equal(reply.sender_id, uid(2));
+    assert.equal(await unread(businesses[0]), 0);
     await as(uid(4));
     const history = (
       await db.query("select * from get_chat_history($1)", [thread])

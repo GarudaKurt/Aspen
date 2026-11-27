@@ -20,7 +20,7 @@ export function DashboardShell({ children, businessName }: { children: React.Rea
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-white text-[#171817]">
+      <div className="tenant-dashboard min-h-screen bg-white text-[#171817]">
         <MobileDashboardHeader />
         <div className="mx-auto flex max-w-[1440px] 2xl:max-w-[1920px]">
           <DashboardSidebar businessName={businessName} onSignOut={logout} />
@@ -38,14 +38,14 @@ function MobileDashboardHeader() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
       <Button
         type="button"
-        variant="outline"
-        size="icon-lg"
+        variant="ghost"
+        size="icon"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         aria-controls="provider-navigation"
         onClick={() => setOpen(!open)}
       >
-        <Menu className="size-5" aria-hidden="true" />
+        <Menu className="size-4" aria-hidden="true" />
       </Button>
       <Link href="/" className="inline-flex items-center gap-2 rounded-md text-lg font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c6355]">
         <AspenLogo size={30} decorative />

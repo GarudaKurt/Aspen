@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import {planSchema,type PlanName} from "@/features/subscriptions/data/plans";
 import { z } from "zod";
 import { businessLocationSchema } from "@/features/tenancy/schemas";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -24,6 +25,7 @@ export type IdentityDetails = {
 };
 
 export type ListingDraft = {
+  selectedPlan?: PlanName | null;
   providerType: string;
   businessName: string;
   businessDescription: string;
@@ -38,6 +40,7 @@ export type ListingDraft = {
 
 // Drafts may contain incomplete input. Whitelist only the editable, non-sensitive fields.
 export const persistedDraftSchema = z.object({
+  selectedPlan: planSchema.nullable().optional(),
   providerType: z.string().max(80),
   businessName: z.string().max(160),
   businessDescription: z.string().max(3000),
@@ -72,6 +75,7 @@ type ListingStore = ListingDraft & {
 };
 
 export const initialListingDraft: ListingDraft = {
+  selectedPlan:null,
   providerType: "Individual provider",
   businessName: "",
   businessDescription: "",
@@ -150,6 +154,7 @@ export const useListingStore = create<ListingStore>()(
         facebookPage: state.facebookPage,
         locationDetails: state.locationDetails,
         selectedServices: state.selectedServices,
+        selectedPlan:state.selectedPlan,
       }),
     },
   ),

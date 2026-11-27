@@ -1,3 +1,4 @@
+import {planSchema} from "@/features/subscriptions/data/plans";
 import { z } from "zod";
 
 const optionalText = z.string().trim().max(500).optional().or(z.literal(""));
@@ -63,6 +64,7 @@ export const identityDetailsSchema = z.object({
 });
 
 export const providerApplicationSchema = businessProfileSchema.extend({
+  selectedPlan: planSchema,
   selectedServices: z.array(z.string().trim().min(1).max(80)).min(1).max(20),
   identity: identityDetailsSchema,
   uploadedFiles: z.record(z.string().trim().min(1).max(160), z.string().trim().min(1).max(500)).default({}),

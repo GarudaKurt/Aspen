@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile } from "@/components/ui/icon-tile";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -158,7 +159,7 @@ export function ChatView({
               <ConversationListSkeleton />
             ) : !rows.length && !inbox.error ? (
               <div className="px-5 py-14 text-center">
-                <MessageCircle className="mx-auto mb-3 size-7 text-[#789286]" />
+                {role === "provider" ? <IconTile icon={MessageCircle} className="mx-auto mb-3" /> : <MessageCircle className="mx-auto mb-3 size-7 text-[#789286]" />}
                 <p className="text-sm font-medium">
                   {search
                     ? "No matching conversations"
@@ -262,9 +263,9 @@ export function ChatView({
           <ConversationPanelSkeleton />
         ) : (
           <div className="hidden flex-col items-center justify-center p-8 text-center md:flex">
-            <span className="mb-5 rounded-2xl bg-[#edf3ef] p-5 text-[#3c6355]">
+            {role === "provider" ? <IconTile icon={MessageCircle} className="mb-5" /> : (<span className="mb-5 rounded-2xl bg-[#edf3ef] p-5 text-[#3c6355]">
               <MessageCircle className="size-8" />
-            </span>
+            </span>)}
             <h2 className="font-semibold">
               {opening
                 ? "Opening your conversation…"

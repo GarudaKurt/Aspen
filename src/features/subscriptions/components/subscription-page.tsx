@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+
 
 import { AspenLogo } from "@/components/brand/aspen-logo";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { subscriptionPlans } from "../data/plans";
 
 export function SubscriptionPage() {
   const router = useRouter();
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+
 
   const getStartedPath = (planName: string) =>
     `/list-your-business?plan=${encodeURIComponent(planName.toLowerCase())}`;
@@ -37,15 +37,7 @@ export function SubscriptionPage() {
           <h1 className="mt-4 text-4xl font-bold tracking-[-0.04em] text-[#3c6355] sm:text-5xl lg:text-6xl">Choose a plan that fits your business</h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#69716c] sm:text-lg">Start with a free listing, then unlock the tools your pet-service business needs as it grows.</p>
 
-          <div className="mt-8 inline-flex items-center rounded-full border border-[#dfe6e1] bg-[#f7faf8] p-1 text-sm font-semibold" aria-label="Billing period">
-            <button type="button" onClick={() => setBillingPeriod("monthly")} aria-pressed={billingPeriod === "monthly"} className={`rounded-full px-4 py-2 transition-colors ${billingPeriod === "monthly" ? "bg-[#3c6355] text-white" : "text-[#68736d] hover:text-[#3c6355]"}`}>
-              Pay monthly
-            </button>
-            <button type="button" onClick={() => setBillingPeriod("yearly")} aria-pressed={billingPeriod === "yearly"} className={`rounded-full px-4 py-2 transition-colors ${billingPeriod === "yearly" ? "bg-[#3c6355] text-white" : "text-[#68736d] hover:text-[#3c6355]"}`}>
-              Pay yearly <span className="ml-1 text-[10px] text-[#d6794f]">save 20%</span>
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-[#88918b]">Pricing is shown per month. Annual billing will be configured when payments are enabled.</p>
+          <p className="mt-4 text-sm text-slate-600">Monthly plans activate after business approval.</p>
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -76,7 +68,7 @@ export function SubscriptionPage() {
           ))}
         </div>
 
-        <p className="mt-5 text-center text-xs text-[#88918b]">Plan selection and payment activation will be connected when billing is implemented.</p>
+
       </section>
     </main>
   );

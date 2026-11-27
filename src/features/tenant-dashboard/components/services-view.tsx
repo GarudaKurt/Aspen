@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile } from "@/components/ui/icon-tile";
 import { useMemo, useRef, useState } from "react";
 import {
   BarChart3,
@@ -79,9 +80,7 @@ function SummaryCard({
           <p className="text-sm text-slate-500">{label}</p>
           <strong className="mt-2 block text-3xl">{value}</strong>
         </div>
-        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-[#3c6355]">
-          <Icon className="size-6" aria-hidden="true" />
-        </span>
+        <IconTile icon={Icon} />
       </div>
       <p className="mt-6 text-sm text-slate-500">{detail}</p>
     </Card>

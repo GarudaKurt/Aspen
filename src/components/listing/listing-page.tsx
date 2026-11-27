@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {planFromQuery} from "@/features/subscriptions/data/plans";
 import { submitProviderApplication } from "@/features/tenancy/api/actions";
 import { providerApplicationSchema } from "@/features/tenancy/schemas";
 import { linkApplicationMedia } from "@/features/media/api/actions";
@@ -123,13 +124,17 @@ export function ListingPage({
     steps.findIndex(({ path }) => pathname === path),
   );
 
-  const selectedPlan = searchParams.get("plan");
-  const selectedPlanLabel = selectedPlan
-    ? selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)
-    : null;
+  const savedPlan = useListingStore(state=>state.selectedPlan);
+  const planParam = searchParams.get("plan");
+  const chosen = planFromQuery(planParam);
+  const selectedPlan = planParam === null ? savedPlan ?? null : chosen;
+  useEffect(()=>{
+    if(chosen && chosen !== savedPlan) useListingStore.setState({selectedPlan:chosen});
+  },[chosen,savedPlan]);
   const registrationPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
   const applicationInput = {
+    selectedPlan,
     providerType,
     businessName,
     businessDescription,
@@ -143,6 +148,7 @@ export function ListingPage({
   };
 
   const reviewDraft: ListingDraft = {
+    selectedPlan,
     providerType,
     businessName,
     businessDescription,
@@ -236,6 +242,7 @@ export function ListingPage({
 
   const submitApplication = async () => {
     setSubmissionError("");
+    if (!selectedPlan) { setSubmissionError("Choose a subscription plan before submitting."); return; }
     const parsed = providerApplicationSchema.safeParse(applicationInput);
     if (!parsed.success) {
       setSubmissionError(parsed.error.issues[0]?.message ?? "Complete the required application details before submitting.");
@@ -320,11 +327,11 @@ export function ListingPage({
           <p className="mt-3 text-sm font-semibold text-[#242524]">
             Step {activeIndex + 1} of {steps.length}
           </p>
-          {selectedPlanLabel && (
+          {selectedPlan ? (
             <p className="mt-2 inline-flex rounded-full bg-[#eef5f0] px-3 py-1 text-xs font-semibold text-[#3c6355]">
-              Selected plan: {selectedPlanLabel} · Activation follows approval
+              Selected plan: {selectedPlan} · Activation follows approval
             </p>
-          )}
+          ) : <Link href="/subscriptions" className="mt-2 block font-medium text-[#3c6355] underline">Choose a subscription plan</Link>}
 
           {initialApplication && (
             <div
@@ -1372,6 +1379,7 @@ function ReviewStep({
       </ReviewCard>
 
       <ReviewCard title="Billing" onEdit={() => onEdit("/list-your-business/billing")}>
+        <ReviewRow label="Monthly plan" value={draft.selectedPlan ?? "Choose a plan"} />
         <ReviewRow label="Billing name" value={draft.billing.fullName || "Not provided"} />
         <ReviewRow label="Billing email" value={draft.billing.email || "Not provided"} />
         <ReviewRow label="Billing address" value={draft.billing.address || "Not provided"} multiline />

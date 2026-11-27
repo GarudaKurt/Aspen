@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile } from "@/components/ui/icon-tile";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { Bell, CalendarDays, CreditCard, MessageCircle, ShieldCheck, Star } from "lucide-react";
@@ -19,7 +20,7 @@ export type AppNotification = {
   read?: boolean;
 };
 
-type Audience = "customer" | "provider";
+type Audience = "customer" | "provider" | "admin";
 type Filter = "All" | "Unread" | "Appointments" | NotificationKind;
 
 const iconByKind = {
@@ -33,7 +34,7 @@ const iconByKind = {
 } as const;
 
 const customerFilters: Filter[] = ["All", "Unread", "Appointments"];
-const providerFilters: Filter[] = ["All", "Bookings", "Payments", "Reviews", "System"];
+const providerFilters: Filter[] = ["All", "Unread"];
 
 function iconClasses(kind: NotificationKind) {
   if (kind === "Appointments") return "bg-emerald-50 text-[#3c6355]";
@@ -74,7 +75,7 @@ export function NotificationCenter({
         <div>
           {audience === "provider" && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c5714e]">Business inbox</p>}
           <h1 className="mt-2 text-3xl font-bold text-[#3c6355]">Notifications</h1>
-          <p className="mt-2 text-sm text-slate-500">{audience === "customer" ? "Stay up to date with your appointments and messages." : "Booking requests, payments, reviews, and messages from PawSpot."}</p>
+          <p className="mt-2 text-sm text-slate-500">{audience === "customer" ? "Stay up to date with your appointments and messages." : audience === "admin" ? "New payment receipts awaiting review." : "Your latest booking requests and billing updates."}</p>
         </div>
         <Button type="button" variant="outline" onClick={markAllRead} disabled={!unreadCount}>Mark all as read</Button>
       </div>
@@ -84,19 +85,19 @@ export function NotificationCenter({
       </div>
 
       <Card className="mt-5 overflow-hidden border-[#e1e5e2] bg-white p-0 shadow-none">
-        {visible.length ? <div className="divide-y divide-slate-100">{visible.map((notification) => <NotificationRow key={notification.id} notification={notification} read={readIds.has(notification.id)} onRead={() => markRead(notification.id)} />)}</div> : <EmptyState audience={audience} filter={filter} />}
+        {visible.length ? <div className="divide-y divide-slate-100">{visible.map((notification) => <NotificationRow key={notification.id} notification={notification} audience={audience} read={readIds.has(notification.id)} onRead={() => markRead(notification.id)} />)}</div> : <EmptyState audience={audience} filter={filter} />}
       </Card>
     </>
   );
 }
 
-function NotificationRow({ notification, read, onRead }: { notification: AppNotification; read: boolean; onRead: () => void }) {
+function NotificationRow({ notification, audience, read, onRead }: { audience: Audience; notification: AppNotification; read: boolean; onRead: () => void }) {
   const Icon = iconByKind[notification.kind];
-  const content = <div className={`flex items-start gap-4 px-4 py-5 transition-colors sm:px-5 ${read ? "bg-white" : "bg-[#f7faf8]"}`}><span className={`mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl ${iconClasses(notification.kind)}`}><Icon className="size-5" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><strong className="text-sm text-[#202321]">{notification.title}</strong><span className="shrink-0 text-xs text-slate-400">{notification.timestamp}</span></div><p className="mt-1 text-sm leading-5 text-slate-500">{notification.detail}</p></div>{!read && <span className="mt-2 size-2 shrink-0 rounded-full bg-[#c5714e]" aria-label="Unread" />}</div>;
+  const content = <div className={`flex items-start gap-4 px-4 py-5 transition-colors sm:px-5 ${read ? "bg-white" : "bg-[#f7faf8]"}`}>{audience === "provider" ? <IconTile icon={Icon} className="mt-0.5" /> : <span className={`mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl ${iconClasses(notification.kind)}`}><Icon className="size-5" /></span>}<div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1"><strong className="text-sm text-[#202321]">{notification.title}</strong><span className="shrink-0 text-xs text-slate-400">{notification.timestamp}</span></div><p className="mt-1 text-sm leading-5 text-slate-500">{notification.detail}</p></div>{!read && <span className="mt-2 size-2 shrink-0 rounded-full bg-[#c5714e]" aria-label="Unread" />}</div>;
   if (!notification.href) return <button type="button" onClick={onRead} className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3c6355]">{content}</button>;
   return <Link href={notification.href} onClick={onRead} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3c6355]">{content}</Link>;
 }
 
 function EmptyState({ audience, filter }: { audience: Audience; filter: Filter }) {
-  return <div className="px-6 py-16 text-center"><Bell className="mx-auto size-10 text-[#3c6355]" /><h2 className="mt-4 text-lg font-semibold">No {filter === "All" ? "notifications" : filter.toLowerCase() + " notifications"} yet</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{audience === "customer" ? "Appointment updates and messages from your service providers will appear here." : "New activity for your business will appear here."}</p></div>;
+  return <div className="px-6 py-16 text-center">{audience === "provider" ? <IconTile icon={Bell} className="mx-auto" /> : <Bell className="mx-auto size-10 text-[#3c6355]" />}<h2 className="mt-4 text-lg font-semibold">No {filter === "All" ? "notifications" : filter.toLowerCase() + " notifications"} yet</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{audience === "customer" ? "Appointment updates and messages from your service providers will appear here." : audience === "admin" ? "New payment submissions will appear here." : "New activity for your business will appear here."}</p></div>;
 }

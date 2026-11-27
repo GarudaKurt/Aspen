@@ -19,6 +19,11 @@ export async function calendarAccess(businessId: string, write = false) {
     .eq("id", businessId).eq("owner_id", current.user.id).maybeSingle();
   if (error) throw error;
   if (!business) throw new CalendarError("This business is not available to your account.", 403);
+  if (!write) {
+    const entitlement = await supabase.rpc("billing_access", { p_business: businessId });
+    if (entitlement.error) throw entitlement.error;
+    if (!entitlement.data) throw new CalendarError("Renew your subscription to access the calendar.", 403);
+  }
   if (write) {
     const { data: allowed, error: accessError } = await supabase.rpc("can_manage_business_services", { p_business_id: businessId });
     if (accessError) throw accessError;

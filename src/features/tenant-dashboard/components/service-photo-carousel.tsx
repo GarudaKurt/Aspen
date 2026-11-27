@@ -50,7 +50,7 @@ export function ServicePhotoCarousel({
             type="button"
             variant="secondary"
             size="icon-sm"
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90"
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg bg-white text-[#3c6355]"
             onClick={() => move(-1)}
             aria-label="Previous photo"
           >
@@ -60,7 +60,7 @@ export function ServicePhotoCarousel({
             type="button"
             variant="secondary"
             size="icon-sm"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-white text-[#3c6355]"
             onClick={() => move(1)}
             aria-label="Next photo"
           >

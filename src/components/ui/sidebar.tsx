@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as React from "react";
 import { cn } from "cn";
 
@@ -84,7 +85,7 @@ export function SidebarTrigger({
       )}
       {...props}
     >
-      {open ? "‹" : "›"}
+      {open ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
     </button>
   );
 }

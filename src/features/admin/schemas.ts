@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const providerApplicationDecisionSchema = z
   .object({
+    due: z.string().date().nullable().optional(),
     applicationId: z.string().uuid(),
     decision: z.enum(["approved", "rejected"]),
     rejectionReason: z.string().trim().max(1000).optional().or(z.literal("")),

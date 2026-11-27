@@ -101,7 +101,11 @@ test('range queries preserve multiple appointments, exclude other tenants and de
     business_calendar_events: [{id:'m',business_id:bid,title:'Meeting',event_type:'meeting',status:'Confirmed',starts_at:instant('13:00'),ends_at:instant('14:00'),deleted_at:null},
       {id:'deleted',business_id:bid,title:'Removed',starts_at:instant('13:00'),ends_at:instant('14:00'),deleted_at:instant('08:00')}],
   };
-  const client={from(table){
+  let entitled = true;
+  const client={async rpc(name, args) {
+    assert.equal(name, 'billing_access'); assert.equal(args.p_business, bid);
+    return {data: entitled, error:null};
+  },from(table){
     let rows=[...(tables[table]??[])]; let head=false;
     const builder={
       select(_columns, options){head=Boolean(options?.head);return this;},
@@ -122,4 +126,6 @@ test('range queries preserve multiple appointments, exclude other tenants and de
   assert.deepEqual(result.events.map(e=>e.id),['appointment:b']);
   result=await loadCalendar({...range,...dates.calendarRange('2026-12-01','day')});
   assert.equal(result.events.length,0);
+  entitled = false;
+  await assert.rejects(loadCalendar(range), /Renew your subscription/);
 });

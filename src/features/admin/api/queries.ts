@@ -9,7 +9,7 @@ export async function getProviderApplications() {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("provider_applications")
-    .select("id, applicant_id, status, provider_type, business_name, business_description, years_experience, location_details, selected_services, identity_details, identity_documents, review_notes, submitted_at, reviewed_at")
+    .select("id, applicant_id, status, provider_type, business_name, business_description, years_experience, location_details, selected_services, selected_plan, identity_details, identity_documents, review_notes, submitted_at, reviewed_at")
     .order("submitted_at", { ascending: false });
   if (error) throw new Error("Unable to load provider applications.");
 
@@ -38,6 +38,7 @@ export async function getProviderApplications() {
 
   return Promise.all((data ?? []).map(async (application) => ({
     id: String(application.id),
+    plan: application.selected_plan as string | null,
     applicantId: String(application.applicant_id),
     applicant: profileById.get(String(application.applicant_id)) ?? null,
     status: String(application.status),

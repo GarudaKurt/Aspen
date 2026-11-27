@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile } from "@/components/ui/icon-tile";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Star, Trash2, X } from "lucide-react";
@@ -165,7 +166,7 @@ export function BusinessPhotoManager({ controller }: { controller: BusinessPhoto
         className={`rounded-xl border-2 border-dashed p-6 text-center transition-colors ${dragging && !busy ? "border-[#3c6355] bg-[#edf3ef]" : "border-slate-200 bg-slate-50/50"}`}
       >
         <label className={`block rounded-lg text-sm text-[#3c6355] focus-within:ring-2 focus-within:ring-[#3c6355] ${busy ? "opacity-50" : "cursor-pointer"}`}>
-          <ImagePlus className="mx-auto mb-2 size-6" />
+          <IconTile icon={ImagePlus} className="mx-auto mb-2" />
           <span className="font-medium">Drop photos here or browse files</span>
           <input aria-label="Choose or drop business gallery photos" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy} className="sr-only" onChange={(event) => { select(event.target.files); event.target.value = ""; }} />
           <span className="mt-1 block text-xs text-slate-500">Select multiple photos. Two upload at a time.</span>
@@ -180,7 +181,7 @@ export function BusinessPhotoManager({ controller }: { controller: BusinessPhoto
             <Button type="button" variant="outline" disabled={busy || photo.isCover} className="w-full gap-2 text-xs" onClick={() => void run(() => mutate("cover", photo.id))}><Star className="size-4" />{photo.isCover ? "Current cover" : "Use as cover"}</Button>
             <div className="flex items-center justify-between gap-2">
               <label className="cursor-pointer rounded-md px-2 py-2 text-sm text-[#3c6355] hover:bg-slate-50 focus-within:ring-2"><input aria-label={`Replace ${photo.name}`} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={busy} onChange={(event) => { select(event.target.files, photo.id); event.target.value = ""; }} />Replace</label>
-              <Button type="button" variant="ghost" disabled={busy} aria-label={`Delete ${photo.name}`} onClick={() => setDeletePhoto(photo)}><Trash2 className="size-4 text-red-600" /></Button>
+              <Button type="button" variant="destructive" size="icon" disabled={busy} aria-label={`Delete ${photo.name}`} onClick={() => setDeletePhoto(photo)}><Trash2 className="size-4 text-red-600" /></Button>
             </div>
           </div>
         </article>)}
@@ -189,7 +190,7 @@ export function BusinessPhotoManager({ controller }: { controller: BusinessPhoto
         <p role="status" className="text-xs text-slate-500">{completed.length} uploaded · {queue.filter((item) => item.status === "error").length} failed · {queue.filter((item) => item.status === "queued" || item.status === "uploading").length} remaining</p>
         <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{queue.map((item) => <div key={item.id} className="min-w-0 space-y-2 rounded-xl border p-3">
           <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-50">{item.preview ? <Image src={item.preview} alt={`Preview of ${item.file.name}`} fill unoptimized sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" /> : <div className="flex h-full items-center justify-center text-slate-400"><ImagePlus className="size-8" /></div>}
-            <Button type="button" size="icon" variant="outline" className="absolute right-1 top-1 size-7 bg-white" disabled={busy} aria-label={`Remove queued ${item.file.name}`} onClick={() => removeQueued(item)}><X className="size-4" /></Button></div>
+            <Button type="button" size="icon-sm" variant="outline" className="absolute right-1 top-1 rounded-lg bg-white text-[#3c6355]" disabled={busy} aria-label={`Remove queued ${item.file.name}`} onClick={() => removeQueued(item)}><X className="size-4" /></Button></div>
           <p className="truncate text-xs" title={item.file.name}>{item.replaceId ? "Replace: " : "Add: "}{item.file.name}</p>
           <p role="status" className={`text-xs font-medium ${item.status === "error" ? "text-red-700" : "text-[#3c6355]"}`}>
             {item.status === "queued" ? "Ready to upload" : item.status === "success" ? "Uploaded" : item.status === "error" ? "Failed" : item.progress >= 95 ? "Saving photo…" : `Uploading… ${item.progress}%`}

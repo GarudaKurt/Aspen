@@ -685,9 +685,9 @@ export function ProfileView({
               profile.amenities.map((amenity) => (
                 <span
                   key={amenity.id}
-                  className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-600"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#e8f5ef] px-3 py-2 text-sm font-semibold text-[#3c6355]"
                 >
-                  <AmenityIcon amenity={amenity} />
+                  <AmenityIcon amenity={amenity} size={16} />
                   {amenity.label}
                 </span>
               ))
@@ -935,7 +935,7 @@ function AmenitiesEditor({
               className="size-4 accent-[#3c6355]"
             />
             <span className="text-[#3c6355]">
-              <AmenityIcon amenity={amenity} />
+              <AmenityIcon amenity={amenity} size={16} />
             </span>
             <span>{amenity.label}</span>
           </label>
@@ -966,7 +966,7 @@ function AmenitiesEditor({
                 key={amenity.id}
                 className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm"
               >
-                <AmenityIcon amenity={amenity} />
+                <AmenityIcon amenity={amenity} size={16} />
                 {editingId === amenity.id ? (
                   <>
                     <Input

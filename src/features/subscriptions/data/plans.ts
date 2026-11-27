@@ -1,5 +1,14 @@
+import { z } from "zod";
+
+export const planSchema = z.enum([
+  "Free",
+  "Basic",
+  "Professional",
+  "Enterprise",
+]);
+export type PlanName = z.infer<typeof planSchema>;
 export type SubscriptionPlan = {
-  name: string;
+  name: PlanName;
   price: string;
   description: string;
   cta: string;
@@ -62,3 +71,11 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     ],
   },
 ];
+
+export function planFromQuery(value: string | null) {
+  return (
+    subscriptionPlans.find(
+      (plan) => plan.name.toLowerCase() === value?.toLowerCase(),
+    )?.name ?? null
+  );
+}

@@ -17,6 +17,7 @@ export async function reviewProviderApplication(formData: FormData) {
 
   const parsed = providerApplicationDecisionSchema.safeParse({
     applicationId: formData.get("applicationId"),
+    due: formData.get("due") || null,
     decision: formData.get("decision"),
     rejectionReason: formData.get("rejectionReason") ?? "",
   });
@@ -24,7 +25,7 @@ export async function reviewProviderApplication(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
   const result = parsed.data.decision === "approved"
-    ? await supabase.rpc("approve_provider_application", { p_application_id: parsed.data.applicationId })
+    ? await supabase.rpc("approve_application_with_terms", { p_application_id: parsed.data.applicationId, p_due: parsed.data.due ?? null })
     : await supabase.rpc("reject_provider_application", {
         p_application_id: parsed.data.applicationId,
         p_rejection_reason: parsed.data.rejectionReason,

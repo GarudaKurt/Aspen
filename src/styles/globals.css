@@ -39,3 +39,24 @@
 }
 
 
+
+@layer utilities {
+  /* Keep icon-only tools consistent within the tenant shell, including its sheets. */
+  .tenant-dashboard :is([data-dashboard-icon-control], [data-slot="button"][data-variant="ghost"][data-size="icon"]) {
+    @apply size-9 shrink-0 rounded-lg bg-transparent p-0 text-[#3c6355];
+  }
+
+  .tenant-dashboard :is([data-dashboard-icon-control], [data-slot="button"][data-variant="ghost"][data-size="icon"]):is(:enabled:hover, [aria-expanded="true"]) {
+    @apply bg-[#e8f5ef];
+  }
+
+  .tenant-dashboard :is([data-dashboard-icon-control], [data-slot="button"][data-variant="ghost"][data-size="icon"]) svg {
+    @apply size-4 shrink-0;
+  }
+
+  @media (pointer: coarse) {
+    .tenant-dashboard :is([data-dashboard-icon-control], [data-slot="button"][data-variant="ghost"][data-size="icon"]) {
+      @apply size-11;
+    }
+  }
+}

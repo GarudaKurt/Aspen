@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 
 export function Sheet({
   open,
+  label,
   onOpenChange,
   children,
 }: {
   open: boolean;
+  label?: string;
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50" role="dialog" aria-label={label} aria-modal="true">
       <button
         type="button"
         aria-label="Close panel"
